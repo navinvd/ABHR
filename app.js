@@ -4,10 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var cluster = require('cluster');
-var numCPUs = require('os').cpus().length;
 var auth = require('./middlewares/auth');
-var socket = require('./socket/socketServer');
 var db = require('./database/mongoDbConnection');
 var expressValidator = require('express-validator');
 var fileUpload = require('express-fileupload');
@@ -90,9 +87,9 @@ app.use(function (err, req, res, next) {
 });
 
 //} else {
-    var server = app.listen((config.node_port || 3000), function () {
-        console.log('Listening on port ' + (config.node_port || 3000) + '...');
-    });
-    socket.socketStartUp(server);
+    // var server = app.listen((config.node_port || 3000), function () {
+    //     console.log('Listening on port ' + (config.node_port || 3000) + '...');
+    // });
+    // socket.socketStartUp(server);
 
 module.exports = app;
