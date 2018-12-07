@@ -1,0 +1,40 @@
+{
+  "name": "carbookingapi",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "apidoc": "^0.17.7",
+    "bcrypt": "^3.0.2",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
+    "debug": "~2.6.9",
+    "ejs": "^2.5.9",
+    "email-templates": "^2.7.1",
+    "express": "~4.16.0",
+    "express-fileupload": "^1.0.0",
+    "express-validator": "^5.3.0",
+    "generate-password": "^1.4.1",
+    "http-errors": "~1.6.2",
+    "jsonwebtoken": "^8.4.0",
+    "moment": "^2.22.2",
+    "mongoose": "^5.3.12",
+    "mongoose-auto-increment": "^5.0.1",
+    "morgan": "^1.9.1",
+    "nodemailer": "^2.7.1",
+    "nodemailer-smtp-transport": "^2.7.4",
+    "path": "^0.12.7",
+    "serve-favicon": "^2.5.0",
+    "socket.io": "^2.1.1",
+    "underscore": "^1.9.1"
+  },
+  "apidoc": {
+    "name": "ABHR",
+    "version": "0.0.0",
+    "description": "ABHR is application from where you can book a car.",
+    "title": "ABHR",
+    "url": "http://localhost:3000"
+  }
+}
