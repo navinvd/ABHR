@@ -1,26 +1,26 @@
 var express = require('express');
-var auth = require('./../middlewares/auth');
+// var auth = require('./../middlewares/auth');
 var router = express.Router();
-router.use('/admin', admin);
 var path = require('path');
 var async = require("async");
 var User = require('./../../models/users');
-var config = require('./../config');
-
+var config = require('./../../config');
+var jwt = require('jsonwebtoken');
+var bcrypt = require('bcrypt');
 
 /**
- * @api {post} /registration Registration
+ * @api {post} /app/registration Registration
  * @apiName Registration
  * @apiDescription Used for user registration
- * @apiGroup Root
+ * @apiGroup AppUser
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} first_name FirstName
  * @apiParam {String} last_name LastName
- * @apiParam {String} phone_number Phone Number(Optional) 
  * @apiParam {String} email User email address 
  * @apiParam {String} password User Password 
- * @apiParam {String} type Type of User ["spiri", "customer"]
+ * @apiParam {String} deviceType Type of device ["ios", "anroid"]
+ * @apiParam {String} deviceToken unique devicetoken
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -28,12 +28,13 @@ var config = require('./../config');
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/registration', (req, res, next) => {
+    console.log('here0');
     var schema = {
-        'name': {
+        'first_name': {
             notEmpty: true,
             errorMessage: "Name is required"
         },
-        'username': {
+        'last_name': {
             notEmpty: true,
             errorMessage: "Username is required"
         },
@@ -45,64 +46,147 @@ router.post('/registration', (req, res, next) => {
             notEmpty: true,
             errorMessage: "Password is required"
         },
-        'type': {
+        'devicType': {
             notEmpty: true,
-            errorMessage: "Type is required"
+            errorMessage: "deviceType is required"
+        },
+        'deviceToken': {
+            notEmpty: true,
+            errorMessage: "deviceToken is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var userModel = new User(req.body);
+        var Data = {
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            password: req.body.password,
+            email: req.body.email,
+            deviceType: req.body.device_type,
+            deviceToken:req.body.deviceToken,
+            type:"user"
+        };
+        var userModel = new User(Data);
         userModel.save(function (err, userData) {
-            console.log("data:", data);
+            console.log("data:", userData);
             if (err) {
-                if (err.code == '11000') {
-                    if (err.message.indexOf('username') != -1) {
-                        res.status(config.BAD_REQUEST).json({
-                            message: "Username already exist",
-                            error: err
-                        });
-                    } else if (err.message.indexOf('email') != -1) {
-                        res.status(config.BAD_REQUEST).json({
-                            message: "Email already exist",
-                            error: err
-                        });
-                    } else {
-                        return next(err);
-                    }
-                } else {
-                    return next(err);
-                }
+                return next(err);
             } else {
                 var token = jwt.sign({id: userData._id, type: userData.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                     expiresIn: 60 * 60 * 24 // expires in 24 hours
                 });
                 var result = {
-                    message: "User registered successfully. Please verify your email",
+                    message: "User registered successfully.",
                     data: userData,
                     token: token
                 };
-                var option = {
-                    to: req.body.email,
-                    subject: 'Healing Shore - Account verification'
-                }
-                var email_details = {
-                    expire_time: moment().add(1, 'h').toDate().getTime(),
-                    user_id: userData._id
-                };
-                var buffer = Buffer(JSON.stringify(email_details), 'binary').toString('base64');
-                var data = {link: config.FRONT_END_URL + 'mail_verification?detials=' + buffer}
-                mailHelper.send('verification_email', option, data, function (err, res) {
-                    if (err) {
-                        console.log("Mail Error:", err);
-                    } else {
-                        console.log("Mail Success:", res);
-                    }
-                })
+                // var option = {
+                //     to: req.body.email,
+                //     subject: 'ABHR Shore - Account verification'
+                // }
+                // var email_details = {
+                //     expire_time: moment().add(1, 'h').toDate().getTime(),
+                //     user_id: userData._id
+                // };
+                // var buffer = Buffer(JSON.stringify(email_details), 'binary').toString('base64');
+                // var data = {link: config.FRONT_END_URL + 'mail_verification?detials=' + buffer}
+                // mailHelper.send('verification_email', option, data, function (err, res) {
+                //     if (err) {
+                //         console.log("Mail Error:", err);
+                //     } else {
+                //         console.log("Mail Success:", res);
+                //     }
+                // })
                 res.status(config.OK_STATUS).json(result);
             }
         });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+})
+
+/**
+ * @api {post} /app/login Login
+ * @apiName Login
+ * @apiDescription Used for App user login
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} email User Email ID
+ * @apiParam {String} password User Password 
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+router.post('/login', (req, res, next) => {
+    var schema = {
+        'email': {
+            notEmpty: true,
+            errorMessage: "Email is required"
+        },
+        'password': {
+            notEmpty: true,
+            errorMessage: "Password is required"
+        },
+        'devicType': {
+            notEmpty: true,
+            errorMessage: "deviceType is required"
+        },
+        'deviceToken': {
+            notEmpty: true,
+            errorMessage: "deviceToken is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        User.findOne({email: req.body.email, type: 'user'}, function (err, data) {
+            if (err) {
+                return next(err);
+            } else {
+                if (data) {
+                    bcrypt.compare(req.body.password, data.password, function (err, result) {
+                        if (result) {
+                            if (data.is_verified) {
+                                var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                                    expiresIn: 60 * 60 * 24 // expires in 24 hours
+                                });
+
+                                res.status(config.OK_STATUS).json({
+                                    message: "User authenticated successfully",
+                                    result: data,
+                                    token: token
+                                });
+                            } else {
+                                res.status(config.BAD_REQUEST).json({
+                                    message: "Please verify your email for successfull login",
+                                    type: 'NOT_VERIFIED',
+                                    result: {
+                                        '_id': data._id,
+                                        'email': data.email
+                                    }
+                                });
+                            }
+                        } else {
+                            res.status(config.BAD_REQUEST).json({
+                                message: "Password is wrong",
+                            });
+                        }
+                    });
+                } else {
+                    res.status(config.BAD_REQUEST).json({
+                        message: "Email is wrong",
+                    });
+                }
+            }
+        })
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",

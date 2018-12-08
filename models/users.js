@@ -6,19 +6,17 @@ var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 //Define a schema
 var Schema = mongoose.Schema;
 var UserSchema = new Schema({
-    username: {
+    // username: {
+    //     type: String,
+    //     lowercase: true
+    // },
+    first_name : {
         type: String,
-        lowercase: true
+        required: true,
     },
-    name: {
-        "first_name" : {
-            type: String,
-            required: true,
-        },
-        "last_name" : {
-            type: String,
-            required: true,
-        }
+    last_name : {
+        type: String,
+        required: true,
     },
     phone_number: String,
     email: {
@@ -33,7 +31,7 @@ var UserSchema = new Schema({
         type: String,
         enum: ["user", "admin", "agent", "staff"]
     },
-    device_type: {
+    deviceType: {
         type: String,
         enum: ["ios", "anroid"]
     },
