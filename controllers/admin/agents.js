@@ -39,9 +39,13 @@ var generator = require('generate-password');
  */
 router.post('/add', (req, res, next) => {
     var schema = {
-        'username': {
+        'first_name': {
             notEmpty: true,
-            errorMessage: "Username is required"
+            errorMessage: "FirstName is required"
+        },
+        'last_name': {
+            notEmpty: true,
+            errorMessage: "LastName is required"
         },
         'email': {
             notEmpty: true,
@@ -56,12 +60,12 @@ router.post('/add', (req, res, next) => {
             numbers: true
         });
         var userData = {
-            username: req.body.username,
-            name: { "first_name": req.body.first_name, "last_name": req.body.last_name },
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
             phone_number: req.body.phone_number,
             email: req.body.email,
             type: "agent",
-            device_type: req.body.device_type,
+            deviceType: req.body.device_type,
             password: generatepassword
         };
         async.waterfall([
@@ -101,7 +105,7 @@ router.post('/add', (req, res, next) => {
                         callback(err);
                     } else {
                         var result = {
-                            message: "User added successfully..",
+                            message: "Agent added successfully..",
                             data: userData
                         };
                         var option = {
@@ -110,8 +114,8 @@ router.post('/add', (req, res, next) => {
                         }
                         var loginURL = config.FRONT_END_URL + '#/admin/login';
                         var data = {
-                            name: userData.name.first_name,
-                            username: userData.username,
+                            first_name: userData.first_name,
+                            last_name: userData.last_name,
                             email: userData.email,
                             password: generatepassword,
                             link: loginURL

@@ -1,12 +1,16 @@
 var express = require('express');
 // var auth = require('./../middlewares/auth');
-var router = express.Router();
+
 var path = require('path');
 var async = require("async");
 var User = require('./../../models/users');
 var config = require('./../../config');
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcrypt');
+var moment = require('moment');
+var mailHelper = require('./../../helper/mail');
+var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
+var router = express.Router();
 
 /**
  * @api {post} /app/registration Registration
@@ -196,10 +200,10 @@ router.post('/login', (req, res, next) => {
 })
 
 /**
- * @api {post} /fb_login Facebook Login
+ * @api {post} /app/fb_login Facebook Login
  * @apiName Facebook Login
- * @apiDescription Used for customer facebook login
- * @apiGroup Root
+ * @apiDescription Used for user facebook login
+ * @apiGroup AppUser
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} email User email address
@@ -211,25 +215,29 @@ router.post('/login', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/user/fb_login', async (req, res, next) => {
+router.post('/fb_login', async (req, res, next) => {
     var schema = {
         'email': {
             notEmpty: true,
             errorMessage: "Email is required"
         },
-        'fb_id': {
+        'socialmediaID': {
             notEmpty: true,
             errorMessage: "fb_id is required"
         },
-        'type': {
+        'socialmediaType': {
             notEmpty: true,
-            errorMessage: "Type is required"
+            errorMessage: "socialMediaType is required"
+        },
+        'user_type': {
+            notEmpty: true,
+            errorMessage: "userType is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({'fb_id': req.body.fb_id}).exec();
+        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType}).exec();
         console.log("user:", user);
         if (user) {
             var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
@@ -242,30 +250,20 @@ router.post('/user/fb_login', async (req, res, next) => {
             };
             res.status(config.OK_STATUS).json(result);
         } else {
-            var userData = req.body;
-            userData.name = userData.username;
-            userData.username = "facebook_" + userData.username.replace(/\s+/g, '-').toLowerCase();
-            userData['is_email_verified'] = true;
-            var userModel = new User(userData);
+            var Data = {
+                first_name: req.body.first_name,
+                last_name: req.body.last_name,
+                socialmediaID: req.body.socialmediaID,
+                socialmediaType: req.body.socialmediaType,
+                email: req.body.email,
+                deviceType: req.body.device_type,
+                deviceToken:req.body.deviceToken,
+                type: req.body.user_type
+            };
+            var userModel = new User(Data);
             userModel.save(function (err, data) {
                 if (err) {
-                    if (err.code == '11000') {
-                        if (err.message.indexOf('username') != -1) {
-                            res.status(config.BAD_REQUEST).json({
-                                message: "Username alrady exist",
-                                error: errors
-                            });
-                        } else if (err.message.indexOf('email') != -1) {
-                            res.status(config.BAD_REQUEST).json({
-                                message: "Email alrady exist",
-                                error: errors
-                            });
-                        } else {
-                            return next(err);
-                        }
-                    } else {
-                        return next(err);
-                    }
+                    return next(err);
                 } else {
                     var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                         expiresIn: 60 * 60 * 24 // expires in 24 hours
@@ -279,8 +277,6 @@ router.post('/user/fb_login', async (req, res, next) => {
                 }
             });
         }
-
-
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
@@ -288,5 +284,154 @@ router.post('/user/fb_login', async (req, res, next) => {
         });
     }
 });
+
+/**
+ * @api {post} /app/google_login Google Login
+ * @apiDescription Used for user google login
+ * @apiName Google Login
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} email User email address
+ * @apiParam {String} google_id User Google ID
+ * @apiParam {String} type Type of User ["user", "agent"] 
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/google_login', async (req, res, next) => {
+
+    var schema = {
+        'email': {
+            notEmpty: true,
+            errorMessage: "Email is required"
+        },
+        'socialmediaID': {
+            notEmpty: true,
+            errorMessage: "google_id is required"
+        },
+        'socialmediaType': {
+            notEmpty: true,
+            errorMessage: "socialMediaType is required"
+        },
+        'user_type': {
+            notEmpty: true,
+            errorMessage: "userType is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType}).exec();
+        if (user) {
+            var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                expiresIn: 60 * 60 * 24 // expires in 24 hours
+            });
+            var result = {
+                message: "Login Successfull",
+                result: user,
+                token: token
+            };
+            res.status(config.OK_STATUS).json(result);
+        } else {
+            var Data = {
+                first_name: req.body.first_name,
+                last_name: req.body.last_name,
+                socialmediaID: req.body.socialmediaID,
+                socialmediaType: req.body.socialmediaType,
+                email: req.body.email,
+                deviceType: req.body.device_type,
+                deviceToken:req.body.deviceToken,
+                type: req.body.user_type
+            };
+            var userModel = new User(Data);
+            userModel.save(function (err, data) {
+                if (err) {
+                    return next(err);
+                } else {
+                    var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                        expiresIn: 60 * 60 * 24 // expires in 24 hours
+                    });
+                    var result = {
+                        message: "Login Successfull",
+                        result: data,
+                        token: token
+                    };
+                    res.status(config.OK_STATUS).json(result);
+                }
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+/**
+ * @api {post} /forget_password Forgot Password
+ * @apiDescription Used to send email for forgot password
+ * @apiName Forget Password
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} email User email adrress   
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/forget_password', async(req, res, next) => {
+    var schema = {
+        'email': {
+            notEmpty: true,
+            errorMessage: "email is required"
+        },
+        'user_type': {
+            notEmpty: true,
+            errorMessage: "user_typ is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user = await User.findOne({email: req.body.email, type: req.body.user_type}).exec();
+        if (user) {
+            var emailData = {
+                expire_time: moment().add(1, 'h').toDate().getTime(),
+                user_id: user._id
+            };
+            var option = {
+                to: user.email,
+                subject: 'ABHR - Request for reset password'
+            }
+            var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
+            var data = {link: config.FRONT_END_URL + 'reset_password?detials=' + buffer};
+            mailHelper.send('forget_password', option, data, function (err, res) {
+                if (err) {
+                    console.log("Mail Error:", err);
+                } else {
+                    console.log("Mail Success:", res);
+                }
+            })
+            res.status(config.OK_STATUS).json({
+                message: "Check your mail to reset your account password",
+            });
+        } else {
+            res.status(config.BAD_REQUEST).json({
+                message: "User is not available with this email",
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+})
 
 module.exports = router;

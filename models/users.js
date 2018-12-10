@@ -19,6 +19,7 @@ var UserSchema = new Schema({
         required: true,
     },
     phone_number: String,
+    address : String,
     email: {
         type: String,
         required: true
@@ -38,6 +39,13 @@ var UserSchema = new Schema({
     app_user_status: {
         type: String,
         enum: ["registered", "rented"]
+    },
+    socialmediaID :{
+        type: String,
+    },
+    socialmediaType :{
+        type: String,
+        enum: ["facebook", "google"]
     },
     verification_code: {
         type: String

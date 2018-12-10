@@ -14,7 +14,7 @@ var transporter = nodemailer.createTransport(smtpTransport({
 }));
 mail_helper.send = (template_name, options, data, callback) => {
     var template_sender = transporter.templateSender(new EmailTemplate('emails/' + template_name), {
-        from: "Car Booking <noreply@gmail.com>"
+        from: "ABHR <noreply@gmail.com>"
     });
     template_sender({
         to: options.to,
