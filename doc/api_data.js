@@ -546,7 +546,7 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "type",
+            "field": "user_type",
             "description": "<p>Type of User [&quot;user&quot;, &quot;agent&quot;]</p>"
           }
         ]
@@ -611,6 +611,13 @@ define({ "api": [
             "optional": false,
             "field": "email",
             "description": "<p>User email adrress</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_type",
+            "description": "<p>User Type [&quot;agent&quot;, &quot;user&quot;]</p>"
           }
         ]
       }
@@ -686,7 +693,7 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "type",
+            "field": "user_type",
             "description": "<p>Type of User [&quot;user&quot;, &quot;agent&quot;]</p>"
           }
         ]

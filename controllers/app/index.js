@@ -208,7 +208,7 @@ router.post('/login', (req, res, next) => {
  * 
  * @apiParam {String} email User email address
  * @apiParam {String} fb_id User Facebook ID
- * @apiParam {String} type Type of User ["user", "agent"] 
+ * @apiParam {String} user_type Type of User ["user", "agent"] 
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -294,7 +294,7 @@ router.post('/fb_login', async (req, res, next) => {
  * 
  * @apiParam {String} email User email address
  * @apiParam {String} google_id User Google ID
- * @apiParam {String} type Type of User ["user", "agent"] 
+ * @apiParam {String} user_type Type of User ["user", "agent"] 
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -379,6 +379,7 @@ router.post('/google_login', async (req, res, next) => {
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} email User email adrress   
+ * @apiParam {String} user_type User Type ["agent", "user"]  
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
