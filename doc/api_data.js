@@ -519,6 +519,223 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/app/fb_login",
+    "title": "Facebook Login",
+    "name": "Facebook_Login",
+    "description": "<p>Used for user facebook login</p>",
+    "group": "AppUser",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>User email address</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "fb_id",
+            "description": "<p>User Facebook ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "type",
+            "description": "<p>Type of User [&quot;user&quot;, &quot;agent&quot;]</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/app/index.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "post",
+    "url": "/forget_password",
+    "title": "Forgot Password",
+    "description": "<p>Used to send email for forgot password</p>",
+    "name": "Forget_Password",
+    "group": "AppUser",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>User email adrress</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/app/index.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "post",
+    "url": "/app/google_login",
+    "title": "Google Login",
+    "description": "<p>Used for user google login</p>",
+    "name": "Google_Login",
+    "group": "AppUser",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>User email address</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "google_id",
+            "description": "<p>User Google ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "type",
+            "description": "<p>Type of User [&quot;user&quot;, &quot;agent&quot;]</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/app/index.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "post",
     "url": "/app/login",
     "title": "Login",
     "name": "Login",
@@ -752,7 +969,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/cars.js",
+    "filename": "controllers/admin/keywords.js",
     "groupTitle": "Keyword"
   },
   {
@@ -822,7 +1039,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/keywords.js",
+    "filename": "controllers/admin/cars.js",
     "groupTitle": "Keyword"
   },
   {
@@ -1069,83 +1286,6 @@ define({ "api": [
     },
     "filename": "controllers/admin/cars.js",
     "groupTitle": "Keyword"
-  },
-  {
-    "type": "post",
-    "url": "/fb_login",
-    "title": "Facebook Login",
-    "name": "Facebook_Login",
-    "description": "<p>Used for customer facebook login</p>",
-    "group": "Root",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "email",
-            "description": "<p>User email address</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "fb_id",
-            "description": "<p>User Facebook ID</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "type",
-            "description": "<p>Type of User [&quot;user&quot;, &quot;agent&quot;]</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/app/index.js",
-    "groupTitle": "Root"
   },
   {
     "type": "post",
