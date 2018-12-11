@@ -81,6 +81,7 @@ router.post('/registration', (req, res, next) => {
                     expiresIn: 60 * 60 * 24 // expires in 24 hours
                 });
                 var result = {
+                    status: 'success',
                     message: "User registered successfully.",
                     data: userData,
                     token: token
@@ -107,8 +108,8 @@ router.post('/registration', (req, res, next) => {
         });
     } else {
         res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: errors
+            status: 'failed',
+            message: "Validation Error"
         });
     }
 })
@@ -164,15 +165,16 @@ router.post('/login', (req, res, next) => {
                                 });
 
                                 res.status(config.OK_STATUS).json({
+                                    status: 'success',
                                     message: "User authenticated successfully",
-                                    result: data,
+                                    data: data,
                                     token: token
                                 });
                             } else {
                                 res.status(config.BAD_REQUEST).json({
+                                    status: 'success',
                                     message: "Please verify your email for successfull login",
-                                    type: 'NOT_VERIFIED',
-                                    result: {
+                                    data: {
                                         '_id': data._id,
                                         'email': data.email
                                     }
@@ -180,12 +182,14 @@ router.post('/login', (req, res, next) => {
                             }
                         } else {
                             res.status(config.BAD_REQUEST).json({
+                                status: "failed",
                                 message: "Password is wrong",
                             });
                         }
                     });
                 } else {
                     res.status(config.BAD_REQUEST).json({
+                        status: 'failed',
                         message: "Email is wrong",
                     });
                 }
@@ -193,8 +197,8 @@ router.post('/login', (req, res, next) => {
         })
     } else {
         res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: errors
+            status: 'failed',
+            message: "Validation Error"
         });
     }
 })
@@ -224,7 +228,7 @@ router.post('/social_login', async (req, res, next) => {
         },
         'socialmediaID': {
             notEmpty: true,
-            errorMessage: "fb_id is required"
+            errorMessage: "socialmediaID is required"
         },
         'socialmediaType': {
             notEmpty: true,
@@ -232,21 +236,21 @@ router.post('/social_login', async (req, res, next) => {
         },
         'user_type': {
             notEmpty: true,
-            errorMessage: "userType is required"
+            errorMessage: "user_type is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
         var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType}).exec();
-        console.log("user:", user);
         if (user) {
             var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                 expiresIn: 60 * 60 * 24 // expires in 24 hours
             });
             var result = {
-                message: "Login Successfull",
-                result: user,
+                status: 'success',
+                message: "Login Successfully",
+                data: user,
                 token: token
             };
             res.status(config.OK_STATUS).json(result);
@@ -264,14 +268,18 @@ router.post('/social_login', async (req, res, next) => {
             var userModel = new User(Data);
             userModel.save(function (err, data) {
                 if (err) {
-                    return next(err);
+                    var result = {
+                        status: 'failed',
+                        message: err
+                    };
                 } else {
                     var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                         expiresIn: 60 * 60 * 24 // expires in 24 hours
                     });
                     var result = {
-                        message: "Login Successfull",
-                        result: data,
+                        status: 'success',
+                        message: "Login Successfully",
+                        data: data,
                         token: token
                     };
                     res.status(config.OK_STATUS).json(result);
@@ -280,8 +288,8 @@ router.post('/social_login', async (req, res, next) => {
         }
     } else {
         res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: errors
+            status: 'failed',
+            message: "Validation Error"
         });
     }
 });
@@ -421,17 +429,20 @@ router.post('/forget_password', async(req, res, next) => {
                 }
             })
             res.status(config.OK_STATUS).json({
+                status: "success",
                 message: "Check your mail to reset your account password",
+                data: user
             });
         } else {
             res.status(config.BAD_REQUEST).json({
+                status: "failed",
                 message: "User is not available with this email",
             });
         }
     } else {
         res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: errors
+            status: "failed",
+            message: "Validation Error"
         });
     }
 })
