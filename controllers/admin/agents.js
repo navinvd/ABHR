@@ -183,11 +183,11 @@ router.put('/update', (req, res, next) =>{
     var errors = req.validationErrors();
     if (!errors) {
         var userData = {
-            username: req.body.username,
-            name: { "first_name": req.body.first_name, "last_name": req.body.last_name },
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
             phone_number: req.body.phone_number,
             email: req.body.email,
-            device_type: req.body.device_type
+            deviceType: req.body.device_type
         };
         async.waterfall([
             function (callback) {

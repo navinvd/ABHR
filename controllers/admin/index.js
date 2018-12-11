@@ -163,7 +163,7 @@ router.post('/forget_password', async(req, res, next) => {
 
 
 /**
- * @api {post} /reset_password Reset Password
+ * @api {post} /admin/reset_password Reset Password
  * @apiDescription Used to reset password of user
  * @apiName Reset Password
  * @apiGroup Root
@@ -171,6 +171,7 @@ router.post('/forget_password', async(req, res, next) => {
  * 
  * @apiParam {String} user_id User id
  * @apiParam {String} new_password New Password for User   
+ * @apiParam {String} type user typr 
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -186,6 +187,10 @@ router.post('/reset_password', async(req, res, next) => {
         'new_password': {
             notEmpty: true,
             errorMessage: "New password is required"
+        },
+        'type':{
+            notEmpty: true,
+            errorMessage: "Type is required"
         }
     };
     req.checkBody(schema);
