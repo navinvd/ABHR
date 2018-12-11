@@ -83,7 +83,7 @@ router.post('/registration', (req, res, next) => {
                 var result = {
                     status: 'success',
                     message: "User registered successfully.",
-                    data: userData,
+                    data: {user : userData},
                     token: token
                 };
                 // var option = {
@@ -167,16 +167,17 @@ router.post('/login', (req, res, next) => {
                                 res.status(config.OK_STATUS).json({
                                     status: 'success',
                                     message: "User authenticated successfully",
-                                    data: data,
+                                    data: {user : data},
                                     token: token
                                 });
                             } else {
                                 res.status(config.BAD_REQUEST).json({
                                     status: 'success',
                                     message: "Please verify your email for successfull login",
-                                    data: {
+                                    data: { user :{
                                         '_id': data._id,
                                         'email': data.email
+                                        }
                                     }
                                 });
                             }
@@ -250,7 +251,7 @@ router.post('/social_login', async (req, res, next) => {
             var result = {
                 status: 'success',
                 message: "Login Successfully",
-                data: user,
+                data: {user : user},
                 token: token
             };
             res.status(config.OK_STATUS).json(result);
@@ -279,7 +280,7 @@ router.post('/social_login', async (req, res, next) => {
                     var result = {
                         status: 'success',
                         message: "Login Successfully",
-                        data: data,
+                        data: {user : data},
                         token: token
                     };
                     res.status(config.OK_STATUS).json(result);
@@ -431,7 +432,7 @@ router.post('/forget_password', async(req, res, next) => {
             res.status(config.OK_STATUS).json({
                 status: "success",
                 message: "Check your mail to reset your account password",
-                data: user
+                data:{user : user}
             });
         } else {
             res.status(config.BAD_REQUEST).json({
