@@ -200,14 +200,15 @@ router.post('/login', (req, res, next) => {
 })
 
 /**
- * @api {post} /app/fb_login Facebook Login
+ * @api {post} /app/social_login Facebook Login
  * @apiName Facebook Login
  * @apiDescription Used for user facebook login
  * @apiGroup AppUser
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} email User email address
- * @apiParam {String} fb_id User Facebook ID
+ * @apiParam {String} socialmediaID User socialmediaID
+ * @apiParam {String} socialmediaType User socialmediaType ["facebook","google"]
  * @apiParam {String} user_type Type of User ["user", "agent"] 
  * 
  * @apiHeader {String}  Content-Type application/json    
@@ -215,7 +216,7 @@ router.post('/login', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/fb_login', async (req, res, next) => {
+router.post('/social_login', async (req, res, next) => {
     var schema = {
         'email': {
             notEmpty: true,
@@ -301,75 +302,75 @@ router.post('/fb_login', async (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/google_login', async (req, res, next) => {
+// router.post('/google_login', async (req, res, next) => {
 
-    var schema = {
-        'email': {
-            notEmpty: true,
-            errorMessage: "Email is required"
-        },
-        'socialmediaID': {
-            notEmpty: true,
-            errorMessage: "google_id is required"
-        },
-        'socialmediaType': {
-            notEmpty: true,
-            errorMessage: "socialMediaType is required"
-        },
-        'user_type': {
-            notEmpty: true,
-            errorMessage: "userType is required"
-        }
-    };
-    req.checkBody(schema);
-    var errors = req.validationErrors();
-    if (!errors) {
-        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType}).exec();
-        if (user) {
-            var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-                expiresIn: 60 * 60 * 24 // expires in 24 hours
-            });
-            var result = {
-                message: "Login Successfull",
-                result: user,
-                token: token
-            };
-            res.status(config.OK_STATUS).json(result);
-        } else {
-            var Data = {
-                first_name: req.body.first_name,
-                last_name: req.body.last_name,
-                socialmediaID: req.body.socialmediaID,
-                socialmediaType: req.body.socialmediaType,
-                email: req.body.email,
-                deviceType: req.body.device_type,
-                deviceToken:req.body.deviceToken,
-                type: req.body.user_type
-            };
-            var userModel = new User(Data);
-            userModel.save(function (err, data) {
-                if (err) {
-                    return next(err);
-                } else {
-                    var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-                        expiresIn: 60 * 60 * 24 // expires in 24 hours
-                    });
-                    var result = {
-                        message: "Login Successfull",
-                        result: data,
-                        token: token
-                    };
-                    res.status(config.OK_STATUS).json(result);
-                }
-            });
-        }
-    } else {
-        res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: errors
-        });
-    }
-});
+//     var schema = {
+//         'email': {
+//             notEmpty: true,
+//             errorMessage: "Email is required"
+//         },
+//         'socialmediaID': {
+//             notEmpty: true,
+//             errorMessage: "google_id is required"
+//         },
+//         'socialmediaType': {
+//             notEmpty: true,
+//             errorMessage: "socialMediaType is required"
+//         },
+//         'user_type': {
+//             notEmpty: true,
+//             errorMessage: "userType is required"
+//         }
+//     };
+//     req.checkBody(schema);
+//     var errors = req.validationErrors();
+//     if (!errors) {
+//         var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType}).exec();
+//         if (user) {
+//             var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+//                 expiresIn: 60 * 60 * 24 // expires in 24 hours
+//             });
+//             var result = {
+//                 message: "Login Successfull",
+//                 result: user,
+//                 token: token
+//             };
+//             res.status(config.OK_STATUS).json(result);
+//         } else {
+//             var Data = {
+//                 first_name: req.body.first_name,
+//                 last_name: req.body.last_name,
+//                 socialmediaID: req.body.socialmediaID,
+//                 socialmediaType: req.body.socialmediaType,
+//                 email: req.body.email,
+//                 deviceType: req.body.device_type,
+//                 deviceToken:req.body.deviceToken,
+//                 type: req.body.user_type
+//             };
+//             var userModel = new User(Data);
+//             userModel.save(function (err, data) {
+//                 if (err) {
+//                     return next(err);
+//                 } else {
+//                     var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+//                         expiresIn: 60 * 60 * 24 // expires in 24 hours
+//                     });
+//                     var result = {
+//                         message: "Login Successfull",
+//                         result: data,
+//                         token: token
+//                     };
+//                     res.status(config.OK_STATUS).json(result);
+//                 }
+//             });
+//         }
+//     } else {
+//         res.status(config.BAD_REQUEST).json({
+//             message: "Validation Error",
+//             error: errors
+//         });
+//     }
+// });
 
 /**
  * @api {post} /forget_password Forgot Password

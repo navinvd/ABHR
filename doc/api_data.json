@@ -519,7 +519,7 @@
   },
   {
     "type": "post",
-    "url": "/app/fb_login",
+    "url": "/app/social_login",
     "title": "Facebook Login",
     "name": "Facebook_Login",
     "description": "<p>Used for user facebook login</p>",
@@ -539,8 +539,15 @@
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "fb_id",
-            "description": "<p>User Facebook ID</p>"
+            "field": "socialmediaID",
+            "description": "<p>User socialmediaID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "socialmediaType",
+            "description": "<p>User socialmediaType [&quot;facebook&quot;,&quot;google&quot;]</p>"
           },
           {
             "group": "Parameter",
@@ -1359,7 +1366,7 @@
   },
   {
     "type": "post",
-    "url": "/reset_password",
+    "url": "/admin/reset_password",
     "title": "Reset Password",
     "description": "<p>Used to reset password of user</p>",
     "name": "Reset_Password",
@@ -1381,6 +1388,13 @@
             "optional": false,
             "field": "new_password",
             "description": "<p>New Password for User</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "type",
+            "description": "<p>user typr</p>"
           }
         ]
       }
