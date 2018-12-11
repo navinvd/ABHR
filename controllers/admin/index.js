@@ -103,13 +103,13 @@ router.post('/login', (req, res, next) => {
 })
 
 /**
- * @api {post} /forget_password Forgot Password
+ * @api {post} /admin/forget_password Forgot Password
  * @apiDescription Used to send email for forgot password
  * @apiName Forgot Password
- * @apiGroup Root
+ * @apiGroup Admin
  * @apiVersion 0.0.0
  * 
- * @apiParam {String} email User email adrress   
+ * @apiParam {String} email User email adrress    
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -121,12 +121,16 @@ router.post('/forget_password', async(req, res, next) => {
         'email': {
             notEmpty: true,
             errorMessage: "email is required"
+        },
+        'type':{
+            notEmpty: true,
+            errorMessage: "Type is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({email: req.body.email, type: req.body.type}).exec();
+        var user = await User.findOne({email: req.body.email, type: 'admin'}).exec();
         if (user) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
@@ -166,12 +170,11 @@ router.post('/forget_password', async(req, res, next) => {
  * @api {post} /admin/reset_password Reset Password
  * @apiDescription Used to reset password of user
  * @apiName Reset Password
- * @apiGroup Root
+ * @apiGroup Admin
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} user_id User id
  * @apiParam {String} new_password New Password for User   
- * @apiParam {String} type user typr 
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -187,16 +190,12 @@ router.post('/reset_password', async(req, res, next) => {
         'new_password': {
             notEmpty: true,
             errorMessage: "New password is required"
-        },
-        'type':{
-            notEmpty: true,
-            errorMessage: "Type is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({_id: req.body.user_id, type: req.body.type}).exec();
+        var user = await User.findOne({_id: req.body.user_id}).exec();
         if (user) {
             User.update({_id: {$eq: req.body.user_id}}, {$set: {password: bcrypt.hashSync(req.body.new_password, SALT_WORK_FACTOR)}}, function (err, data) {
                 if (err) {

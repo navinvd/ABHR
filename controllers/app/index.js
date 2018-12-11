@@ -373,7 +373,7 @@ router.post('/social_login', async (req, res, next) => {
 // });
 
 /**
- * @api {post} /forget_password Forgot Password
+ * @api {post} /app/forget_password Forgot Password
  * @apiDescription Used to send email for forgot password
  * @apiName Forget Password
  * @apiGroup AppUser

@@ -35,6 +35,6 @@
     "version": "0.0.0",
     "description": "ABHR is application from where you can book a car.",
     "title": "ABHR",
-    "url": "http://localhost:3000"
+    "url": "http://http://18.219.16.50:3000"
   }
 }
