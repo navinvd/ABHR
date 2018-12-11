@@ -121,10 +121,6 @@ router.post('/forget_password', async(req, res, next) => {
         'email': {
             notEmpty: true,
             errorMessage: "email is required"
-        },
-        'type':{
-            notEmpty: true,
-            errorMessage: "Type is required"
         }
     };
     req.checkBody(schema);
