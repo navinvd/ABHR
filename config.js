@@ -2,7 +2,7 @@ module.exports = {
     "node_port": 3000,
     "FRONT_END_URL": "http://localhost:4200/",
     "BACK_END_URL": "http://localhost:3000/",
-    "database": "mongodb://localhost:27017/car_booking",
+    "database": "mongodb://18.219.16.50:27017/abhr",
     //Token
     'ACCESS_TOKEN_SECRET_KEY': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
 
