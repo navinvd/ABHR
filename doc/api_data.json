@@ -905,6 +905,13 @@
             "optional": false,
             "field": "password",
             "description": "<p>User Password</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_type",
+            "description": "<p>[&quot;user&quot;, &quot;agent&quot;]</p>"
           }
         ]
       }
@@ -1003,6 +1010,13 @@
             "optional": false,
             "field": "deviceToken",
             "description": "<p>unique devicetoken</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_type",
+            "description": "<p>[&quot;user&quot;, &quot;agent&quot;]</p>"
           }
         ]
       }
