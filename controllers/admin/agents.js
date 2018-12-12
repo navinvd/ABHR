@@ -249,6 +249,49 @@ router.put('/update', (req, res, next) =>{
 });
 
 /**
+ * @api {put} /admin/agents/delete delete Agent by Id
+ * @apiName Delete Agent
+ * @apiDescription Used to delete agent information
+ * @apiGroup Agents
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} user_id User Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.put('/delete', (req, res, next) =>{
+    console.log('here');
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "user_id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        User.update({ _id: { $eq: req.body.user_id } }, { $set: {'isDeleted' : true} }, function (err, response) {
+            if (err) {
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json({
+                    message: "Agent Deleted successfully..",
+                });
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+/**
  * @api {get} /admin/agents/details/:id? Agent Details By Id
  * @apiName Agent Details By Id
  * @apiDescription Get Agent details By user id

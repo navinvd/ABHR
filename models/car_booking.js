@@ -63,6 +63,14 @@ var BookingSchema = new Schema({
     cancel_date: {
         type: Date
     },
+    isRate: {
+        type: Boolean,
+        default: false
+    },
+    ratingdate: Date,
+    rating: {
+        type: Number,
+    },
     isDeleted: {
         type: Boolean,
         default: false

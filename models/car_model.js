@@ -3,11 +3,10 @@ var mongoose = require('mongoose');
 
 //Define a schema
 var Schema = mongoose.Schema;
-var CarSchema = new Schema({
-    car_rental_company_id: mongoose.Schema.Types.ObjectId,
+var CarModelSchema = new Schema({
     car_gallery: [ String],
-    car_company: {
-        type: String,
+    car_year: {
+        type: Number,
         required: true
     },
     car_model: mongoose.Schema.Types.ObjectId,
@@ -35,12 +34,9 @@ var CarSchema = new Schema({
         type: Number,
         default: 0
     },
-    avg_rating:{
-        type: Number,
-    },
     is_avialable: {
-        type: Boolean,
-        default: true
+        type: String,
+        default: false
     },
     isDeleted: {
         type: Boolean,
