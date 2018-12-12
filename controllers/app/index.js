@@ -25,6 +25,7 @@ var router = express.Router();
  * @apiParam {String} password User Password 
  * @apiParam {String} deviceType Type of device ["ios", "anroid"]
  * @apiParam {String} deviceToken unique devicetoken
+ * @apiParam {String} user_type ["user", "agent"]
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -57,6 +58,10 @@ router.post('/registration', (req, res, next) => {
         'deviceToken': {
             notEmpty: true,
             errorMessage: "deviceToken is required"
+        },
+        'user_type': {
+            notEmpty:true,
+            errorMessage: "user_type is required"
         }
     };
     req.checkBody(schema);
@@ -69,43 +74,46 @@ router.post('/registration', (req, res, next) => {
             email: req.body.email,
             deviceType: req.body.device_type,
             deviceToken:req.body.deviceToken,
-            type:"user"
+            type: req.body.user_type
         };
-        var userModel = new User(Data);
-        userModel.save(function (err, userData) {
-            console.log("data:", userData);
+        User.findOne({email: req.body.email, type: 'admin'}, function (err, data) {
             if (err) {
-                return next(err);
-            } else {
-                var token = jwt.sign({id: userData._id, type: userData.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-                    expiresIn: 60 * 60 * 24 // expires in 24 hours
+                res.status(config.BAD_REQUEST).json({
+                    status: 'failed',
+                    message: "could not register user please try again!!"
                 });
-                var result = {
-                    status: 'success',
-                    message: "User registered successfully.",
-                    data: {user : userData},
-                    token: token
-                };
-                // var option = {
-                //     to: req.body.email,
-                //     subject: 'ABHR Shore - Account verification'
-                // }
-                // var email_details = {
-                //     expire_time: moment().add(1, 'h').toDate().getTime(),
-                //     user_id: userData._id
-                // };
-                // var buffer = Buffer(JSON.stringify(email_details), 'binary').toString('base64');
-                // var data = {link: config.FRONT_END_URL + 'mail_verification?detials=' + buffer}
-                // mailHelper.send('verification_email', option, data, function (err, res) {
-                //     if (err) {
-                //         console.log("Mail Error:", err);
-                //     } else {
-                //         console.log("Mail Success:", res);
-                //     }
-                // })
-                res.status(config.OK_STATUS).json(result);
+            } else {
+                if (data) {
+                    res.status(config.BAD_REQUEST).json({
+                        status: 'failed',
+                        message: "Email is already exist!!"
+                    });
+                } else {
+                    var userModel = new User(Data);
+                    userModel.save(function (err, userData) {
+                        console.log("data:", userData);
+                        if (err) {
+                            res.status(config.BAD_REQUEST).json({
+                                status: 'failed',
+                                message: "could not register user please try again!!"
+                            });
+                        } else {
+                            var token = jwt.sign({id: userData._id, type: userData.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                                expiresIn: 60 * 60 * 24 // expires in 24 hours
+                            });
+                            var result = {
+                                status: 'success',
+                                message: "User registered successfully.",
+                                data: {user : userData},
+                                token: token
+                            };
+                            res.status(config.OK_STATUS).json(result);
+                        }
+                    });
+                }
             }
-        });
+        })
+        var userModel = new User(Data);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -123,6 +131,7 @@ router.post('/registration', (req, res, next) => {
  * 
  * @apiParam {String} email User Email ID
  * @apiParam {String} password User Password 
+ * @apiParam {String} user_type ["user", "agent"]
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -147,14 +156,21 @@ router.post('/login', (req, res, next) => {
         'deviceToken': {
             notEmpty: true,
             errorMessage: "deviceToken is required"
+        },
+        'user_type': {
+            notEmpty: true,
+            errorMessage: "user_type is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        User.findOne({email: req.body.email, type: 'user'}, function (err, data) {
+        User.findOne({email: req.body.email, type: req.body.user_type}, function (err, data) {
             if (err) {
-                return next(err);
+                res.status(config.BAD_REQUEST).json({
+                    status: 'failed',
+                    message: "could not find user please try again!!"
+                });
             } else {
                 if (data) {
                     bcrypt.compare(req.body.password, data.password, function (err, result) {
