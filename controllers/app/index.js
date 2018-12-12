@@ -76,7 +76,7 @@ router.post('/registration', (req, res, next) => {
             deviceToken:req.body.deviceToken,
             type: req.body.user_type
         };
-        User.findOne({email: req.body.email, type: 'admin'}, function (err, data) {
+        User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}, function (err, data) {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',
@@ -165,7 +165,7 @@ router.post('/login', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        User.findOne({email: req.body.email, type: req.body.user_type}, function (err, data) {
+        User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}, function (err, data) {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',
@@ -259,7 +259,7 @@ router.post('/social_login', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType}).exec();
+        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, user_type: req.body.user_type}).exec();
         if (user) {
             var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                 expiresIn: 60 * 60 * 24 // expires in 24 hours
@@ -426,7 +426,7 @@ router.post('/forget_password', async(req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({email: req.body.email, type: req.body.user_type}).exec();
+        var user = await User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}).exec();
         if (user) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
