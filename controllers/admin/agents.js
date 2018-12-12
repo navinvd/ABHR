@@ -28,7 +28,7 @@ var generator = require('generate-password');
  * @apiParam {String} username Unique Username
  * @apiParam {String} phone_number User User Phone Number 
  * @apiParam {String} email User email address 
- * @apiParam {String} type device_type of application type ["ios", "anroid"]
+ * @apiParam {String} deviceType device_type of application type ["ios", "anroid"]
  * @apiParam {String} address google autocomplete address (optional)
  * 
  * @apiHeader {String}  Content-Type application/json   
@@ -65,7 +65,7 @@ router.post('/add', (req, res, next) => {
             phone_number: req.body.phone_number,
             email: req.body.email,
             type: "agent",
-            deviceType: req.body.device_type,
+            deviceType: req.body.deviceType,
             password: generatepassword
         };
         async.waterfall([
@@ -164,6 +164,7 @@ router.post('/add', (req, res, next) => {
  * @apiParam {String} phone_number User User Phone Number 
  * @apiParam {String} email User email address 
  * @apiParam {String} address google autocomplete address (optional)
+ * @apiParam {String} deviceType device_type of application type ["ios", "anroid"]
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Admin unique access-key   
@@ -187,7 +188,7 @@ router.put('/update', (req, res, next) =>{
             last_name: req.body.last_name,
             phone_number: req.body.phone_number,
             email: req.body.email,
-            deviceType: req.body.device_type
+            deviceType: req.body.deviceType
         };
         async.waterfall([
             function (callback) {

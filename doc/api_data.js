@@ -476,7 +476,7 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "type",
+            "field": "deviceType",
             "description": "<p>device_type of application type [&quot;ios&quot;, &quot;anroid&quot;]</p>"
           },
           {
@@ -597,6 +597,13 @@ define({ "api": [
             "optional": false,
             "field": "address",
             "description": "<p>google autocomplete address (optional)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "deviceType",
+            "description": "<p>device_type of application type [&quot;ios&quot;, &quot;anroid&quot;]</p>"
           }
         ]
       }
