@@ -5,38 +5,20 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var CarModelSchema = new Schema({
     car_gallery: [ String],
-    car_year: {
+    release_year: {
         type: Number,
         required: true
     },
-    car_model: mongoose.Schema.Types.ObjectId,
-    car_color: {
+    model_name: {
         type: String,
         required: true
     },
-    rent_price:{
-        type: Number,
+    model_number:{
+        type: String,
         required: true
     },
-    is_AC: {
-        type: Boolean,
-        default: false
-    },
-    is_luggage_carrier: {
-        type: Boolean,
-        default: false
-    },
-    licence_plate: {
+    description: {
         type: String,
-        default: false
-    },
-    no_of_person: {
-        type: Number,
-        default: 0
-    },
-    is_avialable: {
-        type: String,
-        default: false
     },
     isDeleted: {
         type: Boolean,
@@ -50,5 +32,5 @@ var CarModelSchema = new Schema({
 }, {versionKey: false});
 
 // Compile model from schema
-var Car = mongoose.model('cars', CarSchema, 'cars');
-module.exports = Car;
+var CarModel = mongoose.model('car_model', CarModelSchema, 'car_model');
+module.exports = CarModel;
