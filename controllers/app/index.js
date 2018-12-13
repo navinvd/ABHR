@@ -101,10 +101,17 @@ router.post('/registration', (req, res, next) => {
                             var token = jwt.sign({id: userData._id, type: userData.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                                 expiresIn: 60 * 60 * 24 // expires in 24 hours
                             });
+
+                            const u = {
+                                _id:userData._id,
+                                first_name:userData.first_name,
+                                last_name:userData.last_name,
+                                email:userData.email
+                            }
                             var result = {
                                 status: 'success',
                                 message: "User registered successfully.",
-                                data: {user : userData},
+                                data: {user : u},
                                 token: token
                             };
                             res.status(config.OK_STATUS).json(result);
@@ -117,7 +124,8 @@ router.post('/registration', (req, res, next) => {
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
-            message: "Validation Error"
+            message: "Validation Error",
+            errors
         });
     }
 })
@@ -180,10 +188,17 @@ router.post('/login', (req, res, next) => {
                                     expiresIn: 60 * 60 * 24 // expires in 24 hours
                                 });
 
+                                const u = {
+                                    _id:data._id,
+                                    first_name:data.first_name,
+                                    last_name:data.last_name,
+                                    email:data.email
+                                }
+
                                 res.status(config.OK_STATUS).json({
                                     status: 'success',
                                     message: "User authenticated successfully",
-                                    data: {user : data},
+                                    data: {user : u},
                                     token: token
                                 });
                             } else {
@@ -215,7 +230,8 @@ router.post('/login', (req, res, next) => {
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
-            message: "Validation Error"
+            message: "Validation Error",
+            errors
         });
     }
 })
