@@ -48,11 +48,11 @@ router.post('/list', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         const carResp = await carHelper.getAvailableCar(req.body.fromDate, req.body.days);
-        res.status(carResp.status).json(carResp);
+        res.json(carResp);
     } else {
         res.status(config.BAD_REQUEST).json({
+            status: 'failed',
             message: "Validation Error",
-            error: errors
         });
     }
 });

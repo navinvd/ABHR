@@ -18,12 +18,12 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         ]);
 
         if (cars && cars.length > 0) {
-            return { status: 200, message: "Car data found", cars }
+            return { status: 'success', message: "Car data found", data: cars }
         } else {
-            return { status: 400, message: "No car available" };
+            return { status: 'failed', message: "No car available" };
         }
     } catch (err) {
-        return { status: 500, message: "Error occured while fetching car list", err };
+        return { status: 'failed', message: "Error occured while fetching car list" };
     }
 };
 
