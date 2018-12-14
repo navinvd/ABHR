@@ -27,4 +27,18 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
     }
 };
 
+carHelper.getcarDetailbyId = async function (car_id) {
+    try {
+        const carDetail = await Car.find({ _id: car_id});
+
+        if (carDetail && carDetail.length > 0) {
+            return { status: 'success', message: "Car data found", data: carDetail }
+        } else {
+            return { status: 'failed', message: "No car available" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car list" };
+    }
+};
+
 module.exports = carHelper;

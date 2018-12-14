@@ -8,7 +8,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 
 /**
- * @api {post} /admin/car/list List of available car
+ * @api {post} /app/car/list List of available car
  * @apiName Car List
  * @apiDescription To display agents list with pagination
  * @apiGroup App - Car
@@ -48,6 +48,41 @@ router.post('/list', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         const carResp = await carHelper.getAvailableCar(req.body.fromDate, req.body.days);
+        res.json(carResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+        });
+    }
+});
+
+/**
+ * @api {post} /app/car/details Details of car for perticular carId
+ * @apiName Car Details
+ * @apiDescription To display car Details 
+ * @apiGroup App - Car
+ * 
+ * @apiParam {car_id} car_id id of Car
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/details', async (req, res) => {
+    var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
+        }
+    };
+
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
         res.json(carResp);
     } else {
         res.status(config.BAD_REQUEST).json({

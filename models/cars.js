@@ -38,7 +38,27 @@ var CarSchema = new Schema({
     avg_rating:{
         type: Number,
     },
+    is_automatic: {
+        type: String,
+        default: true,
+    },
+    is_open_milage: {
+        type: Boolean,
+        default: true
+    },
+    car_type: {
+        type: String,
+        enum: ["economy", "luxury", "suv", "family"]
+    },
+    driving_eligibility_criteria: {
+        type: Number,
+        default: 18,
+    },
     is_avialable: {
+        type: Boolean,
+        default: true
+    },
+    is_delieverd: {
         type: Boolean,
         default: true
     },
