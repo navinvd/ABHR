@@ -12,6 +12,9 @@ var mailHelper = require('./../../helper/mail');
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var router = express.Router();
 
+var car = require('./car');
+router.use('/car', car);
+
 /**
  * @api {post} /app/registration Registration
  * @apiName Registration
@@ -479,5 +482,6 @@ router.post('/forget_password', async(req, res, next) => {
         });
     }
 })
+
 
 module.exports = router;

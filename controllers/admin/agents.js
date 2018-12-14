@@ -58,6 +58,7 @@ router.post('/add', (req, res, next) => {
             length: 10,
             numbers: true
         });
+
         var userData = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
@@ -69,6 +70,7 @@ router.post('/add', (req, res, next) => {
         };
         async.waterfall([
             function (callback) {
+                // Finding place and insert if not found
                 if (req.body.address) {
                     Place.findOne({ "google_place_id": { $eq: req.body.address.placeId } }, function (err, data) {
                         if (err) {
@@ -76,7 +78,7 @@ router.post('/add', (req, res, next) => {
                         } else {
                             if (data.length != 0) {
                                 userData.place_id = data.google_place_id
-                                callback(null, userData);
+                                callback(null);
                             }
                             else {
                                 var addressData = req.body.address;
@@ -86,17 +88,17 @@ router.post('/add', (req, res, next) => {
                                         callback(err);
                                     } else {
                                         userData.place_id = placeData._id;
-                                        callback(null, userData);
+                                        callback(null);
                                     }
                                 });
                             }
                         }
                     });
                 } else {
-                    callback(null, userData);
+                    callback(null);
                 }
             },
-            function (userData, callback) {
+            function (callback) {
                 var userModel = new User(userData);
                 userModel.save(function (err, data) {
                     console.log("user data===>", data);
