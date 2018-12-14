@@ -36,6 +36,14 @@ var generator = require('generate-password');
  */
 router.post('/add', (req, res, next) => {
     var schema = {
+        'first_name': {
+            notEmpty: true,
+            errorMessage: "FirstName is required"
+        },
+        'last_name': {
+            notEmpty: true,
+            errorMessage: "LastName is required"
+        },
         'email': {
             notEmpty: true,
             errorMessage: "Email is required"
@@ -48,17 +56,18 @@ router.post('/add', (req, res, next) => {
             length: 10,
             numbers: true
         });
+
         var userData = {
-            username: req.body.username,
-            name: { "first_name": req.body.first_name, "last_name": req.body.last_name },
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
             phone_number: req.body.phone_number,
             email: req.body.email,
             type: "staff",
-            device_type: req.body.device_type,
             password: generatepassword
         };
         async.waterfall([
             function (callback) {
+                // Finding place and insert if not found
                 if (req.body.address) {
                     Place.findOne({ "google_place_id": { $eq: req.body.address.placeId } }, function (err, data) {
                         if (err) {
@@ -66,7 +75,7 @@ router.post('/add', (req, res, next) => {
                         } else {
                             if (data.length != 0) {
                                 userData.place_id = data.google_place_id
-                                callback(null, userData);
+                                callback(null);
                             }
                             else {
                                 var addressData = req.body.address;
@@ -76,17 +85,17 @@ router.post('/add', (req, res, next) => {
                                         callback(err);
                                     } else {
                                         userData.place_id = placeData._id;
-                                        callback(null, userData);
+                                        callback(null);
                                     }
                                 });
                             }
                         }
                     });
                 } else {
-                    callback(null, userData);
+                    callback(null);
                 }
             },
-            function (userData, callback) {
+            function (callback) {
                 var userModel = new User(userData);
                 userModel.save(function (err, data) {
                     console.log("user data===>", data);
@@ -94,7 +103,7 @@ router.post('/add', (req, res, next) => {
                         callback(err);
                     } else {
                         var result = {
-                            message: "User added successfully..",
+                            message: "Staff added successfully..",
                             data: userData
                         };
                         var option = {
@@ -103,12 +112,13 @@ router.post('/add', (req, res, next) => {
                         }
                         var loginURL = config.FRONT_END_URL + '#/admin/login';
                         var data = {
-                            name: userData.name.first_name,
-                            username: userData.username,
+                            first_name: userData.first_name,
+                            last_name: userData.last_name,
                             email: userData.email,
                             password: generatepassword,
+                            link: loginURL
                         }
-                        mailHelper.send('/staff/add_staff', option, data, function (err, res) {
+                        mailHelper.send('/agents/add_staff', option, data, function (err, res) {
                             if (err) {
                                 console.log("Mail Error:", err);
                                 callback(err);
@@ -171,11 +181,10 @@ router.put('/update', (req, res, next) =>{
     var errors = req.validationErrors();
     if (!errors) {
         var userData = {
-            username: req.body.username,
-            name: { "first_name": req.body.first_name, "last_name": req.body.last_name },
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
             phone_number: req.body.phone_number,
-            email: req.body.email,
-            device_type: req.body.device_type
+            email: req.body.email
         };
         async.waterfall([
             function (callback) {
@@ -324,30 +333,25 @@ router.post('/list', (req, res, next) => {
                 }
             }
         ];
-        // if (req.body['search']['value']) {
-        //     var regex = new RegExp(req.body['search']['value'])
-        //     var match = {$or: []};
-        //     req.body['columns'].forEach(function (obj) {
-        //         if (obj.name) {
-        //             var json = {};
-        //             if (obj.isNumber) {
-        //                 json[obj.name] = parseInt(req.body['search']['value'])
-        //             } else {
-        //                 json[obj.name] = {
-        //                     "$regex": regex,
-        //                     "$options": "i"
-        //                 }
-        //             }
-        //             match['$or'].push(json)
-        //         }
-        //     })
-
-        //     var searchQuery = {
-        //         $match: match
-        //     }
-        //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-        //     console.log("==>", JSON.stringify(defaultQuery));
-        // }
+        // if (req.body.search != undefined) {
+            if(req.body.search.value != undefined){
+                var regex = new RegExp(req.body.search.value);
+                var match = {$or: []};
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>',err);
