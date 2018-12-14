@@ -77,6 +77,7 @@ router.post('/details', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter car id"
         }
+        
     };
 
     req.checkBody(schema);

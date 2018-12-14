@@ -39,6 +39,7 @@ carHelper.getcarDetailbyId = async function (car_id) {
     } catch (err) {
         return { status: 'failed', message: "Error occured while fetching car list" };
     }
+    
 };
 
 module.exports = carHelper;
