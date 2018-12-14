@@ -22,7 +22,6 @@ var generator = require('generate-password');
  * 
  * @apiParam {String} first_name FirstName
  * @apiParam {String} last_name LastName
- * @apiParam {String} username Unique Username
  * @apiParam {String} phone_number User User Phone Number 
  * @apiParam {String} email User email address 
  * @apiParam {String} type device_type of application type ["ios", "anroid"]
@@ -56,7 +55,7 @@ router.post('/add', (req, res, next) => {
             length: 10,
             numbers: true
         });
-
+        console.log('req param==>',req.body);
         var userData = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
@@ -118,7 +117,7 @@ router.post('/add', (req, res, next) => {
                             password: generatepassword,
                             link: loginURL
                         }
-                        mailHelper.send('/agents/add_staff', option, data, function (err, res) {
+                        mailHelper.send('/staff/add_staff', option, data, function (err, res) {
                             if (err) {
                                 console.log("Mail Error:", err);
                                 callback(err);

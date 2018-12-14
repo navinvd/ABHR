@@ -77,9 +77,41 @@ router.post('/details', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter car id"
         }
-        
     };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
+        res.json(carResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+        });
+    }
+});
 
+/**
+ * @api {post} /app/car/filter List of car by filter applied
+ * @apiName Filtered car List
+ * @apiDescription To Display filter car list 
+ * @apiGroup App - Car
+ * 
+ * @apiParam {brand_id} brand_id id of brand
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/details', async (req, res) => {
+    var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
+        }
+    };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {

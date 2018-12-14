@@ -3,22 +3,10 @@ var mongoose = require('mongoose');
 
 //Define a schema
 var Schema = mongoose.Schema;
-var CarModelSchema = new Schema({
-    car_brand_id: mongoose.Schema.Types.ObjectId,
-    release_year: {
-        type: Number,
-        required: true
-    },
-    model_name: {
+var CarBrandSchema = new Schema({
+    brand_name: {
         type: String,
         required: true
-    },
-    model_number:{
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
     },
     isDeleted: {
         type: Boolean,
@@ -32,5 +20,5 @@ var CarModelSchema = new Schema({
 }, {versionKey: false});
 
 // Compile model from schema
-var CarModel = mongoose.model('car_model', CarModelSchema, 'car_model');
-module.exports = CarModel;
+var CarBrandModel = mongoose.model('car_brand', CarBrandSchema, 'car_brand');
+module.exports = CarBrandModel;
