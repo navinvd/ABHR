@@ -15,11 +15,13 @@ var users = require('./users');
 var keywords = require('./keywords');
 var agents = require('./agents');
 var staff = require('./staff');
+var company = require('./companies');
 
 router.use('/user', users);
 router.use('/keyword', keywords);
 router.use('/agents', agents);
 router.use('/staff', staff);
+router.use('/company', company);
 
 //models
 var User = require('./../../models/users');

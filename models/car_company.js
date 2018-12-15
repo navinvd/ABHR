@@ -5,7 +5,7 @@ var config = require('./../config');
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 //Define a schema
 var Schema = mongoose.Schema;
-var UserSchema = new Schema({
+var CarCompanySchema = new Schema({
     name: {
         type: String,
         unique: true,
@@ -17,7 +17,8 @@ var UserSchema = new Schema({
     site_url: String,
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
     },
     profile_image: String,
     password: String,
@@ -35,7 +36,7 @@ var UserSchema = new Schema({
     modifiedAt: {type: Date, default: Date.now}
 }, {versionKey: false});
 //password encription
-UserSchema.pre('save', function (next) {
+CarCompanySchema.pre('save', function (next) {
     var user = this;
     // only hash the password if it has been modified (or is new)
     if (!user.isModified('password'))
@@ -55,5 +56,5 @@ UserSchema.pre('save', function (next) {
     });
 });
 // Compile model from schema
-var User = mongoose.model('users', UserSchema, 'users');
-module.exports = User;
+var CarCompany = mongoose.model('car_company', CarCompanySchema, 'car_company');
+module.exports = CarCompany;

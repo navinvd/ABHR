@@ -6,7 +6,8 @@ var Schema = mongoose.Schema;
 var CarSchema = new Schema({
     car_rental_company_id: mongoose.Schema.Types.ObjectId,
     car_gallery: [ String],
-    car_model: mongoose.Schema.Types.ObjectId,
+    car_model_id : mongoose.Schema.Types.ObjectId,
+    car_brand_id : mongoose.Schema.Types.ObjectId,
     car_color: {
         type: String,
         required: true
