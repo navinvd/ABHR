@@ -351,6 +351,13 @@ router.post('/list', (req, res, next) => {
                     }
                 });
             }
+            console.log('re.body.search==>', req.body.search.value);
+
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
         }
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
