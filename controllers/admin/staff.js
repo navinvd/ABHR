@@ -332,7 +332,7 @@ router.post('/list', (req, res, next) => {
                 }
             }
         ];
-        // if (req.body.search != undefined) {
+        if (req.body.search != undefined) {
             if(req.body.search.value != undefined){
                 var regex = new RegExp(req.body.search.value);
                 var match = {$or: []};
@@ -351,6 +351,7 @@ router.post('/list', (req, res, next) => {
                     }
                 });
             }
+        }
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>',err);
