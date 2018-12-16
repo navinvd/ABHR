@@ -1134,6 +1134,63 @@ define({ "api": [
     "groupTitle": "AppUser"
   },
   {
+    "type": "get",
+    "url": "/app/car/brandlist",
+    "title": "List of car brands",
+    "name": "Car_BrandList",
+    "description": "<p>To Display car brand list</p>",
+    "group": "App___Car",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
     "type": "post",
     "url": "/app/car/details",
     "title": "Details of car for perticular carId",
@@ -1296,6 +1353,76 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/app/car/modelList",
+    "title": "List of car Models by car brand id",
+    "name": "Car_ModelList",
+    "description": "<p>To Display car model list</p>",
+    "group": "App___Car",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "brand_id",
+            "description": "<p>car brand Id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
+    "type": "post",
     "url": "/app/car/filter",
     "title": "List of car by filter applied",
     "name": "Filtered_car_List",
@@ -1306,10 +1433,52 @@ define({ "api": [
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "brand_id",
-            "optional": false,
-            "field": "brand_id",
-            "description": "<p>id of brand</p>"
+            "type": "Array",
+            "optional": true,
+            "field": "brand",
+            "description": "<p>Array of brand ids</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": true,
+            "field": "model",
+            "description": "<p>Array of model ids</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "navigation",
+            "description": "<p>Boolean default true</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Enum",
+            "optional": true,
+            "field": "transmission",
+            "description": "<p>[&quot;automatic&quot;, &quot;manual&quot;]</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Enum",
+            "optional": true,
+            "field": "class",
+            "description": "<p>[&quot;economy&quot;, &quot;luxury&quot;, &quot;suv&quot;, &quot;family&quot;]</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "capacity_of_people",
+            "description": "<p>Number 18 default</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "milage",
+            "description": "<p>String forexample: &quot;open&quot;</p>"
           }
         ]
       }
@@ -2089,7 +2258,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/keywords.js",
+    "filename": "controllers/admin/cars.js",
     "groupTitle": "Keyword"
   },
   {
@@ -2173,7 +2342,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/cars.js",
+    "filename": "controllers/admin/keywords.js",
     "groupTitle": "Keyword"
   },
   {

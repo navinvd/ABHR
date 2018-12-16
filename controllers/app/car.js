@@ -100,8 +100,13 @@ router.post('/details', async (req, res) => {
  * @apiDescription To Display filter car list 
  * @apiGroup App - Car
  * 
- * @apiParam {brand_id} brand_id id of brand
- * @apiParam {model_id} brand_id id of brand
+ * @apiParam {Array}  [brand] Array of brand ids 
+ * @apiParam {Array} [model] Array of model ids 
+ * @apiParam {Boolean} [navigation] Boolean default true 
+ * @apiParam {Enum} [transmission]  ["automatic", "manual"] 
+ * @apiParam {Enum} [class]  ["economy", "luxury", "suv", "family"] 
+ * @apiParam {Number} [capacity_of_people] Number 18 default 
+ * @apiParam {String} [milage] String forexample: "open" 
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -110,9 +115,6 @@ router.post('/details', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/filter', async (req, res) => {
-    // req.checkBody(schema);
-    // var errors = req.validationErrors();
-    // if (!errors) {
         var defaultQuery = [
             {
                 $lookup: {
@@ -147,24 +149,101 @@ router.post('/filter', async (req, res) => {
             }
         ];
         var paginationArray = [
-            {
-                $group: {
-                    "_id": "",
-                    "total": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
-                    }
+        {
+            $group: {
+                "_id": "",
+                "total": {
+                    "$sum": 1
+                },
+                "data": {
+                    "$push": "$$ROOT"
                 }
-            },
-            {
-                $project: {
-                    "_id": "",
-                    "total": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.itemPerpage) * (parseInt(req.body.currentPage) - 1), parseInt(req.body.itemPerpage)]}
+            }
+        },
+        {
+            $project: {
+                "_id": "",
+                "total": 1,
+                "data": {"$slice": ["$data", parseInt(req.body.itemPerpage) * (parseInt(req.body.currentPage) - 1), parseInt(req.body.itemPerpage)]}
+            }
+        }];
+        if (req.body.brand) {
+            let brandOject = req.body.brand;
+            var searchQuery = {
+                "$match": { 
+                    "car_brand_id": { "$in": brandOject },
+                    } 
                 }
-            }];
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.model) {
+            let modelOject = req.body.model;
+            var searchQuery = {
+                "$match": { 
+                    "car_model_id": { "$in": modelOject },
+                    } 
+                }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.navigation) {
+            let navigationOject = req.body.navigation;
+            var searchQuery = {
+                "$match": { 
+                    "is_navigation": navigationOject,
+                    } 
+                }
+            defaultQuery.splice(3, 0, searchQuery);
+        } else {
+            var searchQuery = {
+                "$match": { 
+                    "is_navigation": true,
+                    } 
+                }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.transmission) {
+            let transmissionObject = req.body.navigation;
+            var searchQuery = {
+                "$match": { 
+                    "transmission": transmissionObject,
+                    } 
+                }
+            defaultQuery.splice(3, 0, searchQuery);
+        } 
+        if (req.body.class) {
+            let classObject = req.body.navigation;
+            var searchQuery = {
+                "$match": { 
+                    "class": classObject,
+                    } 
+                }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.capacity_of_people) {
+            let copObject = req.body.capacity_of_people;
+            var searchQuery = {
+                "$match": { 
+                    "no_of_person": copObject,
+                    } 
+                }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.milage) {
+            let milageObject = req.body.milage;
+            var searchQuery = {
+                "$match": { 
+                    "milage": milageObject,
+                    } 
+                }
+            defaultQuery.splice(3, 0, searchQuery);
+        } else{
+            var searchQuery = {
+                "$match": { 
+                    "milage": "open",
+                    } 
+                }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
@@ -181,13 +260,85 @@ router.post('/filter', async (req, res) => {
                 });
             }
         });
-    // } else {
-        // res.status(config.BAD_REQUEST).json({
-        //     status: 'failed',
-        //     message: "Validation Error",
-        //     errors
-        // });
-    // }
+});
+
+/**
+ * @api {get} /app/car/brandlist List of car brands
+ * @apiName Car BrandList
+ * @apiDescription To Display car brand list 
+ * @apiGroup App - Car
+ *
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.get('/brandlist', async (req,res) => {
+    CarBrand.find({ "isDeleted" : false}, {_id: 1, brand_name: 1}, (err, data) => {
+        if(err){
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "carbrand data not found",
+                err
+            });
+        }else{
+            res.status(config.OK_STATUS).json({
+                status: "Success",
+                message: "car data found",
+                data: data,
+            }); 
+        }
+    });
+});
+
+/**
+ * @api {post} /app/car/modelList List of car Models by car brand id
+ * @apiName Car ModelList
+ * @apiDescription To Display car model list 
+ * @apiGroup App - Car
+ *
+ * @apiParam {string}  brand_id car brand Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/modelList', async (req,res) => {
+    var schema = {
+        'brand_id': {
+            notEmpty: true,
+            errorMessage: "Brand Id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if(!errors){
+        CarModel.find({ "isDeleted" : false, "car_brand_id": new ObjectId(req.body.brand_id)}, (err, data) => {
+            console.log('data==>',err, data);
+            if(err){
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "carbrand data not found",
+                    err
+                });
+            }else{
+                res.status(config.OK_STATUS).json({
+                    status: "Success",
+                    message: "car data found",
+                    data: data,
+                }); 
+            }
+        });
+    } else{
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+        }); 
+    } 
 });
 
 router.get('/addbrands', async (req, res) => {
