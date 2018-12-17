@@ -5,6 +5,7 @@ var User = require('./../../models/users');
 var Company = require('./../../models/car_company');
 var Place = require('./../../models/places');
 var CarBooking = require('./../../models/car_booking');
+var Car = require('./../../models/cars');
 var path = require('path');
 var async = require("async");
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -513,4 +514,104 @@ router.post('/rental_list',(req, res, next) => {
         });
     }
 });
+
+/**
+ * @api {post} /admin/company/car_list List of all car of perticular company
+ * @apiName company car List
+ * @apiDescription To display company car list with pagination
+ * @apiGroup companies
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} start pagination start page no
+ * @apiParam {String} end pagination length no of page length
+ * @apiParam {String} company_id 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/car_list',(req, res, next) => {
+    var schema = {
+        'start': {
+            notEmpty: true,
+            errorMessage: "start is required"
+        },
+        'length': {
+            notEmpty: true,
+            errorMessage: "length is required"
+        },
+        'company_id' : {
+            notEmpty: true,
+            errorMessage: "company_id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if(!errors){
+        var defaultQuery = [
+            {
+                $lookup:
+                        {
+                            from: "car_company",
+                            localField: "_id",
+                            foreignField: "car_rental_company_id",
+                            as: "carRentalCompany"
+                        }
+            },
+            {
+                $unwind: {
+                    "path": "$carRentalCompany",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {"isDeleted": false,
+                         "car_rental_company_id": new ObjectId(req.body.company_id)
+                        }
+            },
+            {
+                $sort: {'createdAt': -1}
+            },
+            {
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "_id": 1,
+                    "recordsTotal": 1,
+                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                }
+            }
+        ];
+        Car.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                console.log('err===>',err);
+                return next(err);
+            } else {
+                console.log('result===>',data);
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                });
+            }
+        })
+
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
 module.exports = router;

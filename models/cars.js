@@ -12,6 +12,10 @@ var CarSchema = new Schema({
         type: String,
         required: true
     },
+    is_navigation: {
+        type: Boolean,
+        default: true
+    },
     rent_price:{
         type: Number,
         required: true
@@ -35,15 +39,15 @@ var CarSchema = new Schema({
     avg_rating:{
         type: Number,
     },
-    is_automatic: {
+    transmission: {
         type: String,
-        default: true,
+        enum: ["manual", "automatic"],
     },
-    is_open_milage: {
-        type: Boolean,
-        default: true
+    milage: {
+        type: String,
+        enum: ["open","limited"]
     },
-    car_type: {
+    class: {
         type: String,
         enum: ["economy", "luxury", "suv", "family"]
     },
