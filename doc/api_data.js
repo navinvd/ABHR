@@ -1363,10 +1363,10 @@ define({ "api": [
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "string",
+            "type": "Array",
             "optional": false,
-            "field": "brand_id",
-            "description": "<p>car brand Id</p>"
+            "field": "brand_ids",
+            "description": "<p>car brand Id Array</p>"
           }
         ]
       }
@@ -3153,6 +3153,90 @@ define({ "api": [
             "optional": false,
             "field": "end",
             "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/companies.js",
+    "groupTitle": "companies"
+  },
+  {
+    "type": "post",
+    "url": "/admin/company/car_list",
+    "title": "List of all car of perticular company",
+    "name": "company_car_List",
+    "description": "<p>To display company car list with pagination</p>",
+    "group": "companies",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "company_id",
+            "description": ""
           }
         ]
       }
