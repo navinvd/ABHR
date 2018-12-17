@@ -115,6 +115,27 @@ router.post('/details', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/filter', async (req, res) => {
+    var schema = {
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you needed car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if(!errors){
         var defaultQuery = [
             {
                 $lookup: {
@@ -145,7 +166,9 @@ router.post('/filter', async (req, res) => {
                 }
             },
             {
-                $match: {'isDeleted': false}
+                $match: {'isDeleted': false,
+                         'is_avialable': true
+                        }
             }
         ];
         var paginationArray = [
@@ -260,6 +283,12 @@ router.post('/filter', async (req, res) => {
                 });
             }
         });
+    }else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+        });
+    }
 });
 
 /**
