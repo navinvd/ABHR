@@ -105,7 +105,7 @@ router.post('/details', async (req, res) => {
  * @apiParam {Boolean} [navigation] Boolean default true 
  * @apiParam {Enum} [transmission]  ["automatic", "manual"] 
  * @apiParam {Enum} [class]  ["economy", "luxury", "suv", "family"] 
- * @apiParam {Number} [capacity_of_people] Number 18 default 
+ * @apiParam {Number} [capacity_of_people] Number no. of people 
  * @apiParam {String} [milage] String forexample: "open" 
  * 
  * @apiHeader {String}  Content-Type application/json 

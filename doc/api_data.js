@@ -1471,7 +1471,7 @@ define({ "api": [
             "type": "Number",
             "optional": true,
             "field": "capacity_of_people",
-            "description": "<p>Number 18 default</p>"
+            "description": "<p>Number no. of people</p>"
           },
           {
             "group": "Parameter",
