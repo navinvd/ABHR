@@ -1,9 +1,11 @@
+var mongoose = require('mongoose');
+var CarReview = require('./../models/car_review');
+var ObjectId = mongoose.Types.ObjectId;
 const Car = require('./../models/cars');
 const CarBooking = require('./../models/car_booking');
 const CarBrand = require('./../models/car_brand');
 const CarCompany = require('./../models/car_company');
 const CarModel = require('./../models/car_model');
-
 
 let carHelper = {};
 
@@ -104,7 +106,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         if (cars && cars.length > 0) {
             return { status: 'success', message: "Car data found", data: cars }
         } else {
-            return { status: 'failed', message: "No car available" };
+            return { status: 'success', message: "Car data found", data: data }
         }
     } catch (err) {
         console.log("Err : ", err);
@@ -123,6 +125,46 @@ carHelper.getcarDetailbyId = async (car_id) => {
         }
     } catch (err) {
         return { status: 'failed', message: "Error occured while fetching car list" };
+    }
+};
+
+// Add car review
+carHelper.addReview = async function (review_data) {
+    let car_review = new CarReview(review_data);
+    try {
+        let data = await car_review.save();
+        return { status: 'success', message: "Car review has been added", data: data }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while adding car review" };
+    }
+};
+
+
+// Add car review
+carHelper.addReview = async function (review_data) {
+    let car_review = new CarReview(review_data);
+    try {
+        let data = await car_review.save();
+        return { status: 'success', message: "Car review has been added", data: data }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while adding car review" };
+    }
+};
+
+// get car reviews
+carHelper.getCarReviews = async (car_id) => {
+    try {
+        let data = await CarReview.find({ car_id: new ObjectId(car_id)}).lean().exec();
+
+        if (data && data.length > 0) {
+            return { status: 'success', message: "Car review has been found", data: data }
+        }
+        else {
+            return { status: 'failed', message: "No car reviews yet", data: data }
+        }
+
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car reviews" };
     }
 };
 

@@ -214,10 +214,11 @@ router.post('/filter', async (req, res) => {
                 }
             },
             {
-                $match: {'isDeleted': false,
-                         'carBookingDetailsDate' : { $ne: req.body.fromDate},
-                         'carBookingDetails.days' : { $ne: req.body.days}
-                        }
+                $match: {
+                    'isDeleted': false,
+                    'carBookingDetailsDate': { $ne: req.body.fromDate },
+                    'carBookingDetails.days': { $ne: req.body.days }
+                }
             }
         ];
         var paginationArray = [
@@ -459,6 +460,69 @@ router.get('/addbrandmodels', async (req, res) => {
         });
     });
     res.json({ "data": "yup" });
+});
+
+
+// /**
+//  * @api {post} /review/:car_id Add car Review
+//  * @apiName add car Review
+//  * @apiDescription Used to add car review 
+//  * @apiGroup App Car
+//  * @apiVersion 0.0.0
+//  * 
+//  * @apiParam {Number} user_id user Id
+//  * @apiParam {Number} stars review stars
+//  * @apiParam {String} username reviwer name
+//  * @apiParam {String} [review_text] review comment
+//  * 
+//  * @apiHeader {String}  Content-Type application/json 
+//  * @apiHeader {String}  x-access-token Users unique access-key   
+//  * 
+//  * @apiSuccess (Success 200) {String} message Success message.
+//  * @apiError (Error 4xx) {String} message Validation or error message.
+//  */
+router.post('/review/:car_id', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'stars': {
+            notEmpty: true,
+            errorMessage: "Please give stars"
+        },
+        'username': {
+            notEmpty: true,
+            errorMessage: "Please enter username"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var review_data = {
+            'car_id': new ObjectId(req.params.car_id),
+            'user_id': new ObjectId(req.body.user_id),
+            'stars': req.body.stars,
+            'username': req.body.username,
+            'review_text': req.body.review_text ? req.body.review_text : ''
+        }
+        const carReviewResp = await carHelper.addReview(review_data);
+        res.json(carReviewResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+        });
+    }
+});
+
+
+
+
+// Get reviews of car
+router.get('/review/:car_id', async (req, res) => {
+    const carReviewResp = await carHelper.getCarReviews(new ObjectId(req.params.car_id));
+    res.json(carReviewResp);
 });
 
 module.exports = router;
