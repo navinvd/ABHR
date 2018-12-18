@@ -1,4 +1,9 @@
-var Car = require('./../models/cars');
+const Car = require('./../models/cars');
+const CarBooking = require('./../models/car_booking');
+const CarBrand = require('./../models/car_brand');
+const CarCompany = require('./../models/car_company');
+const CarModel = require('./../models/car_model');
+
 
 let carHelper = {};
 
@@ -94,7 +99,6 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
             $limit: length
         }
     ];
-
     try {
         const cars = await Car.aggregate(defaultQuery);
         if (cars && cars.length > 0) {
@@ -106,10 +110,9 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         console.log("Err : ", err);
         return { status: 'failed', message: "Error occured while finding car", err };
     }
-
 };
 
-carHelper.getcarDetailbyId = async function (car_id) {
+carHelper.getcarDetailbyId = async (car_id) => {
     try {
         const carDetail = await Car.find({ _id: car_id });
 
@@ -122,5 +125,31 @@ carHelper.getcarDetailbyId = async function (car_id) {
         return { status: 'failed', message: "Error occured while fetching car list" };
     }
 };
+
+carHelper.getBrandList = async () => {
+    try {
+        const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 });
+        if (carbrand && carbrand.length > 0) {
+            return { status: 'success', message: "Carbrand data found", data: carbrand }
+        } else {
+            return { status: 'failed', message: "No carbrand available" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while finding data", err };
+    }
+}
+
+carHelper.getModelList = async (brandArray) => {
+    try {
+        const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in : brandArray} });
+        if (carmodels && carmodels.length > 0) {
+            return { status: 'success', message: "Car Models data found", data: carmodels }
+        } else {
+            return { status: 'failed', message: "No carmodel available" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while finding data", err };
+    }
+}
 
 module.exports = carHelper;

@@ -6,6 +6,7 @@ const carHelper = require('./../../helper/car');
 const Car = require('./../../models/cars');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
+const CarNotification = require('./../../models/car_notification');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
@@ -46,7 +47,6 @@ router.post('/list', async (req, res) => {
             }
         }
     };
-
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
@@ -213,19 +213,6 @@ router.post('/filter', async (req, res) => {
                     }
                 }
             },
-            // {
-            // $addFields:{
-            //     carBookingDetailsDate: {
-            // $dateToString:{
-            //     date: "$carBookingDetails.from_time",
-            //     format: "%Y-%m-%d"
-            // }
-            //     }
-            // }
-            // $addFields:{
-            //     test: "test"
-            // }
-            // }
             {
                 $match: {'isDeleted': false,
                          'carBookingDetailsDate' : { $ne: req.body.fromDate},
@@ -367,21 +354,8 @@ router.post('/filter', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.get('/brandlist', async (req, res) => {
-    CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 }, (err, data) => {
-        if (err) {
-            res.status(config.BAD_REQUEST).json({
-                status: "failed",
-                message: "carbrand data not found",
-                err
-            });
-        } else {
-            res.status(config.OK_STATUS).json({
-                status: "Success",
-                message: "car data found",
-                data: data,
-            });
-        }
-    });
+    const Resp = await carHelper.getBrandList();
+    res.json(Resp);
 });
 
 /**
@@ -436,6 +410,55 @@ router.post('/modelList', async (req, res) => {
         });
     }
 });
+
+/**
+ * @api {get} /app/car/notifications List of notifications for perticular user
+ * @apiName Car Notificationlist
+ * @apiDescription To Display notification list
+ * @apiGroup App - Car
+ *
+ * @apiParam {Array}  userId userId
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/notifications', async (req, res) => {
+    var schema = {
+        'userId': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        CarNotification.find({ "isDeleted": false, "userId": new ObjectId(req.body.userId)}, (err, data) => {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "notification data not found",
+                    err
+                });
+            } else {
+                res.status(config.OK_STATUS).json({
+                    status: "Success",
+                    message: "notification data found",
+                    data: data,
+                });
+            }
+        });
+    } else{
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
 
 router.get('/addbrands', async (req, res) => {
     var ModelArray = ['BMW', 'Ducati', 'Ford', 'Lincoln', 'Jaguar', 'Land Rover', 'Maserati', 'Honda', 'Tovota'];
