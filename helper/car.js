@@ -1,7 +1,11 @@
 var mongoose = require('mongoose');
-var Car = require('./../models/cars');
 var CarReview = require('./../models/car_review');
 var ObjectId = mongoose.Types.ObjectId;
+const Car = require('./../models/cars');
+const CarBooking = require('./../models/car_booking');
+const CarBrand = require('./../models/car_brand');
+const CarCompany = require('./../models/car_company');
+const CarModel = require('./../models/car_model');
 
 let carHelper = {};
 
@@ -96,24 +100,21 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         {
             $limit: length
         }
-
     ];
-    const cars = await Car.aggregate(defaultQuery, (err, data) => {
-        if (err) {
-            return { status: 'failed', message: "No car available", err };
+    try {
+        const cars = await Car.aggregate(defaultQuery);
+        if (cars && cars.length > 0) {
+            return { status: 'success', message: "Car data found", data: cars }
         } else {
             return { status: 'success', message: "Car data found", data: data }
         }
-    });
-
-    if (cars && cars.length > 0) {
-        return { status: 'success', message: "Car data found", data: cars }
-    } else {
-        return { status: 'failed', message: "No car available" };
+    } catch (err) {
+        console.log("Err : ", err);
+        return { status: 'failed', message: "Error occured while finding car", err };
     }
 };
 
-carHelper.getcarDetailbyId = async function (car_id) {
+carHelper.getcarDetailbyId = async (car_id) => {
     try {
         const carDetail = await Car.find({ _id: car_id });
 
@@ -167,25 +168,30 @@ carHelper.getCarReviews = async (car_id) => {
     }
 };
 
+carHelper.getBrandList = async () => {
+    try {
+        const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 });
+        if (carbrand && carbrand.length > 0) {
+            return { status: 'success', message: "Carbrand data found", data: carbrand }
+        } else {
+            return { status: 'failed', message: "No carbrand available" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while finding data", err };
+    }
+}
 
-
-// note_helper.get_note_by_id = async (id) => {
-//     // let note_id = req.params.id;
-//     try {
-//         let data = await note.find({_id : new ObjectId(id)}).lean().exec();
-//         if(data && data.length > 0){
-//             return { status: 1, mynote: data };
-//         }
-//         else{
-//             return { status: 2 };
-//         }
-//     } catch (err) {
-//         return { status: 0, error: err };
-//     }
-// }
-
-
-
-
+carHelper.getModelList = async (brandArray) => {
+    try {
+        const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in : brandArray} });
+        if (carmodels && carmodels.length > 0) {
+            return { status: 'success', message: "Car Models data found", data: carmodels }
+        } else {
+            return { status: 'failed', message: "No carmodel available" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while finding data", err };
+    }
+}
 
 module.exports = carHelper;

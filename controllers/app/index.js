@@ -15,6 +15,9 @@ var router = express.Router();
 var car = require('./car');
 router.use('/car', car);
 
+var user = require('./user');
+router.use('/user', user);
+
 /**
  * @api {post} /app/registration Registration
  * @apiName Registration
