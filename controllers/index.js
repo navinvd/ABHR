@@ -2,8 +2,10 @@ var express = require('express');
 var auth = require('./../middlewares/auth');
 var router = express.Router();
 var admin = require('./admin');
+var company = require('./company');
 var app = require('./app');
 router.use('/admin', admin);
+router.use('/company', company);
 router.use('/app', app);
 var path = require('path');
 var async = require("async");
@@ -92,6 +94,63 @@ router.put('/user/profile_image', (req, res, next) => {
         }
     } else {
         res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+/**
+ * @api {post} /reset_password Reset Password
+ * @apiDescription Used to reset password of user
+ * @apiName Reset Password
+ * @apiGroup Admin
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} user_id User id
+ * @apiParam {String} new_password New Password for User   
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/reset_password', async(req, res, next) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "User id is required"
+        },
+        'new_password': {
+            notEmpty: true,
+            errorMessage: "New password is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user = await User.findOne({_id: req.body.user_id, isDeleted: false}).exec();
+        if (user) {
+            User.update({_id: {$eq: req.body.user_id}}, {$set: {password: bcrypt.hashSync(req.body.new_password, SALT_WORK_FACTOR)}}, function (err, data) {
+                if (err) {
+                    return next(err);
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        status: 'success',
+                        message: "Your password is change successfully.",
+                        data: data
+                    });
+                }
+            });
+        } else {
+            res.status(config.BAD_REQUEST).json({
+                status: 'failed',
+                message: "User is not exist"
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
             message: "Validation Error",
             error: errors
         });

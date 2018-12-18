@@ -11,26 +11,26 @@ var auth = require('./../../middlewares/auth');
 var router = express.Router();
 
 //Routes
-var users = require('./users');
-var keywords = require('./keywords');
-var agents = require('./agents');
-var staff = require('./staff');
-var company = require('./companies');
+var cars = require('./cars');
+// var keywords = require('./keywords');
+// var agents = require('./agents');
+// var staff = require('./staff');
+// var company = require('./companies');
 
-router.use('/user', users);
-router.use('/keyword', keywords);
-router.use('/agents', agents);
-router.use('/staff', staff);
-router.use('/company', company);
+router.use('/car', cars);
+// router.use('/keyword', keywords);
+// router.use('/agents', agents);
+// router.use('/staff', staff);
+// router.use('/company', company);
 
 //models
-var User = require('./../../models/users');
+var Company = require('./../../models/car_company');
 
 /**
- * @api {post} /admin/login Login
+ * @api {post} /company/login Login
  * @apiName Login
- * @apiDescription Used for RentalCar Company & Super Admin login
- * @apiGroup Admin
+ * @apiDescription Used for RentalCar Company
+ * @apiGroup Company-Admin
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} email User Email ID
@@ -56,7 +56,7 @@ router.post('/login', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        User.findOne({email: req.body.email, type: 'admin'}, function (err, data) {
+        Company.findOne({email: req.body.email, isDeleted: false}, function (err, data) {
             if (err) {
                 return next(err);
             } else {
@@ -64,12 +64,12 @@ router.post('/login', (req, res, next) => {
                     bcrypt.compare(req.body.password, data.password, function (err, result) {
                         if (result) {
                             if (data.is_verified) {
-                                var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                                var token = jwt.sign({id: data._id, email: data.email}, config.ACCESS_TOKEN_SECRET_KEY, {
                                     expiresIn: 60 * 60 * 24 // expires in 24 hours
                                 });
 
                                 res.status(config.OK_STATUS).json({
-                                    message: "User authenticated successfully",
+                                    message: "Company authenticated successfully",
                                     result: data,
                                     token: token
                                 });
@@ -105,13 +105,13 @@ router.post('/login', (req, res, next) => {
 })
 
 /**
- * @api {post} /admin/forget_password Forgot Password
+ * @api {post} /company/forget_password Forgot Password
  * @apiDescription Used to send email for forgot password
  * @apiName Forgot Password
- * @apiGroup Admin
+ * @apiGroup Company-Admin
  * @apiVersion 0.0.0
  * 
- * @apiParam {String} email User email adrress    
+ * @apiParam {String} email Company email adrress    
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -128,14 +128,14 @@ router.post('/forget_password', async(req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({email: req.body.email, type: 'admin'}).exec();
-        if (user) {
+        var company = await Company.findOne({email: req.body.email, isDeleted: false}).exec();
+        if (company) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
-                user_id: user._id
+                user_id: company._id
             };
             var option = {
-                to: user.email,
+                to: company.email,
                 subject: 'ABHR - Request for reset password'
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
@@ -152,7 +152,61 @@ router.post('/forget_password', async(req, res, next) => {
             });
         } else {
             res.status(config.BAD_REQUEST).json({
-                message: "User is not available with this email",
+                message: "Company is not available with this email",
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+
+/**
+ * @api {post} /company/reset_password Reset Password
+ * @apiDescription Used to reset password of company
+ * @apiName Reset Password
+ * @apiGroup Company-Admin
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} company_id Company id
+ * @apiParam {String} new_password New Password for Company   
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/reset_password', async(req, res, next) => {
+    var schema = {
+        'company_id': {
+            notEmpty: true,
+            errorMessage: "company id is required"
+        },
+        'new_password': {
+            notEmpty: true,
+            errorMessage: "New password is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var company = await Company.findOne({_id: req.body.company_id}).exec();
+        if (company) {
+            Company.update({_id: {$eq: req.body.company_id}}, {$set: {password: bcrypt.hashSync(req.body.new_password, SALT_WORK_FACTOR)}}, function (err, data) {
+                if (err) {
+                    return next(err);
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        message: "Your password is change successfully."
+                    });
+                }
+            });
+        } else {
+            res.status(config.BAD_REQUEST).json({
+                message: "Company is not exist"
             });
         }
     } else {
