@@ -386,75 +386,13 @@ router.post('/modelList', async (req, res) => {
         req.body.brand_ids.map(function (obj) {
             var myObjectId = ObjectId(obj);
             brandArray.push(myObjectId);
-        })
-        CarModel.find({ "isDeleted": false, "car_brand_id": { $in : brandArray} }, (err, cardata) => {
-            // console.log('data==>', err, data);
-            if (err) {
-                res.status(config.BAD_REQUEST).json({
-                    status: "failed",
-                    message: "car brand data not found",
-                    err
-                });
-            } else {
-                res.status(config.OK_STATUS).json({
-                    status: "Success",
-                    message: "car data found",
-                    data: cardata,
-                });
-            }
         });
+        const Resp = await carHelper.getModelList(brandArray);
+        res.json(Resp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
-        });
-    }
-});
-
-/**
- * @api {get} /app/car/notifications List of notifications for perticular user
- * @apiName Car Notificationlist
- * @apiDescription To Display notification list
- * @apiGroup App - Car
- *
- * @apiParam {Array}  userId userId
- * 
- * @apiHeader {String}  Content-Type application/json 
- * @apiHeader {String}  x-access-token Users unique access-key   
- * 
- * @apiSuccess (Success 200) {String} message Success message.
- * @apiError (Error 4xx) {String} message Validation or error message.
- */
-router.post('/notifications', async (req, res) => {
-    var schema = {
-        'userId': {
-            notEmpty: true,
-            errorMessage: "Please enter user id"
-        }
-    };
-    req.checkBody(schema);
-    var errors = req.validationErrors();
-    if (!errors) {
-        CarNotification.find({ "isDeleted": false, "userId": new ObjectId(req.body.userId)}, (err, data) => {
-            if (err) {
-                res.status(config.BAD_REQUEST).json({
-                    status: "failed",
-                    message: "notification data not found",
-                    err
-                });
-            } else {
-                res.status(config.OK_STATUS).json({
-                    status: "Success",
-                    message: "notification data found",
-                    data: data,
-                });
-            }
-        });
-    } else{
-        res.status(config.BAD_REQUEST).json({
-            status: 'failed',
-            message: "Validation Error",
-            errors
         });
     }
 });

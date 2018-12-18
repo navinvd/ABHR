@@ -50,9 +50,9 @@ commonHelper.getall = async function (model, conditions = {}, lookup=[],start = 
 
 };
 
-commonHelper.getcarDetailbyId = async function (car_id) {
+commonHelper.getDatabyId = async function (model, id) {
     try {
-        const carDetail = await Car.find({ _id: car_id });
+        const carDetail = await model.find({ _id: id });
 
         if (carDetail && carDetail.length > 0) {
             return { status: 'success', message: "Car data found", data: carDetail }

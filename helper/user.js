@@ -37,6 +37,4 @@ userHelper.getUsernotificationSettingData = async function (userId) {
     }
 };
 
-
-
 module.exports = userHelper;
