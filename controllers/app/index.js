@@ -84,7 +84,7 @@ router.post('/registration', (req, res, next) => {
         };
         User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}, function (err, data) {
             if (err) {
-                res.status(config.OK_STATUS).json({
+                res.status(config.BAD_REQUEST).json({
                     status: 'failed',
                     message: "could not register user please try again!!"
                 });
@@ -99,7 +99,7 @@ router.post('/registration', (req, res, next) => {
                     userModel.save(function (err, userData) {
                         console.log("data:", userData);
                         if (err) {
-                            res.status(config.OK_STATUS).json({
+                            res.status(config.BAD_REQUEST).json({
                                 status: 'failed',
                                 message: "could not register user please try again!!"
                             });
@@ -128,7 +128,7 @@ router.post('/registration', (req, res, next) => {
         })
         var userModel = new User(Data);
     } else {
-        res.status(config.OK_STATUS).json({
+        res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
             errors
@@ -181,7 +181,7 @@ router.post('/login', (req, res, next) => {
     if (!errors) {
         User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}, function (err, data) {
             if (err) {
-                res.status(config.OK_STATUS).json({
+                res.status(config.BAD_REQUEST).json({
                     status: 'failed',
                     message: "could not find user please try again!!"
                 });
@@ -208,7 +208,7 @@ router.post('/login', (req, res, next) => {
                                     token: token
                                 });
                             } else {
-                                res.status(config.OK_STATUS).json({
+                                res.status(config.BAD_REQUEST).json({
                                     status: 'success',
                                     message: "Please verify your email for successfull login",
                                     data: { user :{
@@ -226,7 +226,7 @@ router.post('/login', (req, res, next) => {
                         }
                     });
                 } else {
-                    res.status(config.OK_STATUS).json({
+                    res.status(config.BAD_REQUEST).json({
                         status: 'failed',
                         message: "Email is wrong",
                     });
@@ -234,7 +234,7 @@ router.post('/login', (req, res, next) => {
             }
         })
     } else {
-        res.status(config.OK_STATUS).json({
+        res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
             errors
@@ -326,7 +326,7 @@ router.post('/social_login', async (req, res, next) => {
             });
         }
     } else {
-        res.status(config.OK_STATUS).json({
+        res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error"
         });
@@ -473,13 +473,13 @@ router.post('/forget_password', async(req, res, next) => {
                 data:{user : user}
             });
         } else {
-            res.status(config.OK_STATUS).json({
+            res.status(config.BAD_REQUEST).json({
                 status: "failed",
                 message: "User is not available with this email",
             });
         }
     } else {
-        res.status(config.OK_STATUS).json({
+        res.status(config.BAD_REQUEST).json({
             status: "failed",
             message: "Validation Error"
         });

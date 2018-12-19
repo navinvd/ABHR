@@ -11,7 +11,8 @@ var path = require('path');
 var async = require("async");
 var User = require('./../models/users');
 var config = require('./../config');
-
+var bcrypt = require('bcrypt');
+var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 /**
  * @api {put} /user/profile_image Update Profile Image
  * @apiName Update Profile Image By User Id and type
