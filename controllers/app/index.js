@@ -57,7 +57,7 @@ router.post('/registration', (req, res, next) => {
             notEmpty: true,
             errorMessage: "Password is required"
         },
-        'devicType': {
+        'deviceType': {
             notEmpty: true,
             errorMessage: "deviceType is required"
         },

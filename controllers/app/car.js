@@ -387,23 +387,9 @@ router.post('/modelList', async (req, res) => {
         req.body.brand_ids.map(function (obj) {
             var myObjectId = ObjectId(obj);
             brandArray.push(myObjectId);
-        })
-        CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } }, (err, cardata) => {
-            // console.log('data==>', err, data);
-            if (err) {
-                res.status(config.BAD_REQUEST).json({
-                    status: "failed",
-                    message: "car brand data not found",
-                    err
-                });
-            } else {
-                res.status(config.OK_STATUS).json({
-                    status: "Success",
-                    message: "car data found",
-                    data: cardata,
-                });
-            }
         });
+        const Resp = await carHelper.getModelList(brandArray);
+        res.json(Resp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',

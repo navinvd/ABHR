@@ -552,24 +552,35 @@ router.post('/car_list',(req, res, next) => {
     if(!errors){
         var defaultQuery = [
             {
-                $lookup:
-                        {
-                            from: "car_company",
-                            localField: "_id",
-                            foreignField: "car_rental_company_id",
-                            as: "carRentalCompany"
-                        }
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_model_id',
+                    as: "modelDetails",
+                }
             },
             {
                 $unwind: {
-                    "path": "$carRentalCompany",
+                    "path": "$modelDetails",
                     "preserveNullAndEmptyArrays": true
                 }
             },
             {
-                $match: {"isDeleted": false,
-                         "car_rental_company_id": new ObjectId(req.body.company_id)
-                        }
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_brand_id',
+                    as: "brandDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brandDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {"isDeleted": false,}
             },
             {
                 $sort: {'createdAt': -1}

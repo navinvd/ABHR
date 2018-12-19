@@ -25,6 +25,10 @@ var CarCompanySchema = new Schema({
     refreshToken: String,
     place_id : mongoose.Schema.Types.ObjectId,
     agent_ids : [mongoose.Schema.Types.ObjectId],
+    is_verified: {
+        type: Boolean,
+        default: true
+    },
     isDeleted: {
         type: Boolean,
         default: false

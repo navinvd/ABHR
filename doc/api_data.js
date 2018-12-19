@@ -1422,6 +1422,146 @@ define({ "api": [
     "groupTitle": "App___Car"
   },
   {
+    "type": "get",
+    "url": "/app/user/notifications/:userId",
+    "title": "List of notifications for perticular user",
+    "name": "Car_Notificationlist",
+    "description": "<p>To Display notification list</p>",
+    "group": "App___Car",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "userId",
+            "description": "<p>userId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/user.js",
+    "groupTitle": "App___Car"
+  },
+  {
+    "type": "get",
+    "url": "/app/car/notifications",
+    "title": "List of notifications for perticular user",
+    "name": "Car_Notificationlist",
+    "description": "<p>To Display notification list</p>",
+    "group": "App___Car",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "userId",
+            "description": "<p>userId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
     "type": "post",
     "url": "/app/car/filter",
     "title": "List of car by filter applied",
@@ -1532,6 +1672,76 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "controllers/app/car.js",
     "groupTitle": "App___Car"
+  },
+  {
+    "type": "get",
+    "url": "/app/user/notification_setting/:userId",
+    "title": "get notification setting data for perticular user",
+    "name": "User_Notificationsetting_Data",
+    "description": "<p>To get Notificationsetting Data for perticular user</p>",
+    "group": "App___User",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "userId",
+            "description": "<p>userId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/user.js",
+    "groupTitle": "App___User"
   },
   {
     "type": "post",
@@ -2027,7 +2237,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/keywords.js",
+    "filename": "controllers/admin/cars.js",
     "groupTitle": "Keyword"
   },
   {
@@ -2097,7 +2307,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/cars.js",
+    "filename": "controllers/admin/keywords.js",
     "groupTitle": "Keyword"
   },
   {
@@ -2258,7 +2468,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/cars.js",
+    "filename": "controllers/admin/keywords.js",
     "groupTitle": "Keyword"
   },
   {
@@ -2342,7 +2552,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/keywords.js",
+    "filename": "controllers/admin/cars.js",
     "groupTitle": "Keyword"
   },
   {

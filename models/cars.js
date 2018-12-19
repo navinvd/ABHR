@@ -10,7 +10,6 @@ var CarSchema = new Schema({
     car_brand_id : mongoose.Schema.Types.ObjectId,
     car_color: {
         type: String,
-        required: true
     },
     is_navigation: {
         type: Boolean,
@@ -30,11 +29,10 @@ var CarSchema = new Schema({
     },
     licence_plate: {
         type: String,
-        default: false
     },
     no_of_person: {
         type: Number,
-        default: 0
+        default: 5
     },
     avg_rating:{
         type: Number,
