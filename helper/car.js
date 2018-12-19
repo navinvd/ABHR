@@ -58,6 +58,8 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 _id: 1,
                 car_rental_company_id: 1,
                 car_company: 1,
+                car_brand:"$brandDetails.brand_name",
+                car_model:"$modelDetails.model_name",
                 car_model: 1,
                 car_color: 1,
                 rent_price: 1,
@@ -141,17 +143,6 @@ carHelper.addReview = async function (review_data) {
     }
 };
 
-
-// Add car review
-carHelper.addReview = async function (review_data) {
-    let car_review = new CarReview(review_data);
-    try {
-        let data = await car_review.save();
-        return { status: 'success', message: "Car review has been added", data: data }
-    } catch (err) {
-        return { status: 'failed', message: "Error occured while adding car review" };
-    }
-};
 
 // get car reviews
 carHelper.getCarReviews = async (car_id) => {
