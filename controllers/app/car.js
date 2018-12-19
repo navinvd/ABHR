@@ -278,7 +278,7 @@ router.post('/filter', async (req, res) => {
             let transmissionObject = req.body.navigation;
             var searchQuery = {
                 "$match": {
-                    "transmission": transmissionObject,
+                    "transmission": { "$in": transmissionObject },
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
