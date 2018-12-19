@@ -600,5 +600,17 @@ router.post('/sort', async (req, res) => {
     }
 });
 
+// Car Booking past History
+router.post('/booking/past-history', async (req, res) => {
+    // login user id will be pass here for now i am passing it from body
+    const carHistoryResp = await carHelper.carBooking_past_history(req.body.user_id);
+    res.json(carHistoryResp);
+});
+
+// Car Booking upcooming History
+router.post('/booking/upcoming-history', async (req, res) => {
+    const carHistoryResp = await carHelper.carBooking_upcomming_history(req.body.user_id);
+    res.json(carHistoryResp);
+});
 
 module.exports = router;
