@@ -154,7 +154,7 @@ carHelper.addReview = async function (review_data) {
 // get car reviews
 carHelper.getCarReviews = async (car_id) => {
     try {
-        let data = await CarReview.find({ car_id: new ObjectId(car_id)}).lean().exec();
+        let data = await CarReview.find({ car_id: new ObjectId(car_id) }).lean().exec();
 
         if (data && data.length > 0) {
             return { status: 'success', message: "Car review has been found", data: data }
@@ -165,6 +165,62 @@ carHelper.getCarReviews = async (car_id) => {
 
     } catch (err) {
         return { status: 'failed', message: "Error occured while fetching car reviews" };
+    }
+};
+
+// car sorting
+carHelper.carSorting = async (sort_by) => {
+    let data;
+    let message;
+    try {
+        if (sort_by === 0) {            
+            data = await Car.aggregate([
+                {
+                    $lookup: {
+                        from: 'car_reviews',
+                        localField: '_id',
+                        foreignField: 'car_id',
+                        as: 'reviews'
+                    }
+                },
+                {
+                    $unwind: {
+                        "path": "$reviews",
+                    }
+                },
+                {
+                    $group : {
+                        _id : "$_id", 
+                        total_avg_rating : {$avg : "$reviews.stars"},
+                        car: {"$first": "$$ROOT"}
+                   }
+                },
+                {
+                    $sort:{
+                        'total_avg_rating':-1
+                     }
+                }
+            ]);
+            message = "Sorted cars by their popularity";
+        }
+        else if (sort_by === 1) {
+            data = await Car.find({}).sort({ 'rent_price': 1 }).lean().exec();
+            message = "Sorted cars by their rent price from low to high";
+        }
+        else if (sort_by === 2) {
+            data = await Car.find({}).sort({ 'rent_price': -1 }).lean().exec();
+            message = "Sorted cars by their rent price from high to low";
+        }
+
+        if (data && data.length > 0) {
+            return { status: 'success', message: message, data: data }
+        }
+        else {
+            return { status: 'failed', message: "No cars available", data: data }
+        }
+
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while sorting cars" };
     }
 };
 
@@ -183,7 +239,7 @@ carHelper.getBrandList = async () => {
 
 carHelper.getModelList = async (brandArray) => {
     try {
-        const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in : brandArray} });
+        const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } });
         if (carmodels && carmodels.length > 0) {
             return { status: 'success', message: "Car Models data found", data: carmodels }
         } else {
