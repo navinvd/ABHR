@@ -139,18 +139,6 @@ carHelper.addReview = async function (review_data) {
     }
 };
 
-
-// Add car review
-carHelper.addReview = async function (review_data) {
-    let car_review = new CarReview(review_data);
-    try {
-        let data = await car_review.save();
-        return { status: 'success', message: "Car review has been added", data: data }
-    } catch (err) {
-        return { status: 'failed', message: "Error occured while adding car review" };
-    }
-};
-
 // get car reviews
 carHelper.getCarReviews = async (car_id) => {
     try {
@@ -173,7 +161,7 @@ carHelper.carSorting = async (sort_by) => {
     let data;
     let message;
     try {
-        if (sort_by === 0) {            
+        if (sort_by === 0) {
             data = await Car.aggregate([
                 {
                     $lookup: {
@@ -189,16 +177,16 @@ carHelper.carSorting = async (sort_by) => {
                     }
                 },
                 {
-                    $group : {
-                        _id : "$_id", 
-                        total_avg_rating : {$avg : "$reviews.stars"},
-                        car: {"$first": "$$ROOT"}
-                   }
+                    $group: {
+                        _id: "$_id",
+                        total_avg_rating: { $avg: "$reviews.stars" },
+                        car: { "$first": "$$ROOT" }
+                    }
                 },
                 {
-                    $sort:{
-                        'total_avg_rating':-1
-                     }
+                    $sort: {
+                        'total_avg_rating': -1
+                    }
                 }
             ]);
             message = "Sorted cars by their popularity";
@@ -223,6 +211,87 @@ carHelper.carSorting = async (sort_by) => {
         return { status: 'failed', message: "Error occured while sorting cars" };
     }
 };
+
+// Car Booking past history 
+carHelper.carBooking_past_history = async (user_id) => {
+    try {
+        let data = await CarBooking.aggregate([
+            {
+                $lookup: {
+                    from: 'cars',
+                    localField: 'carId',
+                    foreignField: '_id',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {
+                    'isDeleted': false,
+                    'userId': new ObjectId(user_id),
+                    'from_time': {
+                        $lt: new Date(),
+                    }
+                }
+            }
+        ]);
+        if (data && data.length > 0) {
+            return { status: 'success', message: "Car booking past history", data: data }
+        }
+        else {
+            return { status: 'failed', message: "No car book yet", data: data }
+        }
+
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car booking past history"};
+    }
+};
+
+// Car Booking upcoming history 
+carHelper.carBooking_upcomming_history = async (user_id) => {
+    try {
+        let data = await CarBooking.aggregate([
+            {
+                $lookup: {
+                    from: 'cars',
+                    localField: 'carId',
+                    foreignField: '_id',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {
+                    'isDeleted': false,
+                    'userId': new ObjectId(user_id),
+                    'from_time': {
+                        $gte: new Date(),
+                    }
+                }
+            }
+        ]);
+        if (data && data.length > 0) {
+            return { status: 'success', message: "Car booking upcomming history", data: data }
+        }
+        else {
+            return { status: 'failed', message: "No car book yet", data: data }
+        }
+
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car booking upcomming history"};
+    }
+};
+
 
 carHelper.getBrandList = async () => {
     try {
