@@ -48,7 +48,7 @@ var CarSchema = new Schema({
         type: String,
         enum: ["open","limited"]
     },
-    class: {
+    car_class: {
         type: String,
         enum: ["economy", "luxury", "suv", "family"]
     },
