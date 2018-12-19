@@ -5,8 +5,8 @@ var mongoose = require('mongoose');
 // car_id,user_id,stars,username,review_text(optional)
 var Schema = mongoose.Schema;
 var CarReviewSchema = new Schema({
-    car_id : mongoose.Schema.Types.ObjectId,
-    user_id : mongoose.Schema.Types.ObjectId,
+    car_id : {type : mongoose.Schema.Types.ObjectId, ref: 'cars'},
+    user_id : {type : mongoose.Schema.Types.ObjectId, ref: 'users'},
     stars:{
         type: Number,
         required: true

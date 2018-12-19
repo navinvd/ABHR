@@ -398,6 +398,54 @@ router.post('/modelList', async (req, res) => {
     }
 });
 
+/**
+ * @api {get} /app/car/notifications List of notifications for perticular user
+ * @apiName Car Notificationlist
+ * @apiDescription To Display notification list
+ * @apiGroup App - Car
+ *
+ * @apiParam {Array}  userId userId
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/notifications', async (req, res) => {
+    var schema = {
+        'userId': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        CarNotification.find({ "isDeleted": false, "userId": new ObjectId(req.body.userId) }, (err, data) => {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "notification data not found",
+                    err
+                });
+            } else {
+                res.status(config.OK_STATUS).json({
+                    status: "Success",
+                    message: "notification data found",
+                    data: data,
+                });
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
 
 router.get('/addbrands', async (req, res) => {
     var ModelArray = ['BMW', 'Ducati', 'Ford', 'Lincoln', 'Jaguar', 'Land Rover', 'Maserati', 'Honda', 'Tovota'];
@@ -524,5 +572,30 @@ router.get('/review/:car_id', async (req, res) => {
     const carReviewResp = await carHelper.getCarReviews(new ObjectId(req.params.car_id));
     res.json(carReviewResp);
 });
+
+
+// car sorting by popularity(max review) && ascending && descending of price
+router.post('/sort', async (req, res) => {
+    var schema = {
+        'sort_by': {
+            notEmpty: true,
+            errorMessage: "Please enter sorting paramater"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var sort_by = parseInt(req.body.sort_by);
+        const carSortingResp = await carHelper.carSorting(sort_by);
+        res.json(carSortingResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            // message: "Validation Error",
+            message: errors
+        });
+    }
+});
+
 
 module.exports = router;
