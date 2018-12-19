@@ -4,8 +4,9 @@ var config = require('./../../config');
 var Car = require('./../../models/cars');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
-
-
+var async = require("async");
+var path = require('path');
+var fs = require('fs');
 /* @api {post} /car/add Add car
  * @apiName add Car
  * @apiDescription Used for Add Car 

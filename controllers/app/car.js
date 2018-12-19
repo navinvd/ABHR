@@ -287,7 +287,7 @@ router.post('/filter', async (req, res) => {
             let classObject = req.body.navigation;
             var searchQuery = {
                 "$match": {
-                    "class": classObject,
+                    "class": { "$in": classObject },
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
@@ -296,7 +296,7 @@ router.post('/filter', async (req, res) => {
             let copObject = req.body.capacity_of_people;
             var searchQuery = {
                 "$match": {
-                    "no_of_person": copObject,
+                    "no_of_person": { "$in": copObject },
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
@@ -305,7 +305,7 @@ router.post('/filter', async (req, res) => {
             let milageObject = req.body.milage;
             var searchQuery = {
                 "$match": {
-                    "milage": milageObject,
+                    "milage": { "$in": milageObject },
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
@@ -463,24 +463,24 @@ router.get('/addbrandmodels', async (req, res) => {
 });
 
 
-// /**
-//  * @api {post} /review/:car_id Add car Review
-//  * @apiName add car Review
-//  * @apiDescription Used to add car review 
-//  * @apiGroup App Car
-//  * @apiVersion 0.0.0
-//  * 
-//  * @apiParam {Number} user_id user Id
-//  * @apiParam {Number} stars review stars
-//  * @apiParam {String} username reviwer name
-//  * @apiParam {String} [review_text] review comment
-//  * 
-//  * @apiHeader {String}  Content-Type application/json 
-//  * @apiHeader {String}  x-access-token Users unique access-key   
-//  * 
-//  * @apiSuccess (Success 200) {String} message Success message.
-//  * @apiError (Error 4xx) {String} message Validation or error message.
-//  */
+/**
+ * @api {post} /review/:car_id Add car Review
+ * @apiName add car Review
+ * @apiDescription Used to add car review 
+ * @apiGroup App Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user Id
+ * @apiParam {Number} stars review stars
+ * @apiParam {String} username reviwer name
+ * @apiParam {String} [review_text] review comment
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 router.post('/review/:car_id', async (req, res) => {
     var schema = {
         'user_id': {

@@ -5,7 +5,10 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var CarSchema = new Schema({
     car_rental_company_id: mongoose.Schema.Types.ObjectId,
-    car_gallery: [ String],
+    car_gallery: [ {
+        name: { type: String},
+        type: {type: String}
+    }],
     car_model_id : mongoose.Schema.Types.ObjectId,
     car_brand_id : mongoose.Schema.Types.ObjectId,
     car_color: {
