@@ -4,8 +4,9 @@ var config = require('./../../config');
 var Car = require('./../../models/cars');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
-
-
+var async = require("async");
+var path = require('path');
+var fs = require('fs');
 /* @api {post} /car/add Add car
  * @apiName add Car
  * @apiDescription Used for Add Car 
@@ -25,7 +26,7 @@ var auth = require('./../../middlewares/auth');
  * @apiParam {Number} no_of_person capacity of people
  * @apiParam {Enum} transmission ["manual", "automatic"]
  * @apiParam {Enum} milage ["open","limited"]
- * @apiParam {Enum} class ["economy", "luxury", "suv", "family"]
+ * @apiParam {Enum} car_class ["economy", "luxury", "suv", "family"]
  * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
  * 
  * 
@@ -64,7 +65,7 @@ router.post('/add', (req, res, next) => {
             notEmpty: true,
             errorMessage: "Milage is required"
         },
-        'class': {
+        'car_class': {
             notEmpty: true,
             errorMessage: "Class is required"
         }

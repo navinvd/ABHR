@@ -104,7 +104,7 @@ router.post('/details', async (req, res) => {
  * @apiParam {Array} [model] Array of model ids 
  * @apiParam {Boolean} [navigation] Boolean default true 
  * @apiParam {Enum} [transmission]  ["automatic", "manual"] 
- * @apiParam {Enum} [class]  ["economy", "luxury", "suv", "family"] 
+ * @apiParam {Enum} [car_class]  ["economy", "luxury", "suv", "family"] 
  * @apiParam {Number} [capacity_of_people] Number no. of people 
  * @apiParam {String} [milage] String forexample: "open" 
  * 
@@ -196,7 +196,7 @@ router.post('/filter', async (req, res) => {
                     milage: 1,
                     is_navigation: 1,
                     driving_eligibility_criteria: 1,
-                    class: 1,
+                    car_class: 1,
                     avg_rating: 1,
                     is_avialable: 1,
                     car_model_id: 1,
@@ -205,6 +205,7 @@ router.post('/filter', async (req, res) => {
                     carBookingDetails: 1,
                     brandDetails: 1,
                     modelDetails: 1,
+                    car_gallery:1,
                     carBookingDetailsDate: {
                         $dateToString: {
                             date: "$carBookingDetails.from_time",
@@ -278,16 +279,16 @@ router.post('/filter', async (req, res) => {
             let transmissionObject = req.body.navigation;
             var searchQuery = {
                 "$match": {
-                    "transmission": transmissionObject,
+                    "transmission": { "$in": transmissionObject },
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
         }
-        if (req.body.class) {
+        if (req.body.car_class) {
             let classObject = req.body.navigation;
             var searchQuery = {
                 "$match": {
-                    "class": classObject,
+                    "car_class": { "$in": classObject },
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
@@ -296,7 +297,7 @@ router.post('/filter', async (req, res) => {
             let copObject = req.body.capacity_of_people;
             var searchQuery = {
                 "$match": {
-                    "no_of_person": copObject,
+                    "no_of_person": { "$in": copObject },
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
@@ -305,7 +306,7 @@ router.post('/filter', async (req, res) => {
             let milageObject = req.body.milage;
             var searchQuery = {
                 "$match": {
-                    "milage": milageObject,
+                    "milage": { "$in": milageObject },
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
@@ -317,6 +318,7 @@ router.post('/filter', async (req, res) => {
             }
             defaultQuery.splice(3, 0, searchQuery);
         }
+
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
