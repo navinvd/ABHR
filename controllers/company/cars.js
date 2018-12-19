@@ -26,7 +26,7 @@ var fs = require('fs');
  * @apiParam {Number} no_of_person capacity of people
  * @apiParam {Enum} transmission ["manual", "automatic"]
  * @apiParam {Enum} milage ["open","limited"]
- * @apiParam {Enum} class ["economy", "luxury", "suv", "family"]
+ * @apiParam {Enum} car_class ["economy", "luxury", "suv", "family"]
  * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
  * 
  * 
@@ -65,7 +65,7 @@ router.post('/add', (req, res, next) => {
             notEmpty: true,
             errorMessage: "Milage is required"
         },
-        'class': {
+        'car_class': {
             notEmpty: true,
             errorMessage: "Class is required"
         }

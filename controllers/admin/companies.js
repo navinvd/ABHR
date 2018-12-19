@@ -627,7 +627,7 @@ router.post('/car_list',(req, res, next) => {
 });
 
 /**
- * @api {post} /admin/companies/car/details Details of car for perticular carId
+ * @api {post} /admin/company/car/details Details of car for perticular carId
  * @apiName Car Details
  * @apiDescription To display car Details 
  * @apiGroup Admin

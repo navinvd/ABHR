@@ -205,6 +205,7 @@ router.post('/filter', async (req, res) => {
                     carBookingDetails: 1,
                     brandDetails: 1,
                     modelDetails: 1,
+                    car_gallery:1,
                     carBookingDetailsDate: {
                         $dateToString: {
                             date: "$carBookingDetails.from_time",
@@ -317,6 +318,7 @@ router.post('/filter', async (req, res) => {
             }
             defaultQuery.splice(3, 0, searchQuery);
         }
+
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 res.status(config.BAD_REQUEST).json({

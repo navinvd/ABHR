@@ -70,7 +70,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 milage: 1,
                 is_navigation: 1,
                 driving_eligibility_criteria: 1,
-                class: 1,
+                car_class: 1,
                 avg_rating: 1,
                 is_avialable: 1,
                 car_model_id: 1,
@@ -79,6 +79,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 carBookingDetails: 1,
                 brandDetails: 1,
                 modelDetails: 1,
+                car_gallery:1,
                 carBookingDetailsDate: {
                     $dateToString: {
                         date: "$carBookingDetails.from_time",
@@ -102,11 +103,12 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         }
     ];
     try {
+        console.log("Default Query => ",JSON.stringify(defaultQuery));
         const cars = await Car.aggregate(defaultQuery);
         if (cars && cars.length > 0) {
-            return { status: 'success', message: "Car data found", data: cars }
+            return { status: 'success', message: "Car data found", data: {cars: cars} }
         } else {
-            return { status: 'success', message: "Car data found", data: data }
+            return { status: 'success', message: "Car data found", data: {cars: cars} }
         }
     } catch (err) {
         console.log("Err : ", err);
