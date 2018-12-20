@@ -37,9 +37,6 @@ var CarSchema = new Schema({
         type: Number,
         default: 5
     },
-    avg_rating:{
-        type: Number,
-    },
     transmission: {
         type: String,
         enum: ["manual", "automatic"],
