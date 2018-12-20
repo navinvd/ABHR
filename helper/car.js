@@ -58,6 +58,8 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 _id: 1,
                 car_rental_company_id: 1,
                 car_company: 1,
+                car_brand:"$brandDetails.brand_name",
+                car_model:"$modelDetails.model_name",
                 car_model: 1,
                 car_color: 1,
                 rent_price: 1,
@@ -115,6 +117,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         return { status: 'failed', message: "Error occured while finding car", err };
     }
 };
+
 
 carHelper.getcarDetailbyId = async (car_id) => {
     try {
