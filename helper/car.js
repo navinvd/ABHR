@@ -354,4 +354,5 @@ carHelper.getNotificationByUserId = async (userId) => {
         return { status: 'failed', message: "Oops! Something went wrong.., We canot find data", err };
     }
 }
+
 module.exports = carHelper;
