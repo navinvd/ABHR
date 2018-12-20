@@ -54,13 +54,26 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
             }
         },
         {
+            $lookup: {
+                from: 'car_reviews',
+                localField: '_id',
+                foreignField: 'car_id',
+                as: 'reviews'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$reviews",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
             $project: {
                 _id: 1,
                 car_rental_company_id: 1,
-                car_company: 1,
+                rating: { $avg: "$reviews.stars" },
                 car_brand:"$brandDetails.brand_name",
                 car_model:"$modelDetails.model_name",
-                car_model: 1,
                 car_color: 1,
                 rent_price: 1,
                 is_AC: 1,
@@ -73,14 +86,10 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 is_navigation: 1,
                 driving_eligibility_criteria: 1,
                 car_class: 1,
-                avg_rating: 1,
                 is_avialable: 1,
                 car_model_id: 1,
                 car_brand_id: 1,
                 isDeleted: 1,
-                carBookingDetails: 1,
-                brandDetails: 1,
-                modelDetails: 1,
                 car_gallery:1,
                 carBookingDetailsDate: {
                     $dateToString: {
@@ -102,27 +111,6 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         },
         {
             $limit: length
-        },
-        {
-            $lookup: {
-                from: 'car_reviews',
-                localField: '_id',
-                foreignField: 'car_id',
-                as: 'reviews'
-            }
-       },
-       {
-            $unwind: {
-                "path": "$reviews",
-                "preserveNullAndEmptyArrays": true
-            }
-        },
-        {
-            $group: {
-                _id: "$_id",
-                total_avg_rating: { $avg: "$reviews.stars" },
-                car: { "$first": "$$ROOT" }
-            }
         }
     ];
     try {
@@ -145,7 +133,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
         const carDetail = await Car.find({ _id: car_id });
 
         if (carDetail && carDetail.length > 0) {
-            return { status: 'success', message: "Car data found", data: carDetail }
+            return { status: 'success', message: "Car data found", data: {carDetail : carDetail} }
         } else {
             return { status: 'failed', message: "No car available" };
         }
@@ -375,4 +363,5 @@ carHelper.getNotificationByUserId = async (userId) => {
         return { status: 'failed', message: "Oops! Something went wrong.., We canot find data", err };
     }
 }
+
 module.exports = carHelper;

@@ -7,7 +7,7 @@ const Car = require('./../../models/cars');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const CarNotification = require('./../../models/car_notification');
-
+var moment = require('moment');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 
@@ -139,6 +139,7 @@ router.post('/filter', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+        var fromDate = moment().format("MMM Do YY");   
         var defaultQuery = [
             {
                 $lookup: {
@@ -183,49 +184,6 @@ router.post('/filter', async (req, res) => {
                 }
             },
             {
-                $project: {
-                    _id: 1,
-                    car_rental_company_id: 1,
-                    car_company: 1,
-                    car_brand:"$brandDetails.brand_name",
-                    car_model:"$modelDetails.model_name",
-                    car_color: 1,
-                    rent_price: 1,
-                    is_AC: 1,
-                    is_luggage_carrier: 1,
-                    licence_plate: 1,
-                    no_of_person: 1,
-                    transmission: 1,
-                    is_delieverd: 1,
-                    milage: 1,
-                    is_navigation: 1,
-                    driving_eligibility_criteria: 1,
-                    car_class: 1,
-                    avg_rating: 1,
-                    is_avialable: 1,
-                    car_model_id: 1,
-                    car_brand_id: 1,
-                    isDeleted: 1,
-                    carBookingDetails: 1,
-                    brandDetails: 1,
-                    modelDetails: 1,
-                    car_gallery:1,
-                    carBookingDetailsDate: {
-                        $dateToString: {
-                            date: "$carBookingDetails.from_time",
-                            format: "%Y-%m-%d"
-                        }
-                    }
-                }
-            },
-            {
-                $match: {
-                    'isDeleted': false,
-                    'carBookingDetailsDate': { $ne: req.body.fromDate },
-                    'carBookingDetails.days': { $ne: req.body.days }
-                }
-            },
-            {
                 $lookup: {
                     from: 'car_reviews',
                     localField: '_id',
@@ -240,14 +198,51 @@ router.post('/filter', async (req, res) => {
                 }
             },
             {
-                $group: {
-                    _id: "$_id",
-                    total_avg_rating: { $avg: "$reviews.stars" },
-                    car: { "$first": "$$ROOT" }
+                $project: {
+                    _id: 1,
+                    car_rental_company_id: 1,
+                    car_company: 1,
+                    rating: { $avg: "$reviews.stars" }? { $avg: "$reviews.stars" } : 0,
+                    car_brand:"$brandDetails.brand_name",
+                    car_model:"$modelDetails.model_name",
+                    car_color: 1,
+                    rent_price: 1,
+                    is_AC: 1,
+                    is_luggage_carrier: 1,
+                    licence_plate: 1,
+                    no_of_person: 1,
+                    transmission: 1,
+                    is_delieverd: 1,
+                    milage: 1,
+                    is_navigation: 1,
+                    driving_eligibility_criteria: 1,
+                    car_class: 1,
+                    is_avialable: 1,
+                    car_model_id: 1,
+                    car_brand_id: 1,
+                    isDeleted: 1,
+                    test:{ $arrayElemAt: [ "$car_gallery", 0 ] },
+                    carBookingFromDate: {
+                        $dateToString: {
+                            date: "$carBookingDetails.from_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    carBookingToDate: {
+                        $dateToString: {
+                            date: "$carBookingDetails.to_time",
+                            format: "%Y-%m-%d"
+                        }
+                    }
+                }
+            },
+            {
+                $match: {
+                    'isDeleted': false,
+                    'carBookingDetailsDate': { $ne: fromDate },
+                    'carBookingDetails.days': { $ne: days }
                 }
             }
-
-            
         ];
         var paginationArray = [
             {
@@ -354,6 +349,7 @@ router.post('/filter', async (req, res) => {
                     err
                 });
             } else {
+                console.log(data);
                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
                 res.status(config.OK_STATUS).json({
                     status: "Success",
@@ -568,7 +564,7 @@ router.get('/review/:car_id', async (req, res) => {
  * @api {post} /app/car/sort Sorting the cars
  * @apiName Car sorting
  * @apiDescription Used to sort car by popularity & its rental price
- * @apiGroup App Car
+ * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} sort_by pass this inside body eg. (0,1,2)
@@ -606,7 +602,7 @@ router.post('/sort', async (req, res) => {
  * @api {post} /app/car/booking/past-history Past car booking history
  * @apiName past car booking history
  * @apiDescription Used to get past car booking history
- * @apiGroup App Car
+ * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} user_id user Id
@@ -627,7 +623,7 @@ router.post('/booking/past-history', async (req, res) => {
  * @api {post} /app/car/booking/upcoming-history upcoming car booking history
  * @apiName upcoming car booking history
  * @apiDescription Used to get upcoming car booking history
- * @apiGroup App Car
+ * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} user_id user Id

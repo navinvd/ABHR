@@ -8,8 +8,8 @@ module.exports = {
 
     //Email Configuration
     'SMTP_SERVICE': 'gmail',
-    'SMTP_MAIL': 'demo.narolainfotech@gmail.com',
-    'SMTP_PASSWORD': 'Password123#',
+    'SMTP_MAIL': 'abhrrentals@gmail.com',
+    'SMTP_PASSWORD': 'abhr@123',
 
     //Encription
     "SALT_WORK_FACTOR": 10,
