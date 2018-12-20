@@ -627,7 +627,7 @@ router.post('/booking/past-history', async (req, res) => {
  * @api {post} /app/car/booking/upcoming-history upcoming car booking history
  * @apiName upcoming car booking history
  * @apiDescription Used to get upcoming car booking history
- * @apiGroup App - sCar
+ * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} user_id user Id
