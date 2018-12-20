@@ -138,8 +138,7 @@ router.post('/filter', async (req, res) => {
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if (!errors) {
-        var fromDate = moment().format("MMM Do YY");   
+    if (!errors) {  
         var defaultQuery = [
             {
                 $lookup: {
