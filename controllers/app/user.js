@@ -12,7 +12,7 @@ var auth = require('./../../middlewares/auth');
  * @api {get} /app/user/notifications/:userId List of notifications for perticular user
  * @apiName Car Notificationlist
  * @apiDescription To Display notification list
- * @apiGroup App - Car
+ * @apiGroup AppUser
  *
  * @apiParam {Array}  userId userId
  * 
@@ -39,7 +39,7 @@ router.get('/notifications/:userId', async (req, res) => {
  * @api {get} /app/user/notification_setting/:userId get notification setting data for perticular user
  * @apiName User Notificationsetting Data
  * @apiDescription To get Notificationsetting Data for perticular user
- * @apiGroup App - User
+ * @apiGroup AppUser
  *
  * @apiParam {Array}  userId userId
  * 

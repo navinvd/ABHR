@@ -111,7 +111,7 @@ router.post('/login', (req, res, next) => {
  * @apiGroup Company-Admin
  * @apiVersion 0.0.0
  * 
- * @apiParam {String} email Company email adrress    
+ * @apiParam {String} email Company email adrress 
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -132,14 +132,14 @@ router.post('/forget_password', async(req, res, next) => {
         if (company) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
-                user_id: company._id
+                company_id: company._id
             };
             var option = {
                 to: company.email,
                 subject: 'ABHR - Request for reset password'
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
-            var data = {link: config.FRONT_END_URL + 'reset_password?detials=' + buffer};
+            var data = {link: config.FRONT_END_URL + 'reset-password?detials=' + buffer};
             mailHelper.send('forget_password', option, data, function (err, res) {
                 if (err) {
                     console.log("Mail Error:", err);

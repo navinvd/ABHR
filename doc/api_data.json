@@ -1,7 +1,7 @@
 [
   {
     "type": "post",
-    "url": "/admin/companies/car/details",
+    "url": "/admin/company/car/details",
     "title": "Details of car for perticular carId",
     "name": "Car_Details",
     "description": "<p>To display car Details</p>",
@@ -791,6 +791,76 @@
     "groupTitle": "Agents"
   },
   {
+    "type": "get",
+    "url": "/app/user/notifications/:userId",
+    "title": "List of notifications for perticular user",
+    "name": "Car_Notificationlist",
+    "description": "<p>To Display notification list</p>",
+    "group": "AppUser",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "userId",
+            "description": "<p>userId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/user.js",
+    "groupTitle": "AppUser"
+  },
+  {
     "type": "post",
     "url": "/app/social_login",
     "title": "Facebook Login",
@@ -1204,43 +1274,21 @@
     "groupTitle": "AppUser"
   },
   {
-    "type": "post",
-    "url": "/review/:car_id",
-    "title": "Add car Review",
-    "name": "add_car_Review",
-    "description": "<p>Used to add car review</p>",
-    "group": "App_Car",
-    "version": "0.0.0",
+    "type": "get",
+    "url": "/app/user/notification_setting/:userId",
+    "title": "get notification setting data for perticular user",
+    "name": "User_Notificationsetting_Data",
+    "description": "<p>To get Notificationsetting Data for perticular user</p>",
+    "group": "AppUser",
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "Number",
+            "type": "Array",
             "optional": false,
-            "field": "user_id",
-            "description": "<p>user Id</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": false,
-            "field": "stars",
-            "description": "<p>review stars</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "username",
-            "description": "<p>reviwer name</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "review_text",
-            "description": "<p>review comment</p>"
+            "field": "userId",
+            "description": "<p>userId</p>"
           }
         ]
       }
@@ -1291,8 +1339,9 @@
         ]
       }
     },
-    "filename": "controllers/app/car.js",
-    "groupTitle": "App_Car"
+    "version": "0.0.0",
+    "filename": "controllers/app/user.js",
+    "groupTitle": "AppUser"
   },
   {
     "type": "get",
@@ -1583,76 +1632,6 @@
     "groupTitle": "App___Car"
   },
   {
-    "type": "get",
-    "url": "/app/user/notifications/:userId",
-    "title": "List of notifications for perticular user",
-    "name": "Car_Notificationlist",
-    "description": "<p>To Display notification list</p>",
-    "group": "App___Car",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "Array",
-            "optional": false,
-            "field": "userId",
-            "description": "<p>userId</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Users unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "controllers/app/user.js",
-    "groupTitle": "App___Car"
-  },
-  {
     "type": "post",
     "url": "/app/car/filter",
     "title": "List of car by filter applied",
@@ -1662,6 +1641,20 @@
     "parameter": {
       "fields": {
         "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "fromDate",
+            "description": "<p>Available from date</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "days",
+            "description": "<p>Number of days car needed</p>"
+          },
           {
             "group": "Parameter",
             "type": "Array",
@@ -1694,7 +1687,7 @@
             "group": "Parameter",
             "type": "Enum",
             "optional": true,
-            "field": "class",
+            "field": "car_class",
             "description": "<p>[&quot;economy&quot;, &quot;luxury&quot;, &quot;suv&quot;, &quot;family&quot;]</p>"
           },
           {
@@ -1765,21 +1758,43 @@
     "groupTitle": "App___Car"
   },
   {
-    "type": "get",
-    "url": "/app/user/notification_setting/:userId",
-    "title": "get notification setting data for perticular user",
-    "name": "User_Notificationsetting_Data",
-    "description": "<p>To get Notificationsetting Data for perticular user</p>",
-    "group": "App___User",
+    "type": "post",
+    "url": "/review/:car_id",
+    "title": "Add car Review",
+    "name": "add_car_Review",
+    "description": "<p>Used to add car review</p>",
+    "group": "App___Car",
+    "version": "0.0.0",
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "Array",
+            "type": "Number",
             "optional": false,
-            "field": "userId",
-            "description": "<p>userId</p>"
+            "field": "user_id",
+            "description": "<p>user Id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "stars",
+            "description": "<p>review stars</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>reviwer name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "review_text",
+            "description": "<p>review comment</p>"
           }
         ]
       }
@@ -1830,9 +1845,8 @@
         ]
       }
     },
-    "version": "0.0.0",
-    "filename": "controllers/app/user.js",
-    "groupTitle": "App___User"
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
   },
   {
     "type": "post",
