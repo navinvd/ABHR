@@ -221,7 +221,30 @@ router.post('/filter', async (req, res) => {
                     'carBookingDetailsDate': { $ne: req.body.fromDate },
                     'carBookingDetails.days': { $ne: req.body.days }
                 }
+            },
+            {
+                $lookup: {
+                    from: 'car_reviews',
+                    localField: '_id',
+                    foreignField: 'car_id',
+                    as: 'reviews'
+                }
+           },
+           {
+                $unwind: {
+                    "path": "$reviews",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    total_avg_rating: { $avg: "$reviews.stars" },
+                    car: { "$first": "$$ROOT" }
+                }
             }
+
+            
         ];
         var paginationArray = [
             {
@@ -332,7 +355,7 @@ router.post('/filter', async (req, res) => {
                 res.status(config.OK_STATUS).json({
                     status: "Success",
                     message: "car data found",
-                    data: data,
+                    data: {cars : data },
                 });
             }
         });
@@ -515,7 +538,7 @@ router.get('/addbrandmodels', async (req, res) => {
 
 
 /**
- * @api {post} /review/:car_id Add car Review
+ * @api {post} /app/car/review/:car_id Add car Review
  * @apiName add car Review
  * @apiDescription Used to add car review 
  * @apiGroup App Car
@@ -567,17 +590,41 @@ router.post('/review/:car_id', async (req, res) => {
     }
 });
 
-
-
-
-// Get reviews of car
+/**
+ * @api {post} /app/car/review/:car_id Get car reviews
+ * @apiName Car Reviews
+ * @apiDescription To display specific car reviews
+ * @apiGroup App - Car
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 router.get('/review/:car_id', async (req, res) => {
     const carReviewResp = await carHelper.getCarReviews(new ObjectId(req.params.car_id));
     res.json(carReviewResp);
 });
 
 
-// car sorting by popularity(max review) && ascending && descending of price
+/**
+ * @api {post} /app/car/sort Sorting the cars
+ * @apiName Car sorting
+ * @apiDescription Used to sort car by popularity & its rental price
+ * @apiGroup App Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} sort_by pass this inside body eg. (0,1,2)
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
 router.post('/sort', async (req, res) => {
     var schema = {
         'sort_by': {
@@ -600,14 +647,42 @@ router.post('/sort', async (req, res) => {
     }
 });
 
-// Car Booking past History
+/**
+ * @api {post} /app/car/booking/past-history Past car booking history
+ * @apiName past car booking history
+ * @apiDescription Used to get past car booking history
+ * @apiGroup App Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 router.post('/booking/past-history', async (req, res) => {
     // login user id will be pass here for now i am passing it from body
     const carHistoryResp = await carHelper.carBooking_past_history(req.body.user_id);
     res.json(carHistoryResp);
 });
 
-// Car Booking upcooming History
+/**
+ * @api {post} /app/car/booking/upcoming-history upcoming car booking history
+ * @apiName upcoming car booking history
+ * @apiDescription Used to get upcoming car booking history
+ * @apiGroup App Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 router.post('/booking/upcoming-history', async (req, res) => {
     const carHistoryResp = await carHelper.carBooking_upcomming_history(req.body.user_id);
     res.json(carHistoryResp);
