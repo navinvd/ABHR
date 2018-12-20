@@ -568,7 +568,7 @@ router.get('/review/:car_id', async (req, res) => {
  * @api {post} /app/car/sort Sorting the cars
  * @apiName Car sorting
  * @apiDescription Used to sort car by popularity & its rental price
- * @apiGroup App Car
+ * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} sort_by pass this inside body eg. (0,1,2)
@@ -606,7 +606,7 @@ router.post('/sort', async (req, res) => {
  * @api {post} /app/car/booking/past-history Past car booking history
  * @apiName past car booking history
  * @apiDescription Used to get past car booking history
- * @apiGroup App Car
+ * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} user_id user Id
@@ -627,7 +627,7 @@ router.post('/booking/past-history', async (req, res) => {
  * @api {post} /app/car/booking/upcoming-history upcoming car booking history
  * @apiName upcoming car booking history
  * @apiDescription Used to get upcoming car booking history
- * @apiGroup App Car
+ * @apiGroup App - sCar
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} user_id user Id
