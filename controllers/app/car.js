@@ -7,7 +7,6 @@ const Car = require('./../../models/cars');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const CarNotification = require('./../../models/car_notification');
-var moment = require('moment');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 
@@ -238,8 +237,8 @@ router.post('/filter', async (req, res) => {
             {
                 $match: {
                     'isDeleted': false,
-                    'carBookingDetailsDate': { $ne: fromDate },
-                    'carBookingDetails.days': { $ne: days }
+                    'carBookingDetailsDate': { $ne: req.body.fromDate },
+                    'carBookingDetails.days': { $ne: req.body.days }
                 }
             }
         ];
