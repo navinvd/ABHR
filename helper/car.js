@@ -102,6 +102,27 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         },
         {
             $limit: length
+        },
+        {
+            $lookup: {
+                from: 'car_reviews',
+                localField: '_id',
+                foreignField: 'car_id',
+                as: 'reviews'
+            }
+       },
+       {
+            $unwind: {
+                "path": "$reviews",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $group: {
+                _id: "$_id",
+                total_avg_rating: { $avg: "$reviews.stars" },
+                car: { "$first": "$$ROOT" }
+            }
         }
     ];
     try {
