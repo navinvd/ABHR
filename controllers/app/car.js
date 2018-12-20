@@ -7,7 +7,7 @@ const Car = require('./../../models/cars');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const CarNotification = require('./../../models/car_notification');
-
+var moment = require('moment');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 
@@ -139,6 +139,7 @@ router.post('/filter', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+        var fromDate = moment().format("MMM Do YY");   
         var defaultQuery = [
             {
                 $lookup: {
@@ -216,15 +217,20 @@ router.post('/filter', async (req, res) => {
                     is_navigation: 1,
                     driving_eligibility_criteria: 1,
                     car_class: 1,
-                    avg_rating: 1,
                     is_avialable: 1,
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
-                    car_gallery:1,
-                    carBookingDetailsDate: {
+                    test:{ $arrayElemAt: [ "$car_gallery", 0 ] },
+                    carBookingFromDate: {
                         $dateToString: {
                             date: "$carBookingDetails.from_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    carBookingToDate: {
+                        $dateToString: {
+                            date: "$carBookingDetails.to_time",
                             format: "%Y-%m-%d"
                         }
                     }
@@ -233,8 +239,8 @@ router.post('/filter', async (req, res) => {
             {
                 $match: {
                     'isDeleted': false,
-                    'carBookingDetailsDate': { $ne: req.body.fromDate },
-                    'carBookingDetails.days': { $ne: req.body.days }
+                    'carBookingDetailsDate': { $ne: fromDate },
+                    'carBookingDetails.days': { $ne: days }
                 }
             }
         ];
