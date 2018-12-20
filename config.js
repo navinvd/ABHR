@@ -1,6 +1,6 @@
 module.exports = {
     "node_port": 3000,
-    "FRONT_END_URL": "http://localhost:4200/",
+    "FRONT_END_URL": "http://localhost:4200/#",
     "BACK_END_URL": "http://localhost:3000/",
     "database": "mongodb://abhr:WkEV9rTcS7@18.219.16.50:27017/abhr",
     //Token

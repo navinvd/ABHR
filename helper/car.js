@@ -311,17 +311,46 @@ carHelper.getBrandList = async () => {
     }
 }
 
+//Get modellist by brand id
 carHelper.getModelList = async (brandArray) => {
     try {
         const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } });
         if (carmodels && carmodels.length > 0) {
-            return { status: 'success', message: "Car Models data found", data: carmodels }
+            return { status: 'success', message: "Car Models records found", data: carmodels }
         } else {
-            return { status: 'failed', message: "No carmodel available" };
+            return { status: 'failed', message: "No carmodel records not available" };
         }
     } catch (err) {
-        return { status: 'failed', message: "Error occured while finding data", err };
+        return { status: 'failed', message: "Oops! Something went wrong.., We canot find data", err };
     }
 }
 
+//Get notification by user id
+carHelper.getNotificationByUserId = async (userId) => {
+    try {
+        CarNotification.find({ "isDeleted": false, "userId": new ObjectId(req.body.userId) }, (err, data) => {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "notification data not found",
+                    err
+                });
+            } else {
+                res.status(config.OK_STATUS).json({
+                    status: "Success",
+                    message: "notification data found",
+                    data: data,
+                });
+            }
+        });
+        const carnotifications = await CarNotification.find({ "isDeleted": false, "userId": new ObjectId(userId) });
+        if (carnotifications && carnotifications.length > 0) {
+            return { status: 'success', message: "Car Notification records found", data: {carnotifications: carnotifications} }
+        } else {
+            return { status: 'failed', message: "Car Notification records not available" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Oops! Something went wrong.., We canot find data", err };
+    }
+}
 module.exports = carHelper;

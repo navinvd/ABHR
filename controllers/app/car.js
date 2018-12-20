@@ -56,6 +56,7 @@ router.post('/list', async (req, res) => {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
+            errors
         });
     }
 });
@@ -100,6 +101,8 @@ router.post('/details', async (req, res) => {
  * @apiDescription To Display filter car list 
  * @apiGroup App - Car
  * 
+ * @apiParam {Date} fromDate Available from date
+ * @apiParam {Number} days Number of days car needed
  * @apiParam {Array}  [brand] Array of brand ids 
  * @apiParam {Array} [model] Array of model ids 
  * @apiParam {Boolean} [navigation] Boolean default true 
@@ -340,6 +343,7 @@ router.post('/filter', async (req, res) => {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
+            errors
         });
     }
 });
@@ -400,55 +404,6 @@ router.post('/modelList', async (req, res) => {
         });
     }
 });
-
-/**
- * @api {get} /app/car/notifications List of notifications for perticular user
- * @apiName Car Notificationlist
- * @apiDescription To Display notification list
- * @apiGroup App - Car
- *
- * @apiParam {Array}  userId userId
- * 
- * @apiHeader {String}  Content-Type application/json 
- * @apiHeader {String}  x-access-token Users unique access-key   
- * 
- * @apiSuccess (Success 200) {String} message Success message.
- * @apiError (Error 4xx) {String} message Validation or error message.
- */
-router.post('/notifications', async (req, res) => {
-    var schema = {
-        'userId': {
-            notEmpty: true,
-            errorMessage: "Please enter user id"
-        }
-    };
-    req.checkBody(schema);
-    var errors = req.validationErrors();
-    if (!errors) {
-        CarNotification.find({ "isDeleted": false, "userId": new ObjectId(req.body.userId) }, (err, data) => {
-            if (err) {
-                res.status(config.BAD_REQUEST).json({
-                    status: "failed",
-                    message: "notification data not found",
-                    err
-                });
-            } else {
-                res.status(config.OK_STATUS).json({
-                    status: "Success",
-                    message: "notification data found",
-                    data: data,
-                });
-            }
-        });
-    } else {
-        res.status(config.BAD_REQUEST).json({
-            status: 'failed',
-            message: "Validation Error",
-            errors
-        });
-    }
-});
-
 
 router.get('/addbrands', async (req, res) => {
     var ModelArray = ['BMW', 'Ducati', 'Ford', 'Lincoln', 'Jaguar', 'Land Rover', 'Maserati', 'Honda', 'Tovota'];
@@ -518,7 +473,7 @@ router.get('/addbrandmodels', async (req, res) => {
  * @api {post} /review/:car_id Add car Review
  * @apiName add car Review
  * @apiDescription Used to add car review 
- * @apiGroup App Car
+ * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} user_id user Id
