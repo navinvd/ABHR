@@ -54,10 +54,25 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
             }
         },
         {
+            $lookup: {
+                from: 'car_reviews',
+                localField: '_id',
+                foreignField: 'car_id',
+                as: 'reviews'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$reviews",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
             $project: {
                 _id: 1,
                 car_rental_company_id: 1,
                 car_company: 1,
+                rating: { $avg: "$reviews.stars" }? { $avg: "$reviews.stars" } : 0,
                 car_brand:"$brandDetails.brand_name",
                 car_model:"$modelDetails.model_name",
                 car_model: 1,
@@ -78,9 +93,6 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 car_model_id: 1,
                 car_brand_id: 1,
                 isDeleted: 1,
-                carBookingDetails: 1,
-                brandDetails: 1,
-                modelDetails: 1,
                 car_gallery:1,
                 carBookingDetailsDate: {
                     $dateToString: {
@@ -102,27 +114,6 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         },
         {
             $limit: length
-        },
-        {
-            $lookup: {
-                from: 'car_reviews',
-                localField: '_id',
-                foreignField: 'car_id',
-                as: 'reviews'
-            }
-       },
-       {
-            $unwind: {
-                "path": "$reviews",
-                "preserveNullAndEmptyArrays": true
-            }
-        },
-        {
-            $group: {
-                _id: "$_id",
-                total_avg_rating: { $avg: "$reviews.stars" },
-                car: { "$first": "$$ROOT" }
-            }
         }
     ];
     try {

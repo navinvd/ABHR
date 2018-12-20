@@ -183,10 +183,25 @@ router.post('/filter', async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'car_reviews',
+                    localField: '_id',
+                    foreignField: 'car_id',
+                    as: 'reviews'
+                }
+           },
+           {
+                $unwind: {
+                    "path": "$reviews",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     car_rental_company_id: 1,
                     car_company: 1,
+                    rating: { $avg: "$reviews.stars" }? { $avg: "$reviews.stars" } : 0,
                     car_brand:"$brandDetails.brand_name",
                     car_model:"$modelDetails.model_name",
                     car_color: 1,
@@ -206,9 +221,6 @@ router.post('/filter', async (req, res) => {
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
-                    carBookingDetails: 1,
-                    brandDetails: 1,
-                    modelDetails: 1,
                     car_gallery:1,
                     carBookingDetailsDate: {
                         $dateToString: {
@@ -224,30 +236,7 @@ router.post('/filter', async (req, res) => {
                     'carBookingDetailsDate': { $ne: req.body.fromDate },
                     'carBookingDetails.days': { $ne: req.body.days }
                 }
-            },
-            {
-                $lookup: {
-                    from: 'car_reviews',
-                    localField: '_id',
-                    foreignField: 'car_id',
-                    as: 'reviews'
-                }
-           },
-           {
-                $unwind: {
-                    "path": "$reviews",
-                    "preserveNullAndEmptyArrays": true
-                }
-            },
-            {
-                $group: {
-                    _id: "$_id",
-                    total_avg_rating: { $avg: "$reviews.stars" },
-                    car: { "$first": "$$ROOT" }
-                }
             }
-
-            
         ];
         var paginationArray = [
             {
@@ -354,6 +343,7 @@ router.post('/filter', async (req, res) => {
                     err
                 });
             } else {
+                console.log(data);
                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
                 res.status(config.OK_STATUS).json({
                     status: "Success",
