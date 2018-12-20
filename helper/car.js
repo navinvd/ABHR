@@ -75,7 +75,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 car_model_id: 1,
                 car_brand_id: 1,
                 isDeleted: 1,
-                car_gallery:{ $arrayElemAt: [ "$car_gallery", 0 ] },
+                car_gallery: 1,
                 carBookingDetailsDate: {
                     $dateToString: {
                         date: "$carBookingDetails.from_time",
