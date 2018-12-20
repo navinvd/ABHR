@@ -18,7 +18,6 @@ var generator = require('generate-password');
 const carHelper = require('./../../helper/car');
 
 
-
 /**
  * @api {post} /admin/company/add create new company
  * @apiName Create Company
@@ -670,7 +669,8 @@ router.post('/car_list',(req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('car/details', async (req, res) => {
+router.post('/car/details', async (req, res) => {
+    console.log('here')
     var schema = {
         'car_id': {
             notEmpty: true,
