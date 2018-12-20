@@ -219,7 +219,7 @@ router.post('/filter', async (req, res) => {
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
-                    test:{ $arrayElemAt: [ "$car_gallery", 0 ] },
+                    car_gallery:{ $arrayElemAt: [ "$car_gallery", 0 ] },
                     carBookingFromDate: {
                         $dateToString: {
                             date: "$carBookingDetails.from_time",
