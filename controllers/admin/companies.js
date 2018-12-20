@@ -581,7 +581,10 @@ router.post('/car_list',(req, res, next) => {
                 }
             },
             {
-                $match: {"isDeleted": false,}
+                $match: {
+                        "isDeleted": false,
+                        "car_rental_company_id" : new ObjectId(req.body.company_id)
+                }
             },
             {
                 $sort: {'createdAt': -1}

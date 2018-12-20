@@ -7,7 +7,6 @@ const Car = require('./../../models/cars');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const CarNotification = require('./../../models/car_notification');
-var moment = require('moment');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 
@@ -138,8 +137,7 @@ router.post('/filter', async (req, res) => {
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if (!errors) {
-        var fromDate = moment().format("MMM Do YY");   
+    if (!errors) {  
         var defaultQuery = [
             {
                 $lookup: {
