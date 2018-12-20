@@ -54,26 +54,11 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
             }
         },
         {
-            $lookup: {
-                from: 'car_reviews',
-                localField: '_id',
-                foreignField: 'car_id',
-                as: 'reviews'
-            }
-        },
-        {
-            $unwind: {
-                "path": "$reviews",
-                "preserveNullAndEmptyArrays": true
-            }
-        },
-        {
             $project: {
                 _id: 1,
                 car_rental_company_id: 1,
-                rating: { $avg: "$reviews.stars" },
-                car_brand:"$brandDetails.brand_name",
-                car_model:"$modelDetails.model_name",
+                car_brand:"$brandDetails",
+                car_model:"$modelDetails",
                 car_color: 1,
                 rent_price: 1,
                 is_AC: 1,
@@ -111,12 +96,40 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         },
         {
             $limit: length
+        },
+        {
+            $lookup: {
+                from: 'car_reviews',
+                localField: '_id',
+                foreignField: 'car_id',
+                as: 'reviews'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$reviews",
+                "preserveNullAndEmptyArrays":true
+            }
+        },
+        {
+            $group: {
+                _id: "$_id",
+                total_avg_rating: { $avg: "$reviews.stars" },
+                car: { "$first": "$$ROOT" }
+            }
         }
     ];
     try {
         console.log("Default Query => ",JSON.stringify(defaultQuery));
-        const cars = await Car.aggregate(defaultQuery);
+        let cars = await Car.aggregate(defaultQuery);
         if (cars && cars.length > 0) {
+
+            cars = cars.map((c) => {
+                c.car["total_avg_rating"] = c.total_avg_rating;
+                delete c.car.reviews;
+                return c.car;
+            })
+
             return { status: 'success', message: "Car data found", data: {cars: cars} }
         } else {
             return { status: 'success', message: "Car data found", data: {cars: cars} }

@@ -182,27 +182,11 @@ router.post('/filter', async (req, res) => {
                 }
             },
             {
-                $lookup: {
-                    from: 'car_reviews',
-                    localField: '_id',
-                    foreignField: 'car_id',
-                    as: 'reviews'
-                }
-           },
-           {
-                $unwind: {
-                    "path": "$reviews",
-                    "preserveNullAndEmptyArrays": true
-                }
-            },
-            {
                 $project: {
                     _id: 1,
                     car_rental_company_id: 1,
-                    car_company: 1,
-                    rating: { $avg: "$reviews.stars" }? { $avg: "$reviews.stars" } : 0,
-                    car_brand:"$brandDetails.brand_name",
-                    car_model:"$modelDetails.model_name",
+                    car_brand:"$brandDetails",
+                    car_model:"$modelDetails",
                     car_color: 1,
                     rent_price: 1,
                     is_AC: 1,
@@ -239,6 +223,27 @@ router.post('/filter', async (req, res) => {
                     'isDeleted': false,
                     'carBookingDetailsDate': { $ne: req.body.fromDate },
                     'carBookingDetails.days': { $ne: req.body.days }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_reviews',
+                    localField: '_id',
+                    foreignField: 'car_id',
+                    as: 'reviews'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$reviews",
+                    "preserveNullAndEmptyArrays":true
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    total_avg_rating: { $avg: "$reviews.stars" },
+                    car: { "$first": "$$ROOT" }
                 }
             }
         ];
@@ -349,10 +354,19 @@ router.post('/filter', async (req, res) => {
             } else {
                 console.log(data);
                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
+
+                if(data && data.length > 0){
+                    cars = data.map((c) => {
+                        c.car["total_avg_rating"] = c.total_avg_rating;
+                        delete c.car.reviews;
+                        return c.car;
+                    })
+                }
+
                 res.status(config.OK_STATUS).json({
                     status: "Success",
                     message: "car data found",
-                    data: {cars : data },
+                    data: {cars : cars },
                 });
             }
         });
