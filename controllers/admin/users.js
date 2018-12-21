@@ -13,11 +13,10 @@ var _ = require('underscore');
 var jwt = require('jsonwebtoken');
 var mailHelper = require('./../../helper/mail');
 
-/**
- * @api {post} /registration Registration
+/* @api {post} /registration Registration
  * @apiName Registration
  * @apiDescription Used for RentalCar Company & Super Admin Registration
- * @apiGroup User
+ * @apiGroup Admin - Users
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} name User Name
@@ -107,7 +106,7 @@ router.post('/add', (req, res, next) => {
  * @api {put} /user Update User Details
  * @apiName Update User
  * @apiDescription Used to update user information
- * @apiGroup User
+ * @apiGroup Admin - Users
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} user_id User Id
@@ -151,7 +150,7 @@ router.put('/', auth, function (req, res, next) {
  * @api {get} /user/:id?type='admin' User Details By Id
  * @apiName User Details By Id
  * @apiDescription Get User details By user id
- * @apiGroup User
+ * @apiGroup Admin - Users
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} id User Id
@@ -163,7 +162,7 @@ router.put('/', auth, function (req, res, next) {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.get('/:id', function (req, res, next) {
-    User.findOne({_id: {$eq: req.params.id}}, function (err, data) {
+    User.findOne({_id: {$eq: req.params.id, "isDeleted" : false}}, function (err, data) {
         if (err) {
             return next(err);
         } else {
@@ -173,6 +172,329 @@ router.get('/:id', function (req, res, next) {
             });
         }
     });
+});
+
+
+/* @api {post} /admin/user/list List of all users
+ * @apiName Users List
+ * @apiDescription To display users list with pagination
+ * @apiGroup Admin - Users
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} start pagination start page no
+ * @apiParam {String} end pagination length no of page length
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/list', (req, res, next) => {
+    var schema = {
+        'start': {
+            notEmpty: true,
+            errorMessage: "start is required"
+        },
+        'length': {
+            notEmpty: true,
+            errorMessage: "length is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if(!errors){
+        var defaultQuery = [
+            {
+                $match: {
+                    "isDeleted": false,
+                    "type": "user"
+                }
+            },
+            {
+                $sort: {'createdAt': -1}
+            },
+            {
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "recordsTotal": 1,
+                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                }
+            }
+        ];
+        console.log(req.body.search);
+        if (req.body.search != undefined) {
+            if(req.body.search.value != undefined){
+                var regex = new RegExp(req.body.search.value);
+                var match = {$or: []};
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            console.log('re.body.search==>', req.body.search.value);
+
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
+        }
+        User.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                console.log('err===>',err);
+                return next(err);
+            } else {
+                console.log('result===>',data);
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                });
+            }
+        })
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+/* @api {post} /admin/user/registered_list List of all registered users
+ * @apiName Registered Users List
+ * @apiDescription To display registered users list with pagination
+ * @apiGroup Admin - Users
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} start pagination start page no
+ * @apiParam {String} end pagination length no of page length
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/registered_list', (req, res, next) => {
+    var schema = {
+        'start': {
+            notEmpty: true,
+            errorMessage: "start is required"
+        },
+        'length': {
+            notEmpty: true,
+            errorMessage: "length is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if(!errors){
+        var defaultQuery = [
+            {
+                $match: {
+                    "isDeleted": false,
+                    "type": "user",
+                    "app_user_status": "registered"
+                }
+            },
+            {
+                $sort: {'createdAt': -1}
+            },
+            {
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "recordsTotal": 1,
+                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                }
+            }
+        ];
+        console.log(req.body.search);
+        if (req.body.search != undefined) {
+            if(req.body.search.value != undefined){
+                var regex = new RegExp(req.body.search.value);
+                var match = {$or: []};
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            console.log('re.body.search==>', req.body.search.value);
+
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
+        }
+        User.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                console.log('err===>',err);
+                return next(err);
+            } else {
+                console.log('result===>',data);
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                });
+            }
+        })
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+/* @api {post} /admin/user/rented_list List of all rented users
+ * @apiName Rented Users List
+ * @apiDescription To display Rented users list with pagination
+ * @apiGroup Admin - Users
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} start pagination start page no
+ * @apiParam {String} end pagination length no of page length
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/rented_list', (req, res, next) => {
+    var schema = {
+        'start': {
+            notEmpty: true,
+            errorMessage: "start is required"
+        },
+        'length': {
+            notEmpty: true,
+            errorMessage: "length is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if(!errors){
+        var defaultQuery = [
+            {
+                $match: {
+                    "isDeleted": false,
+                    "type": "user",
+                    "app_user_status": "rented"
+                }
+            },
+            {
+                $sort: {'createdAt': -1}
+            },
+            {
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "recordsTotal": 1,
+                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                }
+            }
+        ];
+        console.log(req.body.search);
+        if (req.body.search != undefined) {
+            if(req.body.search.value != undefined){
+                var regex = new RegExp(req.body.search.value);
+                var match = {$or: []};
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            console.log('re.body.search==>', req.body.search.value);
+
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
+        }
+        User.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                console.log('err===>',err);
+                return next(err);
+            } else {
+                console.log('result===>',data);
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                });
+            }
+        })
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+router.get('/details/:id', (req, res, next) => {
+
+
 });
   
 module.exports = router;

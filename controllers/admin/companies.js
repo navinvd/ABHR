@@ -22,7 +22,7 @@ const carHelper = require('./../../helper/car');
  * @api {post} /admin/company/add create new company
  * @apiName Create Company
  * @apiDescription This is for add new company from super admin
- * @apiGroup Companies
+ * @apiGroup Admin - Companies
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} name name of company
@@ -161,7 +161,7 @@ router.post('/add', (req, res, next) => {
  * @api {put} /admin/company/update update Company details
  * @apiName Update Company Details
  * @apiDescription Used to update company information
- * @apiGroup Companies
+ * @apiGroup Admin - Companies
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} company_id company Id
@@ -250,7 +250,7 @@ router.put('/update', (req, res, next) =>{
  * @api {put} /admin/company/delete delete company by Id
  * @apiName Delete Company
  * @apiDescription Used to delete Company 
- * @apiGroup Companies
+ * @apiGroup Admin - Companies
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} company_id Company Id
@@ -293,7 +293,7 @@ router.put('/delete', (req, res, next) =>{
  * @api {get} /admin/company/details/:id? Company Details By Id
  * @apiName company Details By Id
  * @apiDescription Get Company details By company id
- * @apiGroup Companies
+ * @apiGroup Admin - Companies
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} id company Id
@@ -322,7 +322,7 @@ router.get('/details/:id', (req, res, next) =>{
  * @api {post} /admin/company/list List of all companies
  * @apiName Companies List
  * @apiDescription To display companies list with pagination
- * @apiGroup Companies
+ * @apiGroup Admin - Companies
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
@@ -427,7 +427,7 @@ router.post('/list', (req, res, next) => {
  * @api {post} /admin/company/rental_list List of all rental of comapines
  * @apiName company Rental List
  * @apiDescription To display company rental list with pagination
- * @apiGroup companies
+ * @apiGroup Admin - Companies
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
@@ -519,7 +519,7 @@ router.post('/rental_list',(req, res, next) => {
  * @api {post} /admin/company/car_list List of all car of perticular company
  * @apiName company car List
  * @apiDescription To display company car list with pagination
- * @apiGroup companies
+ * @apiGroup Admin - Companies
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
@@ -659,7 +659,7 @@ router.post('/car_list',(req, res, next) => {
  * @api {post} /admin/company/car/details Details of car for perticular carId
  * @apiName Car Details
  * @apiDescription To display car Details 
- * @apiGroup Admin
+ * @apiGroup Admin - Companies
  * 
  * @apiParam {car_id} car_id id of Car
  * 
@@ -689,6 +689,124 @@ router.post('/car/details', async (req, res) => {
         });
     }
 });
+
+
+/* @api {post} /admin/company/car/add Add car
+ * @apiName add Car
+ * @apiDescription Used for Add Car 
+ * @apiGroup Admin - Companies
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} car_rental_company_id companyId 
+ * @apiParam {Array} [car_gallery] Array of images
+ * @apiParam {String} car_model_id car Brand id
+ * @apiParam {String} car_brand_id car Model id
+ * @apiParam {String} car_color car color
+ * @apiParam {Boolean} [is_navigation] car navigation status
+ * @apiParam {Number} rent_price car rent price
+ * @apiParam {Boolean} [is_AC] car AC status
+ * @apiParam {Boolean} [is_luggage_carrier] car luggage carrier
+ * @apiParam {String} [licence_plate] licence plate number
+ * @apiParam {Number} no_of_person capacity of people
+ * @apiParam {Enum} transmission ["manual", "automatic"]
+ * @apiParam {Enum} milage ["open","limited"]
+ * @apiParam {Enum} car_class ["economy", "luxury", "suv", "family"]
+ * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/car/add', (req, res, next) => {
+    var schema = {
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Company Id is required"
+        },
+        'car_model_id': {
+            notEmpty: true,
+            errorMessage: "Car Model id is required"
+        },
+        'car_brand_id': {
+            notEmpty: true,
+            errorMessage: "Car Brand id is required"
+        },
+        'rent_price': {
+            notEmpty: true,
+            errorMessage: "Rent Price is required"
+        },
+        'no_of_person': {
+            notEmpty: true,
+            errorMessage: "Capacity of People is required"
+        },
+        'transmission': {
+            notEmpty: true,
+            errorMessage: "Transmission is required"
+        },
+        'milage': {
+            notEmpty: true,
+            errorMessage: "Milage is required"
+        },
+        'car_class': {
+            notEmpty: true,
+            errorMessage: "Class is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var files = [];
+        var galleryArray = [];
+        if (req.files) {
+            files = req.files['car_gallery'];
+            if (!Array.isArray(files)) {
+                files = [files];
+            }
+            var dir = "./upload/car";
+            async.each(files, function (file, each_callback) {
+                var extention = path.extname(file.name);
+                var splitName = file.name.split('.');
+                var filename = splitName[0] + extention;
+                var filepath = dir + '/' + filename;
+                if (fs.existsSync(filepath)) {
+                    filename = splitName[0] + '_copy' + extention;
+                    filepath = dir + '/' + filename;
+                }
+                var json = {name: filename, type: file['mimetype']}
+                galleryArray.push(json);
+                file.mv(filepath, function (err) {
+                    if (err) {
+                        each_callback(each_callback)
+                    } else {
+
+                    }
+                });
+                each_callback()
+            })
+        }
+        req.body.car_gallery = galleryArray;
+        var CarModel = new Car(req.body);
+        CarModel.save(function (err, data) {
+            console.log("data:", data);
+            if (err) {
+                return next(err);
+            } else {
+                var result = {
+                    message: "Car Added successfully..",
+                    data: data
+                };
+                res.status(config.OK_STATUS).json(result);
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+  });
 
 
 module.exports = router;
