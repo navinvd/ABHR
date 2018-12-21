@@ -78,9 +78,10 @@ router.post('/registration', (req, res, next) => {
             last_name: req.body.last_name,
             password: req.body.password,
             email: req.body.email,
-            deviceType: req.body.device_type,
+            deviceType: req.body.deviceType,
             deviceToken:req.body.deviceToken,
-            type: req.body.user_type
+            type: req.body.user_type,
+            app_user_status: "registered"
         };
         User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}, function (err, data) {
             if (err) {
@@ -163,7 +164,7 @@ router.post('/login', (req, res, next) => {
             notEmpty: true,
             errorMessage: "Password is required"
         },
-        'devicType': {
+        'deviceType': {
             notEmpty: true,
             errorMessage: "deviceType is required"
         },
