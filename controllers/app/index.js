@@ -279,6 +279,7 @@ router.post('/social_login', async (req, res, next) => {
             errorMessage: "user_type is required"
         }
     };
+    
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
