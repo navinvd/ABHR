@@ -185,8 +185,10 @@ router.post('/filter', async (req, res) => {
                 $project: {
                     _id: 1,
                     car_rental_company_id: 1,
-                    car_brand:"$brandDetails",
-                    car_model:"$modelDetails",
+                    car_brand:"$brandDetails.brand_name",
+                    car_model:"$modelDetails.model_name",
+                    car_model_number: "$modelDetails.model_number",
+                    car_model_release_year:"$modelDetails.release_year",
                     car_color: 1,
                     rent_price: 1,
                     is_AC: 1,
@@ -203,7 +205,7 @@ router.post('/filter', async (req, res) => {
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
-                    car_gallery: 1,
+                    image_name: "$car_gallery.name" ? { $arrayElemAt: [ "$car_gallery.name", 0 ] } : null,
                     carBookingFromDate: {
                         $dateToString: {
                             date: "$carBookingDetails.from_time",
