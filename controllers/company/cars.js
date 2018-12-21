@@ -4,13 +4,15 @@ var config = require('./../../config');
 var Car = require('./../../models/cars');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
-var async = require("async");
-var path = require('path');
 var fs = require('fs');
-/* @api {post} /car/add Add car
+var path = require('path');
+var async = require("async");
+const carHelper = require('./../../helper/car');
+
+/* @api {post} /company/car/add Add car
  * @apiName add Car
  * @apiDescription Used for Add Car 
- * @apiGroup Company-Car
+ * @apiGroup CompanyAdmin - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} car_rental_company_id companyId 
@@ -124,16 +126,16 @@ router.post('/add', (req, res, next) => {
     }
   });
 
-/**
- * @api {put} /keyword Update keyword Details
- * @apiName Update Keyword
- * @apiDescription Used to update keyword information
- * @apiGroup Keyword
+
+/* @api {post} /company/car/list List of all car of perticular company
+ * @apiName company car List
+ * @apiDescription To display company car list with pagination
+ * @apiGroup CompanyAdmin -Car
  * @apiVersion 0.0.0
  * 
- * @apiParam {String} keyword_id Keyword Id
- * @apiParam {String} english English Of Keyword 
- * @apiParam {String} arabic Arabic Of Keyword
+ * @apiParam {String} start pagination start page no
+ * @apiParam {String} end pagination length no of page length
+ * @apiParam {String} company_id 
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -141,23 +143,120 @@ router.post('/add', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/', auth, function (req, res, next) {
+router.post('/list',(req, res, next) => {
     var schema = {
-        'keyword_id': {
+        'start': {
             notEmpty: true,
-            errorMessage: "keyword_id is required"
+            errorMessage: "start is required"
+        },
+        'length': {
+            notEmpty: true,
+            errorMessage: "length is required"
+        },
+        'company_id' : {
+            notEmpty: true,
+            errorMessage: "company_id is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if (!errors) {
-        Keyword.update({_id: {$eq: req.body.keyword_id}}, {$set: req.body}, function (err, response) {
+    if(!errors){
+        var defaultQuery = [
+            {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_model_id',
+                    as: "modelDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$modelDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_brand_id',
+                    as: "brandDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brandDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {"isDeleted": false,}
+            },
+            {
+                $sort: {'createdAt': -1}
+            },
+            {
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT",
+                    }
+                }
+            },
+            {
+                $project: {
+                    "_id": 1,
+                    "recordsTotal": 1,
+                    "modelDetails": 1,
+                    "brandDetails":1,
+                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                }
+            }
+        ];
+        if (req.body.search != undefined) {
+            if(req.body.search.value != undefined){
+                var regex = new RegExp(req.body.search.value);
+                var match = {$or: []};
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            console.log('re.body.search==>', req.body.search.value);
+
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
+        }
+        Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
+                console.log('err===>',err);
                 return next(err);
             } else {
-                res.status(config.OK_STATUS).json({message: "Keyword updated successfully"});
+                console.log('result===>',data);
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                });
             }
-        });
+        })
+
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
@@ -166,32 +265,40 @@ router.put('/', auth, function (req, res, next) {
     }
 });
 
-/**
- * @api {get} /:id? Keyword Details By Id
- * @apiName Keyword Details By Id
- * @apiDescription Get Keyword details By keyword id
- * @apiGroup Keyword
+/* @api {post} /company/car/details Add car
+ * @apiName add Car
+ * @apiDescription Used for Display details Car 
+ * @apiGroup CompanyAdmin - Car
  * @apiVersion 0.0.0
  * 
- * @apiParam {String} id Keyword Id
+ * @apiParam {car_id} car_id id of Car
  * 
- * @apiHeader {String}  Content-Type application/json 
- * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiHeader {String}  Content-Type application/json    
  * 
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.get('/:id', function (req, res, next) {
-    Keyword.findOne({_id: {$eq: req.params.id}}, function (err, data) {
-        if (err) {
-            return next(err);
-        } else {
-            res.status(config.OK_STATUS).json({
-                message: "Success",
-                user: data,
-            });
+router.post('/details', async (req, res) => {
+    var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
         }
-    });
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
+        res.json(carResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+        });
+    }
 });
+
+
   
 module.exports = router;

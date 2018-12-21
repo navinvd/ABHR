@@ -20,7 +20,7 @@ var generator = require('generate-password');
  * @api {post} /admin/agents/add create new agent
  * @apiName Create Agent
  * @apiDescription This is for add new agent from super admin
- * @apiGroup Agents
+ * @apiGroup Admin - Agents
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} first_name FirstName
@@ -155,7 +155,7 @@ router.post('/add', (req, res, next) => {
  * @api {put} /admin/agents/update update Agent details
  * @apiName Update Agent
  * @apiDescription Used to update agent information
- * @apiGroup Agents
+ * @apiGroup Admin - Agents
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} user_id User Id
@@ -253,7 +253,7 @@ router.put('/update', (req, res, next) =>{
  * @api {put} /admin/agents/delete delete Agent by Id
  * @apiName Delete Agent
  * @apiDescription Used to delete agent information
- * @apiGroup Agents
+ * @apiGroup Admin - Agents
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} user_id User Id
@@ -296,7 +296,7 @@ router.put('/delete', (req, res, next) =>{
  * @api {get} /admin/agents/details/:id? Agent Details By Id
  * @apiName Agent Details By Id
  * @apiDescription Get Agent details By user id
- * @apiGroup Agents
+ * @apiGroup Admin - Agents
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} id User Id
@@ -326,7 +326,7 @@ router.get('/details/:id', (req, res, next) =>{
  * @api {post} /admin/agents/list List of all agents
  * @apiName Agents List
  * @apiDescription To display agents list with pagination
- * @apiGroup Agents
+ * @apiGroup Admin - Agents
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
@@ -432,7 +432,7 @@ router.post('/list', (req, res, next) => {
  * @api {post} /admin/agents/rental_list List of all rental of agents
  * @apiName Agent Rental List
  * @apiDescription To display agent rental list with pagination
- * @apiGroup Agents
+ * @apiGroup Admin - Agents
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no

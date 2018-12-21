@@ -17,7 +17,7 @@ var generator = require('generate-password');
  * @api {post} /admin/staff/add create new staff member
  * @apiName Create Staff Member
  * @apiDescription This is for add new staff member from super admin
- * @apiGroup Staff
+ * @apiGroup Admin - Staff
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} first_name FirstName
@@ -151,7 +151,7 @@ router.post('/add', (req, res, next) => {
  * @api {put} /admin/staff/update update Staff member details
  * @apiName Update Staff
  * @apiDescription Used to update staff member information
- * @apiGroup Staff
+ * @apiGroup Admin - Staff
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} user_id User Id
@@ -247,7 +247,7 @@ router.put('/update', (req, res, next) =>{
  * @api {get} /admin/staff/details/:id? Staff Details By Id
  * @apiName Staff member Details By Id
  * @apiDescription Get Staff details By user id
- * @apiGroup Staff
+ * @apiGroup Admin - Staff
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} id User Id
@@ -277,7 +277,7 @@ router.get('/details/:id', (req, res, next) =>{
  * @api {post} /admin/staff/list List of all staff
  * @apiName Staff List
  * @apiDescription To display staff list with pagination
- * @apiGroup Staff
+ * @apiGroup Admin - Staff
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
@@ -352,7 +352,6 @@ router.post('/list', (req, res, next) => {
                 });
             }
             console.log('re.body.search==>', req.body.search.value);
-
             var searchQuery = {
                 $match: match
             }
@@ -384,7 +383,7 @@ router.post('/list', (req, res, next) => {
  * @api {put} /admin/staff/delete delete Staff by Id
  * @apiName Delete Staff
  * @apiDescription Used to delete staff information
- * @apiGroup Staff
+ * @apiGroup Admin - Staff
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} user_id User Id
