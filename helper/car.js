@@ -6,10 +6,15 @@ const CarBooking = require('./../models/car_booking');
 const CarBrand = require('./../models/car_brand');
 const CarCompany = require('./../models/car_company');
 const CarModel = require('./../models/car_model');
+const moment = require('moment');
 
 let carHelper = {};
 
 carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 10) {
+
+    var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
+    console.log(toDate);
+
     var defaultQuery = [
         {
             $lookup: {
@@ -57,10 +62,10 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
             $project: {
                 _id: 1,
                 car_rental_company_id: 1,
-                car_brand:"$brandDetails.brand_name",
-                car_model:"$modelDetails.model_name",
+                car_brand: "$brandDetails.brand_name",
+                car_model: "$modelDetails.model_name",
                 car_model_number: "$modelDetails.model_number",
-                car_model_release_year:"$modelDetails.release_year",
+                car_model_release_year: "$modelDetails.release_year",
                 car_color: 1,
                 rent_price: 1,
                 is_AC: 1,
@@ -77,10 +82,16 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 car_model_id: 1,
                 car_brand_id: 1,
                 isDeleted: 1,
-                image_name: "$car_gallery.name" ? { $arrayElemAt: [ "$car_gallery.name", 0 ] } : null,
-                carBookingDetailsDate: {
+                image_name: "$car_gallery.name" ? { $arrayElemAt: ["$car_gallery.name", 0] } : null,
+                car_book_from_date: {
                     $dateToString: {
                         date: "$carBookingDetails.from_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+                car_book_to_date: {
+                    $dateToString: {
+                        date: "$carBookingDetails.to_time",
                         format: "%Y-%m-%d"
                     }
                 }
@@ -88,9 +99,16 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         },
         {
             $match: {
-                'isDeleted': false,
-                'carBookingDetailsDate': { $ne: fromDate },
-                'carBookingDetails.days': { $ne: days }
+                $and : [
+                            {
+                                $or: [
+                                    {car_book_from_date: { $gt: toDate } },
+                                    {car_book_to_date: { $lt: fromDate }},
+                                    {car_book_from_date: {$eq : null }}
+                                ]
+                            },
+                            {isDeleted : false}      
+                ]
             }
         },
         {
@@ -110,7 +128,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         {
             $unwind: {
                 "path": "$reviews",
-                "preserveNullAndEmptyArrays":true
+                "preserveNullAndEmptyArrays": true
             }
         },
         {
@@ -122,7 +140,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         }
     ];
     try {
-        console.log("Default Query => ",JSON.stringify(defaultQuery));
+        console.log("Default Query => ", JSON.stringify(defaultQuery));
         let cars = await Car.aggregate(defaultQuery);
         if (cars && cars.length > 0) {
 
@@ -132,9 +150,9 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
                 return c.car;
             })
 
-            return { status: 'success', message: "Car data found", data: {cars: cars} }
+            return { status: 'success', message: "Car data found", data: { cars: cars } }
         } else {
-            return { status: 'success', message: "Car data found", data: {cars: cars} }
+            return { status: 'success', message: "Car data not found", data: { cars: cars } }
         }
     } catch (err) {
         console.log("Err : ", err);
@@ -177,10 +195,10 @@ carHelper.getcarDetailbyId = async (car_id) => {
             $project: {
                 _id: 1,
                 car_rental_company_id: 1,
-                car_brand:"$brandDetails.brand_name",
-                car_model:"$modelDetails.model_name",
+                car_brand: "$brandDetails.brand_name",
+                car_model: "$modelDetails.model_name",
                 car_model_number: "$modelDetails.model_number",
-                car_model_release_year:"$modelDetails.release_year",
+                car_model_release_year: "$modelDetails.release_year",
                 car_color: 1,
                 rent_price: 1,
                 is_AC: 1,
@@ -198,7 +216,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 car_brand_id: 1,
                 isDeleted: 1,
                 car_gallery: 1,
-                image_name: { $arrayElemAt: [ "$car_gallery.name", 0 ] },
+                image_name: { $arrayElemAt: ["$car_gallery.name", 0] },
             }
         },
         {
@@ -218,7 +236,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
         {
             $unwind: {
                 "path": "$reviews",
-                "preserveNullAndEmptyArrays":true
+                "preserveNullAndEmptyArrays": true
             }
         },
         {
@@ -237,7 +255,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 delete c.car.reviews;
                 return c.car;
             })
-            return { status: 'success', message: "Car data found", data: {carDetail : cars[0]} }
+            return { status: 'success', message: "Car data found", data: { carDetail: cars[0] } }
         } else {
             return { status: 'failed', message: "No car available" };
         }
@@ -366,7 +384,7 @@ carHelper.carBooking_past_history = async (user_id) => {
         }
 
     } catch (err) {
-        return { status: 'failed', message: "Error occured while fetching car booking past history"};
+        return { status: 'failed', message: "Error occured while fetching car booking past history" };
     }
 };
 
@@ -397,7 +415,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                     }
                 }
             }
-           
+
         ]);
         if (data && data.length > 0) {
             return { status: 'success', message: "Car booking upcomming history", data: data }
@@ -407,7 +425,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
         }
 
     } catch (err) {
-        return { status: 'failed', message: "Error occured while fetching car booking upcomming history"};
+        return { status: 'failed', message: "Error occured while fetching car booking upcomming history" };
     }
 };
 
@@ -459,7 +477,7 @@ carHelper.getNotificationByUserId = async (userId) => {
         });
         const carnotifications = await CarNotification.find({ "isDeleted": false, "userId": new ObjectId(userId) });
         if (carnotifications && carnotifications.length > 0) {
-            return { status: 'success', message: "Car Notification records found", data: {carnotifications: carnotifications} }
+            return { status: 'success', message: "Car Notification records found", data: { carnotifications: carnotifications } }
         } else {
             return { status: 'failed', message: "Car Notification records not available" };
         }

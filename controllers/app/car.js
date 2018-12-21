@@ -9,6 +9,7 @@ const CarModel = require('./../../models/car_model');
 const CarNotification = require('./../../models/car_notification');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
+const moment = require('moment');
 
 /**
  * @api {post} /app/car/list List of available car
@@ -137,7 +138,10 @@ router.post('/filter', async (req, res) => {
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if (!errors) {  
+    if (!errors) {
+        var fromDate = req.body.fromDate
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
+        console.log(toDate);
         var defaultQuery = [
             {
                 $lookup: {
@@ -185,10 +189,10 @@ router.post('/filter', async (req, res) => {
                 $project: {
                     _id: 1,
                     car_rental_company_id: 1,
-                    car_brand:"$brandDetails.brand_name",
-                    car_model:"$modelDetails.model_name",
+                    car_brand: "$brandDetails.brand_name",
+                    car_model: "$modelDetails.model_name",
                     car_model_number: "$modelDetails.model_number",
-                    car_model_release_year:"$modelDetails.release_year",
+                    car_model_release_year: "$modelDetails.release_year",
                     car_color: 1,
                     rent_price: 1,
                     is_AC: 1,
@@ -205,14 +209,14 @@ router.post('/filter', async (req, res) => {
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
-                    image_name: "$car_gallery.name" ? { $arrayElemAt: [ "$car_gallery.name", 0 ] } : null,
-                    carBookingFromDate: {
+                    image_name: "$car_gallery.name" ? { $arrayElemAt: ["$car_gallery.name", 0] } : null,
+                    car_book_from_date: {
                         $dateToString: {
                             date: "$carBookingDetails.from_time",
                             format: "%Y-%m-%d"
                         }
                     },
-                    carBookingToDate: {
+                    car_book_to_date: {
                         $dateToString: {
                             date: "$carBookingDetails.to_time",
                             format: "%Y-%m-%d"
@@ -221,11 +225,24 @@ router.post('/filter', async (req, res) => {
                 }
             },
             {
+                // $match: {
+                //     'isDeleted': false,
+                //     'carBookingDetailsDate': { $ne: req.body.fromDate },
+                //     'carBookingDetails.days': { $ne: req.body.days }
+                // }
                 $match: {
-                    'isDeleted': false,
-                    'carBookingDetailsDate': { $ne: req.body.fromDate },
-                    'carBookingDetails.days': { $ne: req.body.days }
+                    $and: [
+                        {
+                            $or: [
+                                { car_book_from_date: { $gt: toDate } },
+                                { car_book_to_date: { $lt: fromDate } },
+                                {car_book_from_date: {$eq : null }}
+                            ]
+                        },
+                        { isDeleted: false }
+                    ]
                 }
+
             },
             {
                 $lookup: {
@@ -238,7 +255,7 @@ router.post('/filter', async (req, res) => {
             {
                 $unwind: {
                     "path": "$reviews",
-                    "preserveNullAndEmptyArrays":true
+                    "preserveNullAndEmptyArrays": true
                 }
             },
             {
@@ -357,19 +374,26 @@ router.post('/filter', async (req, res) => {
                 console.log(data);
                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
 
-                if(data && data.length > 0){
+                if (data && data.length > 0) {
                     cars = data.map((c) => {
                         c.car["total_avg_rating"] = c.total_avg_rating;
                         delete c.car.reviews;
                         return c.car;
                     })
-                }
 
-                res.status(config.OK_STATUS).json({
-                    status: "Success",
-                    message: "car data found",
-                    data: {cars : cars },
-                });
+                    res.status(config.OK_STATUS).json({
+                        status: "Success",
+                        message: "car data found",
+                        data: { cars: cars },
+                    });
+                }
+                else {
+                    res.status(config.OK_STATUS).json({
+                        status: "Success",
+                        message: "Car data not found",
+                        data: { cars: data },
+                    });
+                }
             }
         });
     } else {
