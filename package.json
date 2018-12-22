@@ -11,6 +11,7 @@
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
     "debug": "~2.6.9",
+    "dotenv": "^6.2.0",
     "ejs": "^2.5.9",
     "email-templates": "^2.7.1",
     "express": "~4.16.0",
@@ -35,6 +36,6 @@
     "version": "0.0.0",
     "description": "ABHR is application from where you can book a car.",
     "title": "ABHR",
-    "url": "http://http://18.219.16.50:3000"
+    "url": "http://18.219.16.50:3000"
   }
 }
