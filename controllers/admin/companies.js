@@ -519,7 +519,7 @@ router.post('/rental_list',(req, res, next) => {
  * @api {post} /admin/company/car_list List of all car of perticular company
  * @apiName company car List
  * @apiDescription To display company car list with pagination
- * @apiGroup Admin - Companies
+ * @apiGroup Admin - Cars
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
@@ -659,7 +659,8 @@ router.post('/car_list',(req, res, next) => {
  * @api {post} /admin/company/car/details Details of car for perticular carId
  * @apiName Car Details
  * @apiDescription To display car Details 
- * @apiGroup Admin - Companies
+ * @apiGroup Admin - Cars
+ * @apiVersion 0.0.0
  * 
  * @apiParam {car_id} car_id id of Car
  * 
@@ -694,7 +695,7 @@ router.post('/car/details', async (req, res) => {
 /* @api {post} /admin/company/car/add Add car
  * @apiName add Car
  * @apiDescription Used for Add Car 
- * @apiGroup Admin - Companies
+ * @apiGroup Admin - Cars
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} car_rental_company_id companyId 
@@ -800,6 +801,119 @@ router.post('/car/add', (req, res, next) => {
                 res.status(config.OK_STATUS).json(result);
             }
         });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+  });
+
+
+/* @api {put} /admin/company/car/edit Edit car
+ * @apiName edit Car
+ * @apiDescription Used for Edit Car 
+ * @apiGroup Admin - Cars
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} car_id carId of car  
+ * @apiParam {String} [car_model_id] car Brand id
+ * @apiParam {String} [car_brand_id] car Model id
+ * @apiParam {String} [car_color] car color
+ * @apiParam {Boolean} [is_navigation] car navigation status
+ * @apiParam {Number} [rent_price] car rent price
+ * @apiParam {Boolean} [is_AC] car AC status
+ * @apiParam {Boolean} [is_luggage_carrier] car luggage carrier
+ * @apiParam {String} [licence_plate] licence plate number
+ * @apiParam {Number} [no_of_person] capacity of people
+ * @apiParam {Enum} [transmission] ["manual", "automatic"]
+ * @apiParam {Enum} [milage] ["open","limited"]
+ * @apiParam {Enum} [car_class] ["economy", "luxury", "suv", "family"]
+ * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/car/edit', (req, res, next) => {
+    var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Car Id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        Car.update({_id: {$eq: req.body.car_id}}, {$set: req.body}, function (err, response) {
+            if (err) {
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json({statusmessage: "Car updated successfully"});
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+  });
+
+/* @api {post} /admin/company/car/gallery_edit Edit car
+ * @apiName edit Car
+ * @apiDescription Used for Edit Car Images
+ * @apiGroup Admin - Cars
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} car_id carId of car  
+ * @apiParam {Array} [car_images] Array of images
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/car/gallery_edit', async (req, res, next) => {
+    var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Car Id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var carDetails = await Car.find({_id : req.body.car_id, isDeleted : false}, { car_gallery :1}).exec();
+        console.log(JSON.stringify(carDetails));
+        if (req.files) {
+            var file = req.files.car_images;
+            var dir = "./upload/car";
+            var mimetype = ['image/png', 'image/jpeg', 'image/jpeg', 'image/jpg'];
+            if (mimetype.indexOf(file.mimetype) != -1) {
+                extention = path.extname(file.name);
+                console.log(extention);
+            }
+            if(Array.isArray(file)){
+
+            }else{
+
+            }
+        }else {
+            res.status(config.BAD_REQUEST).json({
+                message: "No file selected",
+            });
+        }
+        // Car.update({_id: {$eq: req.body.car_id}}, {$set: req.body}, function (err, response) {
+        //     if (err) {
+        //         return next(err);
+        //     } else {
+        //         res.status(config.OK_STATUS).json({statusmessage: "Car updated successfully"});
+        //     }
+        // });
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",

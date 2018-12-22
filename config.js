@@ -1,13 +1,17 @@
+const dotenv = require('dotenv').config();
+
 module.exports = {
-    "node_port": 3000,
-    "FRONT_END_URL": "http://localhost:4200/#",
+    "node_port": process.env.NODE_PORT,
+    "FRONT_END_URL": process.env.FORNT_END_URL,
     "BACK_END_URL": "http://localhost:3000/",
-    "database": "mongodb://abhr:WkEV9rTcS7@18.219.16.50:27017/abhr",
+    "database": process.env.DATABASE,
     //Token
     'ACCESS_TOKEN_SECRET_KEY': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
 
     //Email Configuration
     'SMTP_SERVICE': 'gmail',
+    // 'SMTP_MAIL': 'demo.narolainfotech@gmail.com',
+    // 'SMTP_PASSWORD': 'Password123#',
     'SMTP_MAIL': 'abhrrentals@gmail.com',
     'SMTP_PASSWORD': 'abhr@123',
 

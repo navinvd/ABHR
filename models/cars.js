@@ -35,7 +35,7 @@ var CarSchema = new Schema({
     },
     no_of_person: {
         type: Number,
-        default: 5
+        enum: [2, 4, 5, 6, 8, 12]
     },
     transmission: {
         type: String,
