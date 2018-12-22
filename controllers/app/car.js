@@ -382,16 +382,15 @@ router.post('/filter', async (req, res) => {
                     })
 
                     res.status(config.OK_STATUS).json({
-                        status: "Success",
+                        status: "success",
                         message: "car data found",
                         data: { cars: cars },
                     });
                 }
                 else {
                     res.status(config.OK_STATUS).json({
-                        status: "Success",
-                        message: "Car data not found",
-                        data: { cars: data },
+                        status: "failure",
+                        message: "No car data found"
                     });
                 }
             }
@@ -675,6 +674,47 @@ router.post('/booking/past-history', async (req, res) => {
 router.post('/booking/upcoming-history', async (req, res) => {
     const carHistoryResp = await carHelper.carBooking_upcomming_history(req.body.user_id);
     res.json(carHistoryResp);
+});
+
+// check car avaibility
+router.post('/checkAvailability', async (req, res) => {
+    var schema = {
+        'car_id':{
+            notEmpty: true,
+            errorMessage: "Please speficy car id for which you are cheking avaibility",
+        },
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify date from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you needed car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        let car_id = req.body.car_id;
+        let fromDate = req.body.fromDate;
+        let days = req.body.days;
+        const carResp = await carHelper.checkCarAvaibility(car_id, fromDate, days);
+        res.json(carResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
 });
 
 module.exports = router;

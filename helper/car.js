@@ -152,7 +152,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
 
             return { status: 'success', message: "Car data found", data: { cars: cars } }
         } else {
-            return { status: 'success', message: "Car data not found", data: { cars: cars } }
+            return { status: 'failure', message: "No car data found" }
         }
     } catch (err) {
         console.log("Err : ", err);
@@ -485,5 +485,76 @@ carHelper.getNotificationByUserId = async (userId) => {
         return { status: 'failed', message: "Oops! Something went wrong.., We canot find data", err };
     }
 }
+
+
+// check for car availbility for speficic date
+
+carHelper.checkCarAvaibility = async function (car_id, fromDate, days) {
+    var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
+    console.log(toDate);
+
+    var defaultQuery = [
+        {
+            $lookup: {
+                from: 'car_booking',
+                foreignField: 'carId',
+                localField: '_id',
+                as: "carBookingDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carBookingDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        // {
+        //     $project: {
+        //         _id: 1,
+        //         car_book_from_date: {
+        //             $dateToString: {
+        //                 date: "$carBookingDetails.from_time",
+        //                 format: "%Y-%m-%d"
+        //             }
+        //         },
+        //         car_book_to_date: {
+        //             $dateToString: {
+        //                 date: "$carBookingDetails.to_time",
+        //                 format: "%Y-%m-%d"
+        //             }
+        //         }
+        //     }
+        // },
+        // {
+        //     $match: {
+        //         $and : [
+        //                     {
+        //                         $or: [
+        //                             {car_book_from_date: { $gt: toDate } },
+        //                             {car_book_to_date: { $lt: fromDate }},
+        //                             {car_book_from_date: {$eq : null }}
+        //                         ]
+        //                     },
+        //                     {isDeleted : false}      
+        //         ]
+        //     }
+        // }
+    ];
+    try {
+        console.log("Default Query => ", JSON.stringify(defaultQuery));
+        let cars = await Car.aggregate(defaultQuery);
+        if (cars && cars.length > 0) {
+            return { status: 'success', message: "Car data found", data: { cars: cars } }
+        } else {
+            return { status: 'failure', message: "No car data found" }
+        }
+    } catch (err) {
+        console.log("Err : ", err);
+        return { status: 'failed', message: "Error occured while finding car", err };
+    }
+};
+
+
+
 
 module.exports = carHelper;
