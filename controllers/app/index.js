@@ -18,6 +18,9 @@ router.use('/car', car);
 var user = require('./user');
 router.use('/user', user);
 
+var sms = require('./sms');
+router.use('/sms', sms);
+
 /**
  * @api {post} /app/registration Registration
  * @apiName Registration
