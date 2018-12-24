@@ -18,13 +18,53 @@ var UserSchema = new Schema({
         type: String,
         required: true,
     },
-    phone_number: String,
-    address : String,
+    phone_number: {
+        type: String,
+        default:null
+    },
+    phone_number_verified: {
+        type: Number,
+        enum: [0, 1, 2],
+        default: 0
+    },
+    address : [{ 
+        lat: {type: Number, default: null},
+        long: {type: Number, default: null},
+        complete_address: {type: String, default: null}
+    }],
     email: {
         type: String,
-        required: true
+        required: true,
     },
-    profile_image: String,
+    email_verified: {
+        type: Number,
+        enum: [0, 1, 2],
+        default: 1
+    },
+    driving_license: {
+        number: { type: String , default: null },
+        front_image: {type: String, default: null},
+        backe_image: {type: String, default: null},
+        country: {type: String, default: null}, 
+        issue_date: {type: Date, default: null}, 
+        expiry_date: {type: Date, default: null}
+    },
+    drving_license_verification: {
+        type: Number,
+        enum: [0, 1, 2],
+        default: 0
+    },
+    id_card: {
+        front_image: {type: String, default: null},
+        backe_image: {type: String, default: null},
+        type: {type: String, default: null},  
+    },
+    id_card_verification: {
+        type: Number,
+        enum: [0, 1, 2],
+        default: 0
+    },
+    profile_image: {type: String, default: null},
     password: String,
     refreshToken: String,
     place_id : mongoose.Schema.Types.ObjectId,
@@ -34,7 +74,7 @@ var UserSchema = new Schema({
     },
     deviceType: {
         type: String,
-        enum: ["ios", "anroid"]
+        enum: ["ios", "android"]
     },
     app_user_status: {
         type: String,
