@@ -26,5 +26,9 @@ module.exports = {
     "MEDIA_ERROR_STATUS": 415,
     "VALIDATION_FAILURE_STATUS": 417,
     "DATABASE_ERROR_STATUS": 422,
-    "INTERNAL_SERVER_ERROR": 500
+    "INTERNAL_SERVER_ERROR": 500,
+
+    //Sms service
+    "NEXMO_API_KEY" : process.env.NEXMO_APIKEY,
+    "NEXMO_API_SECRET" : process.env.NEXMO_APISECRET,
 };
