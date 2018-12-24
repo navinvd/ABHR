@@ -676,7 +676,23 @@ router.post('/booking/upcoming-history', async (req, res) => {
     res.json(carHistoryResp);
 });
 
-// check car avaibility
+/**
+ * @api {post} /app/car/checkCarAvailability Checking is car available on specific date?
+ * @apiName Check availability car
+ * @apiDescription Check whether car is available or not on some specific date
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Number} car_id Id of car
+ * @apiParam {Date} fromDate Available from date
+ * @apiParam {Number} days Number of days car needed
+
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 router.post('/checkCarAvailability', async (req, res) => {
     var schema = {
         'car_id':{

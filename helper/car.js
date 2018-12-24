@@ -191,10 +191,27 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 "preserveNullAndEmptyArrays": true
             }
         },
+
+        {
+            $lookup: {
+                from: 'car_company',
+                foreignField: '_id',
+                localField: 'car_rental_company_id',
+                as: "carCompanyDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carCompanyDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+
         {
             $project: {
                 _id: 1,
                 car_rental_company_id: 1,
+                car_rental_company_name : "$carCompanyDetails.name",
                 car_brand: "$brandDetails.brand_name",
                 car_model: "$modelDetails.model_name",
                 car_model_number: "$modelDetails.model_number",
@@ -252,6 +269,8 @@ carHelper.getcarDetailbyId = async (car_id) => {
         if (carDetail && carDetail.length > 0) {
             var cars = carDetail.map((c) => {
                 c.car["total_avg_rating"] = c.total_avg_rating;
+                // c.car["car_rental_company_name"] = c.car_rental_company_name;
+                
                 delete c.car.reviews;
                 return c.car;
             })
