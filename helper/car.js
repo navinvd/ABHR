@@ -99,15 +99,15 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         },
         {
             $match: {
-                $and : [
-                            {
-                                $or: [
-                                    {car_book_from_date: { $gt: toDate } },
-                                    {car_book_to_date: { $lt: fromDate }},
-                                    {car_book_from_date: {$eq : null }}
-                                ]
-                            },
-                            {isDeleted : false}      
+                $and: [
+                    {
+                        $or: [
+                            { car_book_from_date: { $gt: toDate } },
+                            { car_book_to_date: { $lt: fromDate } },
+                            { car_book_from_date: { $eq: null } }
+                        ]
+                    },
+                    { isDeleted: false }
                 ]
             }
         },
@@ -487,7 +487,7 @@ carHelper.getNotificationByUserId = async (userId) => {
 }
 
 
-// check for car availbility for speficic date
+// check for car availbility on specific date
 
 carHelper.checkCarAvaibility = async function (car_id, fromDate, days) {
     var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
@@ -508,53 +508,52 @@ carHelper.checkCarAvaibility = async function (car_id, fromDate, days) {
                 "preserveNullAndEmptyArrays": true
             }
         },
-        // {
-        //     $project: {
-        //         _id: 1,
-        //         car_book_from_date: {
-        //             $dateToString: {
-        //                 date: "$carBookingDetails.from_time",
-        //                 format: "%Y-%m-%d"
-        //             }
-        //         },
-        //         car_book_to_date: {
-        //             $dateToString: {
-        //                 date: "$carBookingDetails.to_time",
-        //                 format: "%Y-%m-%d"
-        //             }
-        //         }
-        //     }
-        // },
-        // {
-        //     $match: {
-        //         $and : [
-        //                     {
-        //                         $or: [
-        //                             {car_book_from_date: { $gt: toDate } },
-        //                             {car_book_to_date: { $lt: fromDate }},
-        //                             {car_book_from_date: {$eq : null }}
-        //                         ]
-        //                     },
-        //                     {isDeleted : false}      
-        //         ]
-        //     }
-        // }
+        {
+            $project: {
+                _id: 1,
+                isDeleted : 1,
+                car_book_from_date: {
+                    $dateToString: {
+                        date: "$carBookingDetails.from_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+                car_book_to_date: {
+                    $dateToString: {
+                        date: "$carBookingDetails.to_time",
+                        format: "%Y-%m-%d"
+                    }
+                }
+            }
+        },
+        {
+            $match : {
+                $and : [
+                        {
+                            $or: [
+                                { car_book_from_date: { $gt: toDate } },
+                                { car_book_to_date: { $lt: fromDate } },
+                                { car_book_from_date: { $eq: null } }
+                            ]
+                        },
+                        {isDeleted : false},
+                        {_id : ObjectId(car_id)},
+                    ]
+            }
+        }
     ];
     try {
-        console.log("Default Query => ", JSON.stringify(defaultQuery));
         let cars = await Car.aggregate(defaultQuery);
         if (cars && cars.length > 0) {
-            return { status: 'success', message: "Car data found", data: { cars: cars } }
+            // return { status: 'success', message: "Car data found", data: { cars: cars } }
+            return { status: 'success', message: "Car is available on this date"}
         } else {
-            return { status: 'failure', message: "No car data found" }
+            return { status: 'failure', message: "Car is not available on this date" }
         }
     } catch (err) {
         console.log("Err : ", err);
         return { status: 'failed', message: "Error occured while finding car", err };
     }
 };
-
-
-
 
 module.exports = carHelper;

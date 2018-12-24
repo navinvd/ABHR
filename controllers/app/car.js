@@ -677,7 +677,7 @@ router.post('/booking/upcoming-history', async (req, res) => {
 });
 
 // check car avaibility
-router.post('/checkAvailability', async (req, res) => {
+router.post('/checkCarAvailability', async (req, res) => {
     var schema = {
         'car_id':{
             notEmpty: true,
