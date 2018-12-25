@@ -26,7 +26,7 @@ smsHelper.sendOTP = async (data) => {
         var datta = await User.update(user_id, new_data);
 
         if (datta.n > 0) {
-            return { status: 'success', message: "Otp has been sent successfully"}
+            return { status: 'success', message: "Otp has been sent successfully", data : otp}
         }
         else {
             return { status: 'failed', message: "Error occured while sending otp" }
