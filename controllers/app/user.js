@@ -62,4 +62,65 @@ router.get('/notification_setting/:userId', async (req, res) => {
     }
 });
 
+/**
+ * @api {post} /app/sms/verifyOTP Verify mobile number by mathching OTP
+ * @apiName Verify OTP
+ * @apiDescription Used to verify mobile number
+ * @apiGroup App - SMS
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user id
+ * @apiParam {Number} mobile_number mobile number
+ * @apiParam {Number} country_code country code (eg. 91)
+ * @apiParam {Number} otp otp (eg. 859625)
+
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// change first name and last name of user
+router.post('/changeProfile', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'first_name': {
+            notEmpty: true,
+            errorMessage: "Please enter first name"
+        },
+        'last_name': {
+            notEmpty: true,
+            errorMessage: "Please enter last name"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var data = {}
+        if(req.body.first_name){
+            data.first_name = req.body.first_name
+        }
+        if(req.body.last_name){
+            data.last_name = req.body.last_name
+        }
+
+        const profileResp = await userHelper.changeProfile(req.body.user_id, data);
+        res.json(profileResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
+
+
+
+
 module.exports = router;
