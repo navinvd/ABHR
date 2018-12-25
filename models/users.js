@@ -34,6 +34,14 @@ var UserSchema = new Schema({
         type: Number,
         default:null
     },
+    otp_email: {
+        type: Number,
+        default:null
+    },
+    is_email_verified: {
+        type: Boolean,
+        default:false
+    },
     phone_number_verified: {
         type: Number,
         enum: [0, 1, 2],

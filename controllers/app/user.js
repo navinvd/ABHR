@@ -3,6 +3,7 @@ var router = express.Router();
 
 var config = require('./../../config');
 const userHelper = require('./../../helper/user');
+const mail_helper = require('./../../helper/mail');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
@@ -63,17 +64,15 @@ router.get('/notification_setting/:userId', async (req, res) => {
 });
 
 /**
- * @api {post} /app/sms/verifyOTP Verify mobile number by mathching OTP
- * @apiName Verify OTP
- * @apiDescription Used to verify mobile number
- * @apiGroup App - SMS
+ * @api {post} /app/user/changeProfile change user profile
+ * @apiName Change user profile
+ * @apiDescription Used to change first name and last name of user
+ * @apiGroup AppUser
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} user_id user id
- * @apiParam {Number} mobile_number mobile number
- * @apiParam {Number} country_code country code (eg. 91)
- * @apiParam {Number} otp otp (eg. 859625)
-
+ * @apiParam {String} first_name first name
+ * @apiParam {String} last_name last name
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -111,6 +110,88 @@ router.post('/changeProfile', async (req, res) => {
 
         const profileResp = await userHelper.changeProfile(req.body.user_id, data);
         res.json(profileResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
+
+
+
+// Send otp on email id
+router.post('/sendEmail', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'email': {
+            notEmpty: true,
+            errorMessage: "Please enter email address"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user_id = req.body.user_id;
+        var options = {
+            to: req.body.email,
+            subject: 'ABHR - User email verification'
+        }
+        var data = {
+            otp: Math.floor(100000 + Math.random() * 900000)
+        }
+        let mail_resp = await mail_helper.sendEmail("email_verification", options, data, user_id);
+        if(mail_resp.status === 'success'){
+            res.json({ status: 'success', message: "Otp has been sent to your email address", data : data.otp})
+        }
+        else{
+            res.json({ status: 'failed', message: "Error accures while sending email to you"})
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
+
+// verify otp received by email
+
+router.post('/verifyOTP', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'mobile_number': {
+            notEmpty: true,
+            errorMessage: "Please enter mobile number"
+        },
+        'country_code': {
+            notEmpty: true,
+            errorMessage: "Please enter country code eg.(91)"
+        },
+        'otp': {
+            notEmpty: true,
+            errorMessage: "Please enter the otp which you have been received"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var data = {
+            user_id: req.body.user_id,
+            mobile_number: parseInt(req.body.mobile_number),
+            country_code: parseInt(req.body.country_code),
+            otp: parseInt(req.body.otp)
+        }
+        const verifyOtpResp = await smsHelper.verifyOTP(data);
+        res.json(verifyOtpResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
