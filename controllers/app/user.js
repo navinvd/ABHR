@@ -168,17 +168,9 @@ router.post('/verifyOTP', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter user id"
         },
-        'mobile_number': {
-            notEmpty: true,
-            errorMessage: "Please enter mobile number"
-        },
-        'country_code': {
-            notEmpty: true,
-            errorMessage: "Please enter country code eg.(91)"
-        },
         'otp': {
             notEmpty: true,
-            errorMessage: "Please enter the otp which you have been received"
+            errorMessage: "Please enter the otp which you have been received by email"
         }
     };
     req.checkBody(schema);
@@ -186,11 +178,9 @@ router.post('/verifyOTP', async (req, res) => {
     if (!errors) {
         var data = {
             user_id: req.body.user_id,
-            mobile_number: parseInt(req.body.mobile_number),
-            country_code: parseInt(req.body.country_code),
             otp: parseInt(req.body.otp)
         }
-        const verifyOtpResp = await smsHelper.verifyOTP(data);
+        const verifyOtpResp = await userHelper.verifyOTP(data);
         res.json(verifyOtpResp);
     } else {
         res.status(config.BAD_REQUEST).json({
