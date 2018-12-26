@@ -9,24 +9,6 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var mail_helper = {}
 
-//  temp code
-
-//  var transporter = nodemailer.createTransport({
-var transporter = nodemailer.createTransport(smtpTransport({
-    service: 'gmail',
-    host: 'localhost',
-    port: 465,
-    // secure: false, // upgrade later with STARTTLS
-    auth: {
-        user: 'demo.narola@gmail.com',
-        pass: '!123Narola123'
-    },
-    tls: { rejectUnauthorized: false },
-}));
-
-
-
-/*
 var transporter = nodemailer.createTransport(smtpTransport({
     service: config.SMTP_SERVICE, // hostname
     tls: {rejectUnauthorized: false},
@@ -35,7 +17,7 @@ var transporter = nodemailer.createTransport(smtpTransport({
         pass: config.SMTP_PASSWORD
     }
 }));
-*/
+
 mail_helper.send = (template_name, options, data, callback) => {
     var template_sender = transporter.templateSender(new EmailTemplate('emails/' + template_name), {
         from: "ABHR <noreply@gmail.com>"

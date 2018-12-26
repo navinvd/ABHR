@@ -40,6 +40,7 @@ userHelper.getUsernotificationSettingData = async function (userId) {
     }
 };
 
+// change first & last name of user
 userHelper.changeProfile = async (user_id, data) => {
     try {
         var userData = await User.find({ _id: new ObjectId(user_id) });

@@ -119,7 +119,23 @@ router.post('/changeProfile', async (req, res) => {
 });
 
 
-
+/**
+ * @api {post} /app/user/sendEmail send email on user register email 
+ * @apiName Send Otp to user by email
+ * @apiDescription Used to send otp on user register email address
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user id
+ * @apiParam {String} email user register email 
+ 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 
 // Send otp on email id
 router.post('/sendEmail', async (req, res) => {
@@ -160,8 +176,25 @@ router.post('/sendEmail', async (req, res) => {
 });
 
 
-// verify otp received by email
+/**
+ * @api {post} /app/user/verifyOTP Verify user email address
+ * @apiName Verify user email
+ * @apiDescription Used to verify user email by matching OTP send by user
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user id
+ * @apiParam {Number} otp otp received by email
+ 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 
+// verify otp received by email
 router.post('/verifyOTP', async (req, res) => {
     var schema = {
         'user_id': {
