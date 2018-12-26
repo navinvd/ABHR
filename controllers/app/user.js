@@ -224,6 +224,61 @@ router.post('/verifyOTP', async (req, res) => {
 });
 
 
+/**
+ * @api {post} /app/user/changePassword change user password
+ * @apiName Change user password
+ * @apiDescription Used to change user password
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user id
+ * @apiParam {String} old_password Old Password
+ * @apiParam {String} new_password New Password
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// change app user password
+router.post('/changePassword', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'old_password': {
+            notEmpty: true,
+            errorMessage: "Please enter your old password"
+        },
+        'new_password': {
+            notEmpty: true,
+            errorMessage: "Please enter your new password"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var data = {
+            "user_id" : req.body.user_id,
+            "old_password" : req.body.old_password,
+            "new_password" : req.body.new_password
+        }
+    
+        const changePasswordResp = await userHelper.changePassword(data);
+        res.json(changePasswordResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
+
+
 
 
 

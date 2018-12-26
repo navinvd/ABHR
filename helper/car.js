@@ -453,12 +453,12 @@ carHelper.getBrandList = async () => {
     try {
         const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 });
         if (carbrand && carbrand.length > 0) {
-            return { status: 'success', message: "Carbrand data found", data: {brand : carbrand} }
+            return { status: 'success', message: "Car brand has been found", data: {brand : carbrand} }
         } else {
-            return { status: 'failed', message: "No carbrand available" };
+            return { status: 'failed', message: "No car brand available" };
         }
     } catch (err) {
-        return { status: 'failed', message: "Error occured while finding data", err };
+        return { status: 'failed', message: "Error occured while finding car brand", err };
     }
 }
 
@@ -467,9 +467,9 @@ carHelper.getModelList = async (brandArray) => {
     try {
         const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } });
         if (carmodels && carmodels.length > 0) {
-            return { status: 'success', message: "Car Models records found", data: {model:carmodels} }
+            return { status: 'success', message: "Car Models has been found", data: {model:carmodels} }
         } else {
-            return { status: 'failed', message: "No carmodel records not available" };
+            return { status: 'failed', message: "No car model available" };
         }
     } catch (err) {
         return { status: 'failed', message: "Oops! Something went wrong.., We canot find data", err };

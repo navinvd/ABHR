@@ -371,7 +371,7 @@ router.post('/filter', async (req, res) => {
                     err
                 });
             } else {
-                console.log(data);
+                // console.log(data);
                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
 
                 if (data && data.length > 0) {
