@@ -567,7 +567,7 @@ carHelper.checkCarAvaibility = async function (car_id, fromDate, days) {
             // return { status: 'success', message: "Car data found", data: { cars: cars } }
             return { status: 'success', message: "Car is available on this date"}
         } else {
-            return { status: 'failure', message: "Car is not available on this date" }
+            return { status: 'failed', message: "Car is not available on this date" }
         }
     } catch (err) {
         console.log("Err : ", err);
