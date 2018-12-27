@@ -21,6 +21,9 @@ router.use('/user', user);
 var sms = require('./sms');
 router.use('/sms', sms);
 
+var coupon = require('./coupon');
+router.use('/coupon', coupon);
+
 /**
  * @api {post} /app/registration Registration
  * @apiName Registration
