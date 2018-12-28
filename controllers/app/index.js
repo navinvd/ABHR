@@ -364,92 +364,6 @@ router.post('/social_login', async (req, res, next) => {
 });
 
 /**
- * @api {post} /app/google_login Google Login
- * @apiDescription Used for user google login
- * @apiName Google Login
- * @apiGroup AppUser
- * @apiVersion 0.0.0
- * 
- * @apiParam {String} email User email address
- * @apiParam {String} google_id User Google ID
- * @apiParam {String} user_type Type of User ["user", "agent"] 
- * 
- * @apiHeader {String}  Content-Type application/json    
- * 
- * @apiSuccess (Success 200) {String} message Success message.
- * @apiError (Error 4xx) {String} message Validation or error message.
- */
-// router.post('/google_login', async (req, res, next) => {
-
-//     var schema = {
-//         'email': {
-//             notEmpty: true,
-//             errorMessage: "Email is required"
-//         },
-//         'socialmediaID': {
-//             notEmpty: true,
-//             errorMessage: "google_id is required"
-//         },
-//         'socialmediaType': {
-//             notEmpty: true,
-//             errorMessage: "socialMediaType is required"
-//         },
-//         'user_type': {
-//             notEmpty: true,
-//             errorMessage: "userType is required"
-//         }
-//     };
-//     req.checkBody(schema);
-//     var errors = req.validationErrors();
-//     if (!errors) {
-//         var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType}).exec();
-//         if (user) {
-//             var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-//                 expiresIn: 60 * 60 * 24 // expires in 24 hours
-//             });
-//             var result = {
-//                 message: "Login Successfull",
-//                 result: user,
-//                 token: token
-//             };
-//             res.status(config.OK_STATUS).json(result);
-//         } else {
-//             var Data = {
-//                 first_name: req.body.first_name,
-//                 last_name: req.body.last_name,
-//                 socialmediaID: req.body.socialmediaID,
-//                 socialmediaType: req.body.socialmediaType,
-//                 email: req.body.email,
-//                 deviceType: req.body.device_type,
-//                 deviceToken:req.body.deviceToken,
-//                 type: req.body.user_type
-//             };
-//             var userModel = new User(Data);
-//             userModel.save(function (err, data) {
-//                 if (err) {
-//                     return next(err);
-//                 } else {
-//                     var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-//                         expiresIn: 60 * 60 * 24 // expires in 24 hours
-//                     });
-//                     var result = {
-//                         message: "Login Successfull",
-//                         result: data,
-//                         token: token
-//                     };
-//                     res.status(config.OK_STATUS).json(result);
-//                 }
-//             });
-//         }
-//     } else {
-//         res.status(config.OK_STATUS).json({
-//             message: "Validation Error",
-//             error: errors
-//         });
-//     }
-// });
-
-/**
  * @api {post} /app/forget_password Forgot Password
  * @apiDescription Used to send email for forgot password
  * @apiName Forget Password
@@ -514,7 +428,7 @@ router.post('/forget_password', async(req, res, next) => {
             message: "Validation Error"
         });
     }
-})
+});
 
 
 module.exports = router;
