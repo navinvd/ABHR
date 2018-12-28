@@ -605,7 +605,9 @@ router.post('/car_list',(req, res, next) => {
                     "recordsTotal": 1,
                     "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
                 }
-            }
+            },
+            
+            
         ];
         if (req.body.search != undefined) {
             if(req.body.search.value != undefined){

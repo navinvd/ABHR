@@ -99,46 +99,71 @@ router.post('/add', (req, res, next) => {
                 }
             },
             function (callback) {
-                var userModel = new User(userData);
-                userModel.save(function (err, data) {
-                    console.log("user data===>", data);
+                var email = 0;
+                User.find({ "email": req.body.email }, function (err, data) {
+                    if (data && data.length > 0) {
+                        email = 1;
+                        callback({message:"Email is all ready exist", email :email});
+                    }
+                    else {
+                        // callback(null);
+                        callback(null,{"email":email});
+                    }
                     if (err) {
+                        console.log('Error====>', err);
                         callback(err);
-                    } else {
-                        var result = {
-                            message: "Agent added successfully..",
-                            data: userData
-                        };
-                        var option = {
-                            to: userData.email,
-                            subject: 'ABHR - Agent Account Notification'
-                        }
-                        var loginURL = config.FRONT_END_URL + '#/admin/login';
-                        var data = {
-                            first_name: userData.first_name,
-                            last_name: userData.last_name,
-                            email: userData.email,
-                            password: generatepassword,
-                            link: loginURL
-                        }
-                        mailHelper.send('/agents/add_agent', option, data, function (err, res) {
-                            if (err) {
-                                console.log("Mail Error:", err);
-                                callback(err);
-                            } else {
-                                // callback(null, null);
-                                callback(null, result);
-                                console.log("Mail Success:", res);
-                            }
-                        })
-
                     }
                 });
 
+            },
+            function (err, callback) {
+
+                if (err.email === 0) {
+                    var userModel = new User(userData);
+                    userModel.save(function (err, data) {
+                        console.log("user data===>", data);
+                        if (err) {
+                            callback(err);
+                        } else {
+                            var result = {
+                                message: "Agent added successfully..",
+                                data: userData
+                            };
+                            var option = {
+                                to: userData.email,
+                                subject: 'ABHR - Agent Account Notification'
+                            }
+                            var loginURL = config.FRONT_END_URL + '#/admin/login';
+                            var data = {
+                                first_name: userData.first_name,
+                                last_name: userData.last_name,
+                                email: userData.email,
+                                password: generatepassword,
+                                link: loginURL
+                            }
+                            mailHelper.send('/agents/add_agent', option, data, function (err, res) {
+                                if (err) {
+                                    console.log("Mail Error:", err);
+                                    callback(err);
+                                } else {
+                                    // callback(null, null);
+                                    callback(null, result);
+                                    console.log("Mail Success:", res);
+                                }
+                            })
+                        }
+                    });
+                }
+                else{
+                    callback(err.message);
+                    }
+
+
             }], function (err, result) {
+                console.log("err",err)
                 if (err) {
                     console.log("Here");
-                    return next(err);
+                    return next(err.message);
                 } else {
                     res.status(config.OK_STATUS).json(result);
                 }
@@ -173,7 +198,7 @@ router.post('/add', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/update', (req, res, next) =>{
+router.put('/update', (req, res, next) => {
     console.log('here');
     var schema = {
         'user_id': {
@@ -264,7 +289,7 @@ router.put('/update', (req, res, next) =>{
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/delete', (req, res, next) =>{
+router.put('/delete', (req, res, next) => {
     console.log('here');
     var schema = {
         'user_id': {
@@ -275,7 +300,7 @@ router.put('/delete', (req, res, next) =>{
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        User.update({ _id: { $eq: req.body.user_id } }, { $set: {'isDeleted' : true} }, function (err, response) {
+        User.update({ _id: { $eq: req.body.user_id } }, { $set: { 'isDeleted': true } }, function (err, response) {
             if (err) {
                 return next(err);
             } else {
@@ -308,7 +333,7 @@ router.put('/delete', (req, res, next) =>{
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 
-router.get('/details/:id', (req, res, next) =>{
+router.get('/details/:id', (req, res, next) => {
 
     User.findOne({ _id: { $eq: req.params.id }, "isDeleted": false }, function (err, data) {
         if (err) {
@@ -351,7 +376,7 @@ router.post('/list', (req, res, next) => {
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if(!errors){
+    if (!errors) {
         var defaultQuery = [
             {
                 $match: {
@@ -360,7 +385,7 @@ router.post('/list', (req, res, next) => {
                 }
             },
             {
-                $sort: {'createdAt': -1}
+                $sort: { 'createdAt': -1 }
             },
             {
                 $group: {
@@ -376,15 +401,15 @@ router.post('/list', (req, res, next) => {
             {
                 $project: {
                     "recordsTotal": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             }
         ];
         console.log(req.body.search);
         if (req.body.search != undefined) {
-            if(req.body.search.value != undefined){
+            if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
-                var match = {$or: []};
+                var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
@@ -410,13 +435,13 @@ router.post('/list', (req, res, next) => {
         }
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
+                console.log('err===>', err);
                 return next(err);
             } else {
-                console.log('result===>',data);
+                console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
                 });
             }
         })
@@ -444,7 +469,7 @@ router.post('/list', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/rental_list',(req, res, next) => {
+router.post('/rental_list', (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -457,16 +482,16 @@ router.post('/rental_list',(req, res, next) => {
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if(!errors){
+    if (!errors) {
         var defaultQuery = [
             {
                 $lookup:
-                        {
-                            from: "users",
-                            localField: "agentId",
-                            foreignField: "_id",
-                            as: "agentId"
-                        }
+                {
+                    from: "users",
+                    localField: "agentId",
+                    foreignField: "_id",
+                    as: "agentId"
+                }
             },
             {
                 $unwind: {
@@ -475,10 +500,10 @@ router.post('/rental_list',(req, res, next) => {
                 }
             },
             {
-                $match: {"isDeleted": false}
+                $match: { "isDeleted": false }
             },
             {
-                $sort: {'createdAt': -1}
+                $sort: { 'createdAt': -1 }
             },
             {
                 $group: {
@@ -495,19 +520,19 @@ router.post('/rental_list',(req, res, next) => {
                 $project: {
                     "_id": 1,
                     "recordsTotal": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             }
         ];
         CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
+                console.log('err===>', err);
                 return next(err);
             } else {
-                console.log('result===>',data);
+                console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
                 });
             }
         })

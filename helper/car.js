@@ -99,15 +99,15 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         },
         {
             $match: {
-                $and : [
-                            {
-                                $or: [
-                                    {car_book_from_date: { $gt: toDate } },
-                                    {car_book_to_date: { $lt: fromDate }},
-                                    {car_book_from_date: {$eq : null }}
-                                ]
-                            },
-                            {isDeleted : false}      
+                $and: [
+                    {
+                        $or: [
+                            { car_book_from_date: { $gt: toDate } },
+                            { car_book_to_date: { $lt: fromDate } },
+                            { car_book_from_date: { $eq: null } }
+                        ]
+                    },
+                    { isDeleted: false }
                 ]
             }
         },
@@ -152,7 +152,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
 
             return { status: 'success', message: "Car data found", data: { cars: cars } }
         } else {
-            return { status: 'success', message: "Car data not found", data: { cars: cars } }
+            return { status: 'failure', message: "No car data found" }
         }
     } catch (err) {
         console.log("Err : ", err);
@@ -191,10 +191,27 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 "preserveNullAndEmptyArrays": true
             }
         },
+
+        {
+            $lookup: {
+                from: 'car_company',
+                foreignField: '_id',
+                localField: 'car_rental_company_id',
+                as: "carCompanyDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carCompanyDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+
         {
             $project: {
                 _id: 1,
                 car_rental_company_id: 1,
+                car_rental_company_name : "$carCompanyDetails.name",
                 car_brand: "$brandDetails.brand_name",
                 car_model: "$modelDetails.model_name",
                 car_model_number: "$modelDetails.model_number",
@@ -252,6 +269,8 @@ carHelper.getcarDetailbyId = async (car_id) => {
         if (carDetail && carDetail.length > 0) {
             var cars = carDetail.map((c) => {
                 c.car["total_avg_rating"] = c.total_avg_rating;
+                // c.car["car_rental_company_name"] = c.car_rental_company_name;
+                
                 delete c.car.reviews;
                 return c.car;
             })
@@ -434,12 +453,12 @@ carHelper.getBrandList = async () => {
     try {
         const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 });
         if (carbrand && carbrand.length > 0) {
-            return { status: 'success', message: "Carbrand data found", data: carbrand }
+            return { status: 'success', message: "Car brand has been found", data: {brand : carbrand} }
         } else {
-            return { status: 'failed', message: "No carbrand available" };
+            return { status: 'failed', message: "No car brand available" };
         }
     } catch (err) {
-        return { status: 'failed', message: "Error occured while finding data", err };
+        return { status: 'failed', message: "Error occured while finding car brand", err };
     }
 }
 
@@ -448,9 +467,9 @@ carHelper.getModelList = async (brandArray) => {
     try {
         const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } });
         if (carmodels && carmodels.length > 0) {
-            return { status: 'success', message: "Car Models records found", data: carmodels }
+            return { status: 'success', message: "Car Models has been found", data: {model:carmodels} }
         } else {
-            return { status: 'failed', message: "No carmodel records not available" };
+            return { status: 'failed', message: "No car model available" };
         }
     } catch (err) {
         return { status: 'failed', message: "Oops! Something went wrong.., We canot find data", err };
@@ -485,5 +504,75 @@ carHelper.getNotificationByUserId = async (userId) => {
         return { status: 'failed', message: "Oops! Something went wrong.., We canot find data", err };
     }
 }
+
+
+// check for car availbility on specific date
+
+carHelper.checkCarAvaibility = async function (car_id, fromDate, days) {
+    var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
+    console.log(toDate);
+
+    var defaultQuery = [
+        {
+            $lookup: {
+                from: 'car_booking',
+                foreignField: 'carId',
+                localField: '_id',
+                as: "carBookingDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carBookingDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                isDeleted : 1,
+                car_book_from_date: {
+                    $dateToString: {
+                        date: "$carBookingDetails.from_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+                car_book_to_date: {
+                    $dateToString: {
+                        date: "$carBookingDetails.to_time",
+                        format: "%Y-%m-%d"
+                    }
+                }
+            }
+        },
+        {
+            $match : {
+                $and : [
+                        {
+                            $or: [
+                                { car_book_from_date: { $gt: toDate } },
+                                { car_book_to_date: { $lt: fromDate } },
+                                { car_book_from_date: { $eq: null } }
+                            ]
+                        },
+                        {isDeleted : false},
+                        {_id : ObjectId(car_id)},
+                    ]
+            }
+        }
+    ];
+    try {
+        let cars = await Car.aggregate(defaultQuery);
+        if (cars && cars.length > 0) {
+            // return { status: 'success', message: "Car data found", data: { cars: cars } }
+            return { status: 'success', message: "Car is available on this date"}
+        } else {
+            return { status: 'failed', message: "Car is not available on this date" }
+        }
+    } catch (err) {
+        console.log("Err : ", err);
+        return { status: 'failed', message: "Error occured while finding car", err };
+    }
+};
 
 module.exports = carHelper;

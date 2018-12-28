@@ -22,6 +22,26 @@ var UserSchema = new Schema({
         type: String,
         default:null
     },
+    country_code: {
+        type: Number,
+        default:null
+    },
+    is_phone_verified: {
+        type: Boolean,
+        default:false
+    },
+    otp: {
+        type: Number,
+        default:null
+    },
+    otp_email: {
+        type: Number,
+        default:null
+    },
+    is_email_verified: {
+        type: Boolean,
+        default:false
+    },
     phone_number_verified: {
         type: Number,
         enum: [0, 1, 2],
