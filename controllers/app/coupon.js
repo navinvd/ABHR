@@ -51,6 +51,22 @@ router.post('/add', async (req, res) => {
 });
 
 
+/**
+ * @api {post} /app/coupon/apply Apply coupon code when book car
+ * @apiName Apply coupon code
+ * @apiDescription Used to use coupon code when book the car
+ * @apiGroup App - Coupon
+ * 
+ * @apiParam {String} user_id id of user
+ * @apiParam {String} coupon_code coupon code (eg "ABCD")
+
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 // apply coupon code
 router.post('/apply', async (req, res) => {
     var schema = {
