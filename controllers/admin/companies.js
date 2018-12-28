@@ -888,32 +888,51 @@ router.post('/car/gallery_edit', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         var carDetails = await Car.find({_id : req.body.car_id, isDeleted : false}, { car_gallery :1}).exec();
-        console.log(JSON.stringify(carDetails));
+        var carData = carDetails[0].car_gallery;
+        var carImageArray = [];
+        var addcarArray = [];
+        carData.forEach((ele) => {
+            carImageArray.push(ele.name);
+        });
+        addcarArray = carImageArray;
+        console.log(addcarArray);
+
         if (req.files) {
-            var file = req.files.car_images;
+            files = req.files['car_images'];
+            if (!Array.isArray(files)) {
+                files = [files];
+            }
             var dir = "./upload/car";
-            var mimetype = ['image/png', 'image/jpeg', 'image/jpeg', 'image/jpg'];
-            if (mimetype.indexOf(file.mimetype) != -1) {
-                extention = path.extname(file.name);
-                console.log(extention);
-            }
-            if(Array.isArray(file)){
+            async.each(files, function (file, each_callback) {
 
-            }else{
-
-            }
+                var extention = path.extname(file.name);
+                var splitName = file.name.split('.');
+                var filename = splitName[0] + extention;
+                if(carImageArray.indexOf(file.filename) == -1) {
+                    var json = {name: filename, type: file['mimetype']}
+                    addcarArray.push(json);
+                    file.mv(filepath, function (err) {
+                        if (err) {
+                            each_callback(each_callback)
+                        } else {
+    
+                        }
+                    });
+                    each_callback();
+                }
+            })
         }else {
             res.status(config.BAD_REQUEST).json({
                 message: "No file selected",
             });
         }
-        // Car.update({_id: {$eq: req.body.car_id}}, {$set: req.body}, function (err, response) {
-        //     if (err) {
-        //         return next(err);
-        //     } else {
-        //         res.status(config.OK_STATUS).json({statusmessage: "Car updated successfully"});
-        //     }
-        // });
+        Car.update({_id: {$eq: req.body.car_id}}, {$set: req.body}, function (err, response) {
+            if (err) {
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json({statusmessage: "Car updated successfully"});
+            }
+        });
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",

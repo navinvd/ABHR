@@ -54,7 +54,7 @@ var UserDocumentsSchema = new Schema({
     },
     deviceType: {
         type: String,
-        enum: ["ios", "anroid"]
+        enum: ["ios", "android"]
     },
     app_user_status: {
         type: String,
