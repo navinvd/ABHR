@@ -103,7 +103,7 @@ router.post('/add', (req, res, next) => {
                 User.find({ "email": req.body.email }, function (err, data) {
                     if (data && data.length > 0) {
                         email = 1;
-                        callback({message:"Email is all ready exist", email :email});
+                        callback({message:"Email is already exist", email :email});
                     }
                     else {
                         // callback(null);
@@ -114,10 +114,8 @@ router.post('/add', (req, res, next) => {
                         callback(err);
                     }
                 });
-
             },
             function (err, callback) {
-
                 if (err.email === 0) {
                     var userModel = new User(userData);
                     userModel.save(function (err, data) {

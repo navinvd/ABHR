@@ -64,19 +64,19 @@ var UserSchema = new Schema({
     driving_license: {
         number: { type: String , default: null },
         front_image: {type: String, default: null},
-        backe_image: {type: String, default: null},
+        back_image: {type: String, default: null},
         country: {type: String, default: null}, 
         issue_date: {type: Date, default: null}, 
         expiry_date: {type: Date, default: null}
     },
-    drving_license_verification: {
+    driving_license_verification: {
         type: Number,
         enum: [0, 1, 2],
         default: 0
     },
     id_card: {
         front_image: {type: String, default: null},
-        backe_image: {type: String, default: null},
+        back_image: {type: String, default: null},
         type: {type: String, default: null},  
     },
     id_card_verification: {
@@ -109,10 +109,6 @@ var UserSchema = new Schema({
     },
     verification_code: {
         type: String
-    },
-    is_verified: {
-        type: Boolean,
-        default: true
     },
     isDeleted: {
         type: Boolean,

@@ -104,6 +104,7 @@ router.post('/registration', (req, res, next) => {
                 } else {
                     var userModel = new User(Data);
                     userModel.save(function (err, userData) {
+                        userData = JSON.parse(JSON.stringify(userData));
                         console.log("data:", userData);
                         if (err) {
                             res.status(config.BAD_REQUEST).json({
@@ -114,17 +115,24 @@ router.post('/registration', (req, res, next) => {
                             var token = jwt.sign({id: userData._id, type: userData.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                                 expiresIn: 60 * 60 * 24 // expires in 24 hours
                             });
+                            delete userData.password;
+                            delete userData.otp_email;
+                            delete userData.otp;
+                            delete userData.isDeleted;
 
-                            const u = {
-                                _id:userData._id,
-                                first_name:userData.first_name,
-                                last_name:userData.last_name,
-                                email:userData.email
-                            }
+                            console.log('userdata===>',userData);
+                            const u = userData;
+
+                            // const u = {
+                            //     _id:userData._id,
+                            //     first_name:userData.first_name,
+                            //     last_name:userData.last_name,
+                            //     email:userData.email
+                            // }
                             var result = {
                                 status: 'success',
                                 message: "User registered successfully.",
-                                data: {user : u},
+                                data: {user : userData},
                                 token: token
                             };
                             res.status(config.OK_STATUS).json(result);
@@ -133,7 +141,6 @@ router.post('/registration', (req, res, next) => {
                 }
             }
         })
-        var userModel = new User(Data);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -196,35 +203,42 @@ router.post('/login', (req, res, next) => {
                 if (data) {
                     bcrypt.compare(req.body.password, data.password, function (err, result) {
                         if (result) {
-                            if (data.is_verified) {
+                            // if (data.is_verified) {
                                 var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                                     expiresIn: 60 * 60 * 24 // expires in 24 hours
                                 });
 
-                                const u = {
-                                    _id:data._id,
-                                    first_name:data.first_name,
-                                    last_name:data.last_name,
-                                    email:data.email
-                                }
+                                data = JSON.parse(JSON.stringify(data));
+                                delete data.password;
+                                delete data.otp_email;
+                                delete data.otp;
+                                delete data.isDeleted;
+
+                                const u = data;
+                                // const u = {
+                                //     _id:data._id,
+                                //     first_name:data.first_name,
+                                //     last_name:data.last_name,
+                                //     email:data.email
+                                // }
 
                                 res.status(config.OK_STATUS).json({
                                     status: 'success',
                                     message: "User authenticated successfully",
-                                    data: {user : u},
+                                    data: {user : data},
                                     token: token
                                 });
-                            } else {
-                                res.status(config.BAD_REQUEST).json({
-                                    status: 'success',
-                                    message: "Please verify your email for successfull login",
-                                    data: { user :{
-                                        '_id': data._id,
-                                        'email': data.email
-                                        }
-                                    }
-                                });
-                            }
+                            // } else {
+                            //     res.status(config.BAD_REQUEST).json({
+                            //         status: 'success',
+                            //         message: "Please verify your email for successfull login",
+                            //         data: { user :{
+                            //             '_id': data._id,
+                            //             'email': data.email
+                            //             }
+                            //         }
+                            //     });
+                            // }
                         } else {
                             res.status(config.OK_STATUS).json({
                                 status: "failed",
@@ -294,6 +308,14 @@ router.post('/social_login', async (req, res, next) => {
             var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                 expiresIn: 60 * 60 * 24 // expires in 24 hours
             });
+
+            user = JSON.parse(JSON.stringify(user));
+
+            delete user.password;
+            delete user.otp_email;
+            delete user.otp;
+            delete user.isDeleted;
+
             var result = {
                 status: 'success',
                 message: "Login Successfully",
