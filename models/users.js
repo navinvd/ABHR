@@ -23,7 +23,7 @@ var UserSchema = new Schema({
         default:null
     },
     country_code: {
-        type: Number,
+        type: String,
         default:null
     },
     is_phone_verified: {
