@@ -384,14 +384,14 @@ router.post('/filter', async (req, res) => {
             if(sort_by === 1){
                 var searchQuery = {
                     $sort: {
-                        'car.rent_price': 1
+                        'car.rent_price': -1
                     }
                 }
             }
             if(sort_by === 2){
                 var searchQuery = {
                     $sort: {
-                        'car.rent_price': -1
+                        'car.rent_price': 1
                     }
                 }
             }
@@ -399,8 +399,6 @@ router.post('/filter', async (req, res) => {
         }
 
         console.log('Default Query========>', JSON.stringify(defaultQuery));
-        console.log('BYYYYYY===>',req.body.sort_by);
-
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
