@@ -63,7 +63,6 @@ router.post('/login', (req, res, next) => {
                 if (data) {
                     bcrypt.compare(req.body.password, data.password, function (err, result) {
                         if (result) {
-                            if (data.is_verified) {
                                 var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                                     expiresIn: 60 * 60 * 24 // expires in 24 hours
                                 });
@@ -73,16 +72,6 @@ router.post('/login', (req, res, next) => {
                                     result: data,
                                     token: token
                                 });
-                            } else {
-                                res.status(config.BAD_REQUEST).json({
-                                    message: "Please verify your email for successfull login",
-                                    type: 'NOT_VERIFIED',
-                                    result: {
-                                        '_id': data._id,
-                                        'email': data.email
-                                    }
-                                });
-                            }
                         } else {
                             res.status(config.BAD_REQUEST).json({
                                 message: "Password is wrong",
