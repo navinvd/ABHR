@@ -22,7 +22,8 @@ smsHelper.sendOTP = async (data) => {
         const resp = await nexmo.message.sendSms(from, to, otp);
 
         var user_id = { _id: new ObjectId(data.user_id) }
-        var new_data = { $set: { otp: otp, is_phone_verified: false } };
+        // var new_data = { $set: { otp: otp, is_phone_verified: false } };
+        var new_data = { $set: { otp: otp, phone_number_verified: 1 } };
         var datta = await User.update(user_id, new_data);
 
         if (datta.n > 0) {
@@ -42,12 +43,13 @@ smsHelper.verifyOTP = async (data) => {
         var userData = await User.find({ _id: new ObjectId(data.user_id) });
         if (userData && userData.length > 0) {
 
-            if(userData[0].is_phone_verified === true){
+            // if(userData[0].is_phone_verified === true){
+            if(userData[0].phone_number_verified === 2){
                 return { status: 'success', message: "This number is all ready verified"}
             }
             if (userData[0].otp === data.otp) {
                 var user_id = { _id: new ObjectId(data.user_id) }
-                var new_data = { $set: { phone_number: data.mobile_number, country_code: data.country_code, is_phone_verified: true } };
+                var new_data = { $set: { phone_number: data.mobile_number, country_code: data.country_code, phone_number_verified: 2 } };
                 var datta = await User.update(user_id, new_data);
                 if (datta.n > 0) {
                     return { status: 'success', message: "Mobile number has been verified successfully"}

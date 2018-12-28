@@ -26,10 +26,6 @@ var UserSchema = new Schema({
         type: Number,
         default:null
     },
-    is_phone_verified: {
-        type: Boolean,
-        default:false
-    },
     otp: {
         type: Number,
         default:null
@@ -37,10 +33,6 @@ var UserSchema = new Schema({
     otp_email: {
         type: Number,
         default:null
-    },
-    is_email_verified: {
-        type: Boolean,
-        default:false
     },
     phone_number_verified: {
         type: Number,

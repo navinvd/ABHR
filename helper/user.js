@@ -73,12 +73,12 @@ userHelper.verifyOTP = async (data) => {
         var userData = await User.find({ _id: new ObjectId(data.user_id) });
         if (userData && userData.length > 0) {
 
-            if (userData[0].is_email_verified === true) {
+            if (userData[0].email_verified === 2) {
                 return { status: 'success', message: "This email is all ready verified" }
             }
             if (userData[0].otp_email === data.otp) {
                 var user_id = { _id: new ObjectId(data.user_id) }
-                var new_data = { $set: { is_email_verified: true } };
+                var new_data = { $set: { email_verified: 2 } };
                 var datta = await User.update(user_id, new_data);
                 if (datta.n > 0) {
                     return { status: 'success', message: "Email address has been verified successfully" }

@@ -60,7 +60,8 @@ mail_helper.sendEmail = async (template_name, options, data, user_id) => {
     try {
         var email_data = await template_sender({ to: options.to, subject: options.subject }, data);
         var id = { _id: new ObjectId(user_id) }
-        var new_data = { $set: { otp_email: data.otp, is_email_verified: false } };
+        // var new_data = { $set: { otp_email: data.otp, is_email_verified: false } };
+        var new_data = { $set: { otp_email: data.otp, email_verified: 1 } };
         var datta = await User.update(id, new_data);
 
         if (datta.n > 0) {

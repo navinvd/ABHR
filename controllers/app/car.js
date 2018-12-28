@@ -236,7 +236,7 @@ router.post('/filter', async (req, res) => {
                             $or: [
                                 { car_book_from_date: { $gt: toDate } },
                                 { car_book_to_date: { $lt: fromDate } },
-                                {car_book_from_date: {$eq : null }}
+                                { car_book_from_date: { $eq: null } }
                             ]
                         },
                         { isDeleted: false }
@@ -287,21 +287,28 @@ router.post('/filter', async (req, res) => {
             }];
         if (req.body.brand) {
             let brandOject = req.body.brand;
-            var searchQuery = {
-                "$match": {
-                    "car_brand_id": { "$in": brandOject },
+            if (brandOject.length > 0) {
+                brandOject = brandOject.map((b) => { return ObjectId(b) });
+                var searchQuery = {
+                    "$match": {
+                        "car_brand_id": { "$in": brandOject }
+                    }
                 }
+                defaultQuery.splice(3, 0, searchQuery);
             }
-            defaultQuery.splice(3, 0, searchQuery);
+
         }
         if (req.body.model) {
             let modelOject = req.body.model;
-            var searchQuery = {
-                "$match": {
-                    "car_model_id": { "$in": modelOject },
+            if (modelOject.length > 0) {
+                modelOject = modelOject.map((b) => { return ObjectId(b) });
+                var searchQuery = {
+                    "$match": {
+                        "car_model_id": { "$in": modelOject },
+                    }
                 }
+                defaultQuery.splice(3, 0, searchQuery);
             }
-            defaultQuery.splice(3, 0, searchQuery);
         }
         if (req.body.navigation) {
             let navigationOject = req.body.navigation;
@@ -320,7 +327,7 @@ router.post('/filter', async (req, res) => {
             defaultQuery.splice(3, 0, searchQuery);
         }
         if (req.body.transmission) {
-            let transmissionObject = req.body.navigation;
+            let transmissionObject = req.body.transmission;
             var searchQuery = {
                 "$match": {
                     "transmission": { "$in": transmissionObject },
@@ -329,7 +336,7 @@ router.post('/filter', async (req, res) => {
             defaultQuery.splice(3, 0, searchQuery);
         }
         if (req.body.car_class) {
-            let classObject = req.body.navigation;
+            let classObject = req.body.car_class;
             var searchQuery = {
                 "$match": {
                     "car_class": { "$in": classObject },
@@ -362,6 +369,8 @@ router.post('/filter', async (req, res) => {
             }
             defaultQuery.splice(3, 0, searchQuery);
         }
+
+        console.log('Default Query========>', JSON.stringify(defaultQuery));
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
@@ -695,7 +704,7 @@ router.post('/booking/upcoming-history', async (req, res) => {
  */
 router.post('/checkCarAvailability', async (req, res) => {
     var schema = {
-        'car_id':{
+        'car_id': {
             notEmpty: true,
             errorMessage: "Please speficy car id for which you are cheking avaibility",
         },
