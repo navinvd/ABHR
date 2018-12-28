@@ -110,6 +110,7 @@ router.post('/details', async (req, res) => {
  * @apiParam {Enum} [car_class]  ["economy", "luxury", "suv", "family"] 
  * @apiParam {Number} [capacity_of_people] Number no. of people 
  * @apiParam {String} [milage] String forexample: "open" 
+ * @apiParam {Number} [sort_by] (eg 0 = by popularity , 1 = rent wise asce, 2 = rent wise desc)
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -265,6 +266,7 @@ router.post('/filter', async (req, res) => {
                     car: { "$first": "$$ROOT" }
                 }
             }
+
         ];
         var paginationArray = [
             {
@@ -369,8 +371,36 @@ router.post('/filter', async (req, res) => {
             }
             defaultQuery.splice(3, 0, searchQuery);
         }
+        // sorting
+        if (typeof req.body.sort_by !== 'undefined') {
+            let sort_by = parseInt(req.body.sort_by);
+            if(sort_by === 0){
+                var searchQuery = {
+                    $sort: {
+                        'total_avg_rating': -1
+                    }
+                }
+            }
+            if(sort_by === 1){
+                var searchQuery = {
+                    $sort: {
+                        'car.rent_price': 1
+                    }
+                }
+            }
+            if(sort_by === 2){
+                var searchQuery = {
+                    $sort: {
+                        'car.rent_price': -1
+                    }
+                }
+            }
+            defaultQuery.push(searchQuery);
+        }
 
         console.log('Default Query========>', JSON.stringify(defaultQuery));
+        console.log('BYYYYYY===>',req.body.sort_by);
+
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
