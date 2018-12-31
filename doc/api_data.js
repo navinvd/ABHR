@@ -2374,10 +2374,10 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/app/google_login",
-    "title": "Google Login",
-    "description": "<p>Used for user google login</p>",
-    "name": "Google_Login",
+    "url": "/app/user/idVerification",
+    "title": "Id card Verification",
+    "description": "<p>Used to add or update id card data</p>",
+    "name": "Id_Card_Details_Update",
     "group": "AppUser",
     "version": "0.0.0",
     "parameter": {
@@ -2387,22 +2387,22 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "email",
-            "description": "<p>User email address</p>"
+            "field": "front_image",
+            "description": "<p>User's Id card front_image</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "google_id",
-            "description": "<p>User Google ID</p>"
+            "field": "back_image",
+            "description": "<p>User's Id card back_image</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "user_type",
-            "description": "<p>Type of User [&quot;user&quot;, &quot;agent&quot;]</p>"
+            "field": "user_id",
+            "description": "<p>UserId</p>"
           }
         ]
       }
@@ -2446,7 +2446,112 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/app/index.js",
+    "filename": "controllers/app/user.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "post",
+    "url": "/app/user/licenceDataUpdate",
+    "title": "Licence Details Verification",
+    "description": "<p>Used to add or update licence data</p>",
+    "name": "Licence_Details_Update",
+    "group": "AppUser",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "front_image",
+            "description": "<p>User's Id card front_image</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "back_image",
+            "description": "<p>User's Id card back_image</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>UserId</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "licence_no",
+            "description": "<p>user's licence number</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "country",
+            "description": "<p>user's country</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "issue_date",
+            "description": "<p>licence issueDate</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "expiry_date",
+            "description": "<p>licence expiryDate</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/app/user.js",
     "groupTitle": "AppUser"
   },
   {
@@ -3426,6 +3531,13 @@ define({ "api": [
             "optional": true,
             "field": "milage",
             "description": "<p>String forexample: &quot;open&quot;</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "sort_by",
+            "description": "<p>(eg 0 = by popularity , 1 = rent wise asce, 2 = rent wise desc)</p>"
           }
         ]
       }

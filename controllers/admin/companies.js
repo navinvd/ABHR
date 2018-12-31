@@ -941,7 +941,52 @@ router.post('/car/gallery_edit', async (req, res, next) => {
             error: errors
         });
     }
-  });
+});
+
+/**
+ * @api {put} /admin/company/car/delete Delete car
+ * @apiName Delete Car
+ * @apiDescription Used to delete agent information
+ * @apiGroup Admin - Cars
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} car_id car Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.put('/car/delete', (req, res, next) => {
+    console.log('hetre');
+    var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "car_id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        Car.update({ _id: new ObjectId(req.body.car_id) }, { $set: { 'isDeleted': true } }, function (err, response) {
+            if (err) {
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json({
+                    message: "Car Deleted successfully..",
+                });
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+
 
 
 module.exports = router;

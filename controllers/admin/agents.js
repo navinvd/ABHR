@@ -65,7 +65,7 @@ router.post('/add', (req, res, next) => {
             phone_number: req.body.phone_number,
             email: req.body.email,
             type: "agent",
-            deviceType: req.body.deviceType,
+            deviceType: 'android',
             password: generatepassword
         };
         async.waterfall([
