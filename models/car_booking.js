@@ -72,7 +72,8 @@ var BookingSchema = new Schema({
         type: String
     },
     cancel_reason: {
-        type: String
+        type: String,
+        default : null
     },
     cancel_date: {
         type: Date
