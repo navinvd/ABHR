@@ -517,6 +517,33 @@ router.post('/licenceDataUpdate',(req, res, next) => {
     }
 });
 
-
+/**
+ * @api {get} /app/user/:id? User Details By Id
+ * @apiName User Details By Id
+ * @apiDescription Get User details By user id
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} id User Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.get('/verification_details/:id', function (req, res, next) {
+    User.findOne({_id: new ObjectId(req.params.id), "isDeleted" : false, "type": "user"},{"phone_number_verified":1 , "email_verified": 1, "driving_license_verification": 1, "id_card_verification": 1}, function (err, data) {
+        if (err) {
+            return next(err);
+        } else {
+            res.status(config.OK_STATUS).json({
+                status: "success",
+                message: "user Details data Found",
+                data: {user: data},
+            });
+        }
+    });
+});
 
 module.exports = router;

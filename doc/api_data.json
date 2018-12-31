@@ -3754,7 +3754,11 @@
             "type": "Number",
             "optional": true,
             "field": "sort_by",
+<<<<<<< HEAD
             "description": "<p>(eg 0 = by popularity , 1 = rent wise desc, 2 = rent wise asc)</p>"
+=======
+            "description": "<p>(eg 0 = by popularity , 1 = rent wise asce, 2 = rent wise desc)</p>"
+>>>>>>> 85e1774b2cc4b13c82fba2c050f6316af32a671d
           }
         ]
       }
