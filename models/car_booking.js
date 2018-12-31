@@ -47,6 +47,22 @@ var BookingSchema = new Schema({
         type: String,
         enum: ["inprogress", "cancelled", "finished", "upcoming"]
     },
+    delivery_address: {
+        type: String,
+        required : true
+    },
+    delivery_time: {
+        type:  String,
+        required : true
+    },
+    coupon_code: {
+        type:  String,
+        required : true
+    },
+    total_booking_amount: {
+        type:  Number,
+        required : true
+    },
     AC_status: {
         type: Boolean,
         default: false
