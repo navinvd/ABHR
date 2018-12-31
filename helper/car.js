@@ -575,4 +575,15 @@ carHelper.checkCarAvaibility = async function (car_id, fromDate, days) {
     }
 };
 
+//carBook
+carHelper.carBook = async function (booking_data) {
+    let car_booking = new CarBooking(booking_data);
+    try {
+        let data = await car_booking.save();
+        return { status: 'success', message: "Car has been book successfully"}
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while booking car",err };
+    }
+};
+
 module.exports = carHelper;

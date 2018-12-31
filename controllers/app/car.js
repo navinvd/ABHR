@@ -110,7 +110,7 @@ router.post('/details', async (req, res) => {
  * @apiParam {Enum} [car_class]  ["economy", "luxury", "suv", "family"] 
  * @apiParam {Number} [capacity_of_people] Number no. of people 
  * @apiParam {String} [milage] String forexample: "open" 
- * @apiParam {Number} [sort_by] (eg 0 = by popularity , 1 = rent wise asce, 2 = rent wise desc)
+ * @apiParam {Number} [sort_by] (eg 0 = by popularity , 1 = rent wise desc, 2 = rent wise asc)
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -426,7 +426,7 @@ router.post('/filter', async (req, res) => {
                 }
                 else {
                     res.status(config.OK_STATUS).json({
-                        status: "failure",
+                        status: "failed",
                         message: "No car data found"
                     });
                 }
@@ -769,5 +769,87 @@ router.post('/checkCarAvailability', async (req, res) => {
         });
     }
 });
+
+
+
+// Car booking
+
+router.post('/book', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter login user id",
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id which you are going to book",
+        },
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify date from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you needed car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        },
+        'rent_per_day': {
+            notEmpty: true,
+            errorMessage: "Please enter car rent",
+        },
+        'delivery_address': {
+            notEmpty: true,
+            errorMessage: "Please enter delivery address",
+        },
+        'delivery_time':{
+            notEmpty: true,
+            errorMessage: "Please enter delivery time",
+        },
+        'total_booking_amount':{
+            notEmpty: true,
+            errorMessage: "Please enter total booking amount",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
+        console.log(toDate);
+        var data = {
+            "userId" : req.body.user_id,
+            "carId" : req.body.car_id,
+            "from_time": req.body.fromDate,
+            "to_time": toDate, // auto calculation
+            "days": req.body.days,
+            "booking_rent": req.body.rent_per_day,
+            "delivery_address": req.body.delivery_address, // add field in db as well,
+            "delivery_time": req.body.delivery_time, // add field in db as well',
+            "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,   
+            "total_booking_amount": req.body.total_booking_amount, // add this field to db
+            "trip_status": "upcoming"
+        }
+
+        // contniue from here pending make entry in db ok
+
+        const bookingResp = await carHelper.carBook(data);
+        
+        res.json(bookingResp);
+        // res.json({data : data});
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
 
 module.exports = router;

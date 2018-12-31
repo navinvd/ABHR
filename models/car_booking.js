@@ -5,8 +5,7 @@ var autoIncrement = require('mongoose-auto-increment');
 var Schema = mongoose.Schema;
 var BookingSchema = new Schema({
     booking_number: {
-        type: Number,
-        required: true
+        type: Number
     },
     carId: {
         type: mongoose.Schema.Types.ObjectId
@@ -47,6 +46,21 @@ var BookingSchema = new Schema({
         type: String,
         enum: ["inprogress", "cancelled", "finished", "upcoming"]
     },
+    delivery_address: {
+        type: String,
+        required : true
+    },
+    delivery_time: {
+        type:  String,
+        required : true
+    },
+    coupon_code: {
+        type:  String,
+    },
+    total_booking_amount: {
+        type:  Number,
+        required : true
+    },
     AC_status: {
         type: Boolean,
         default: false
@@ -83,6 +97,6 @@ var BookingSchema = new Schema({
 }, {versionKey: false});
 // Compile model from schema
 autoIncrement.initialize(mongoose.connection);
-BookingSchema.plugin(autoIncrement.plugin, {model: 'car_booking', field: 'bookingId', startAt: 1000, incrementBy: 1});
+BookingSchema.plugin(autoIncrement.plugin, {model: 'car_booking', field: 'booking_number', startAt: 1000, incrementBy: 1});
 var Booking = mongoose.model('car_booking', BookingSchema, 'car_booking');
 module.exports = Booking;
