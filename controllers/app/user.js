@@ -383,6 +383,7 @@ router.post('/idDataUpdate',(req, res, next) => {
             res.status(config.BAD_REQUEST).json({
                 status: 'failed',
                 message: "No file selected",
+                files: req.files
             });
         }
     } else {
@@ -501,6 +502,7 @@ router.post('/licenceDataUpdate',(req, res, next) => {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',
                     message: "Please select appropriate file format",
+                    files: req.files
                 });
             }
         } else {
