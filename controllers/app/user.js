@@ -493,7 +493,8 @@ router.post('/licenceDataUpdate',(req, res, next) => {
                         res.status(config.OK_STATUS).json({
                             status: 'success',
                             message: "Image uploaded successfully",
-                            data : result
+                            data : result,
+                            files: req.files
                         });
                     }
                 });
