@@ -2961,6 +2961,223 @@
     "groupTitle": "AppUser"
   },
   {
+    "type": "post",
+    "url": "/app/car/cancel-booking",
+    "title": "Cancel Car Booking",
+    "name": "Cancel_Car_Booking",
+    "description": "<p>Cancel Car Booking</p>",
+    "group": "App___Car",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>User ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>Car ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "cancel_date",
+            "description": "<p>Car booking cancel date</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "cancel_reason",
+            "description": "<p>Reason for cancelling car booking</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
+    "type": "post",
+    "url": "/app/car/book",
+    "title": "Book Car",
+    "name": "Car_Booking",
+    "description": "<p>Booking the car</p>",
+    "group": "App___Car",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>User ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>Car ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "fromDate",
+            "description": "<p>Car booking from date</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "days",
+            "description": "<p>Number of days car needed</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "rent_per_day",
+            "description": "<p>Rent when car book per day</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "delivery_address",
+            "description": "<p>Car Delivery Address (eg. 320, regent square surat india)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "delivery_time",
+            "description": "<p>Car Delivery Time (eg. 7am - 9am)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "coupon_code",
+            "description": "<p>coupon code (eg. ABCD)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "total_booking_amount",
+            "description": "<p>Total car booking amount</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
     "type": "get",
     "url": "/app/car/brandlist",
     "title": "List of car brands",
@@ -3537,7 +3754,11 @@
             "type": "Number",
             "optional": true,
             "field": "sort_by",
+<<<<<<< HEAD
+            "description": "<p>(eg 0 = by popularity , 1 = rent wise desc, 2 = rent wise asc)</p>"
+=======
             "description": "<p>(eg 0 = by popularity , 1 = rent wise asce, 2 = rent wise desc)</p>"
+>>>>>>> 85e1774b2cc4b13c82fba2c050f6316af32a671d
           }
         ]
       }

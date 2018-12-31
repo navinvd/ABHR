@@ -772,8 +772,46 @@ router.post('/checkCarAvailability', async (req, res) => {
 
 
 
-// Car booking
+/**
+ {
+    "user_id" : "5c0f65db827058583d81f3c8",
+    "car_id" : "5c135adedf044151e9329f22",
+    "fromDate": "2019-01-01",
+    "days": 5,
+    "rent_per_day": 200,
+    "delivery_address": "320, regent square surat india",
+    "delivery_time": "7am - 9am",
+    "coupon_code": "ABCD",
+    "total_booking_amount": "5000"
+}
+ */
 
+
+/**
+ * @api {post} /app/car/book Book Car
+ * @apiName Car Booking
+ * @apiDescription Booking the car
+ * @apiGroup App - Car
+ * 
+ * @apiParam {String} user_id User ID
+ * @apiParam {String} car_id Car ID
+ * @apiParam {Date} fromDate Car booking from date
+ * @apiParam {Number} days Number of days car needed
+ * @apiParam {Number} rent_per_day Rent when car book per day
+ * @apiParam {String} delivery_address Car Delivery Address (eg. 320, regent square surat india)
+ * @apiParam {String} delivery_time Car Delivery Time (eg. 7am - 9am)
+ * @apiParam {Number} [coupon_code] coupon code (eg. ABCD)
+ * @apiParam {Number} total_booking_amount Total car booking amount
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+
+// Car booking
 router.post('/book', async (req, res) => {
     var schema = {
         'user_id': {
@@ -834,14 +872,11 @@ router.post('/book', async (req, res) => {
             "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,   
             "total_booking_amount": req.body.total_booking_amount, // add this field to db
             "trip_status": "upcoming"
-        }
-
-        // contniue from here pending make entry in db ok
-
+        }        
         const bookingResp = await carHelper.carBook(data);
-        
+
         res.json(bookingResp);
-        // res.json({data : data});
+ 
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -850,6 +885,75 @@ router.post('/book', async (req, res) => {
         });
     }
 });
+
+
+
+/**
+ * @api {post} /app/car/cancel-booking Cancel Car Booking
+ * @apiName Cancel Car Booking
+ * @apiDescription Cancel Car Booking
+ * @apiGroup App - Car
+ * 
+ * @apiParam {String} user_id User ID
+ * @apiParam {String} car_id Car ID
+ * @apiParam {Date} cancel_date Car booking cancel date
+ * @apiParam {String} [cancel_reason] Reason for cancelling car booking
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+//Cancel Car booking 
+router.post('/cancel-booking', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter login user id",
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id which you are going to book",
+        },
+        'cancel_date': {
+            notEmpty: true,
+            errorMessage: "Please specify date from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        }
+        // 'cancel_reason': { // will uncomment this in future
+        //     notEmpty: true,
+        //     errorMessage: "Please give reason for cancelling car booking",
+        // }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var data = {
+            "userId" : req.body.user_id,
+            "carId" : req.body.car_id,
+            "cancel_date": req.body.cancel_date,
+            "cancel_reason": req.body.cancel_reason ? req.body.cancel_reason : null,
+            "trip_status": "cancelled"
+        }        
+        const cancelBookingResp = await carHelper.cancelBooking(data);
+
+        res.json(cancelBookingResp);
+ 
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
 
 
 module.exports = router;
