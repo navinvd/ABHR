@@ -5,6 +5,7 @@ module.exports = {
     "FRONT_END_URL": process.env.FORNT_END_URL,
     "BACK_END_URL": "http://localhost:3000/",
     "database": process.env.DATABASE,
+    "mimetypes": ['image/vnd.wap.wbmp', 'image/vnd.rn-realflash', 'image/x-pcx','image/x-pict', 'image/png', 'image/x-xwd', 'image/jpeg', 'image/jpg', 'image/bmp', 'image/webp', 'image/vnd.microsoft.icon', 'image/x-windows-bmp', 'image/x-dwg', 'image/fif', 'image/florian', 'image/vnd.fpx', 'image/vnd.net-fpx', 'image/g3fax', 'image/gif', 'image/x-icon', 'image/vnd.dwg', 'image/svg+xml', 'image/ief', 'image/pipeg', 'image/tiff', 'image/x-cmx', 'image/x-portable-anymap', 'image/x-portable-bitmap', 'image/x-portable-graymap', 'image/cmu-raster', 'image/x-quicktime', 'image/vnd.xiff', 'image/xbm', 'image/x-xbm', 'image/x-rgb'],
     //Token
     'ACCESS_TOKEN_SECRET_KEY': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
 

@@ -206,6 +206,20 @@ router.post('/list', (req, res, next) => {
     if(!errors){
         var defaultQuery = [
             {
+                $lookup: {
+                    from: 'car_booking',
+                    foreignField: 'userId',
+                    localField: '_id',
+                    as: "rentalDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$rentalDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $match: {
                     "isDeleted": false,
                     "type": "user"
@@ -228,7 +242,7 @@ router.post('/list', (req, res, next) => {
             {
                 $project: {
                     "recordsTotal": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                    "users": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
                 }
             }
         ];

@@ -53,7 +53,7 @@ router.put('/user/profile_image', (req, res, next) => {
                 if(req.body.user_type === 'company'){ var dir = "./upload/company"; } 
                 if(req.body.user_type === 'agent'){ var dir = "./upload/agent"; }
             } 
-            var mimetype = ['image/png', 'image/jpeg', 'image/jpeg', 'image/jpg'];
+            var mimetype = config.mimetypes;
             if (mimetype.indexOf(file.mimetype) != -1) {
                 extention = path.extname(file.name);
                 filename = "profile_" + req.body.user_id + extention;

@@ -311,7 +311,7 @@ router.post('/idDataUpdate',(req, res, next) => {
                     back_image: '',
                     type: '0',
                 }
-            var mimetype = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+            var mimetype = config.mimetypes;
             if((mimetype.indexOf(req.files['front_image'].mimetype) != -1) && (mimetype.indexOf(req.files['back_image'].mimetype) != -1)){
                 async.waterfall([
                     function (callback) {
@@ -435,7 +435,7 @@ router.post('/licenceDataUpdate',(req, res, next) => {
                     issue_date: req.body.issue_date,
                     expiry_date: req.body.expiry_date
                 }
-            var mimetype = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+                var mimetype = config.mimetypes;
             if((mimetype.indexOf(req.files['front_image'].mimetype) != -1) && (mimetype.indexOf(req.files['back_image'].mimetype) != -1)){
                 async.waterfall([
                     function (callback) {
@@ -533,7 +533,7 @@ router.post('/licenceDataUpdate',(req, res, next) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.get('/verification_details/:id', function (req, res, next) {
-    User.findOne({_id: new ObjectId(req.params.id), "isDeleted" : false, "type": "user"},{"phone_number_verified":1 , "email_verified": 1, "driving_license_verification": 1, "id_card_verification": 1}, function (err, data) {
+    User.findOne({_id: new ObjectId(req.params.id), "isDeleted" : false, "type": "user"},{"phone_number_verified":1 , "email_verified": 1, "driving_license_verification": 1, "id_card_verification": 1, "id_card":1, "driving_license":1}, function (err, data) {
         if (err) {
             return next(err);
         } else {

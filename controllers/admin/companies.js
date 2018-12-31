@@ -932,7 +932,7 @@ router.post('/car/gallery_edit', async (req, res, next) => {
             if (err) {
                 return next(err);
             } else {
-                res.status(config.OK_STATUS).json({statusmessage: "Car updated successfully"});
+                res.status(config.OK_STATUS).json({message: "Car updated successfully"});
             }
         });
     } else {
