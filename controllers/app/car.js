@@ -426,7 +426,7 @@ router.post('/filter', async (req, res) => {
                 }
                 else {
                     res.status(config.OK_STATUS).json({
-                        status: "failure",
+                        status: "failed",
                         message: "No car data found"
                     });
                 }
@@ -811,6 +811,10 @@ router.post('/book', async (req, res) => {
         'delivery_time':{
             notEmpty: true,
             errorMessage: "Please enter delivery time",
+        },
+        'total_booking_amount':{
+            notEmpty: true,
+            errorMessage: "Please enter total booking amount",
         }
     };
     req.checkBody(schema);
@@ -833,9 +837,11 @@ router.post('/book', async (req, res) => {
         }
 
         // contniue from here pending make entry in db ok
-        //const carResp = await carHelper.checkCarAvaibility(car_id, fromDate, days);
-        // res.json(carResp);
-        res.json({data : data});
+
+        const bookingResp = await carHelper.carBook(data);
+        
+        res.json(bookingResp);
+        // res.json({data : data});
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
