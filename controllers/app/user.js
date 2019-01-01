@@ -549,4 +549,76 @@ router.get('/verification_details/:id', function (req, res, next) {
     });
 });
 
+
+
+/**
+ * @api {post} /app/user/add-address Add user addresses
+ * @apiName Add Address
+ * @apiDescription Used to add users multiple address
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id User Id
+ * @apiParam {String} country country
+ * @apiParam {String} state state
+ * @apiParam {String} city city
+ * @apiParam {String} [street] street
+ * @apiParam {String} [building] building
+ * @apiParam {String} [landmark] landmark
+ * @apiParam {Number} [lat] lattitude
+ * @apiParam {Number} [long] longitude
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// Add Address api
+router.post('/add-address', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'country': {
+            notEmpty: true,
+            errorMessage: "Please enter country"
+        },
+        'state': {
+            notEmpty: true,
+            errorMessage: "Please enter state"
+        },
+        'city': {
+            notEmpty: true,
+            errorMessage: "Please enter city"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user_id = req.body.user_id;
+        var address_data = {
+            'country': req.body.country,
+            'state': req.body.state,
+            'city': req.body.city,
+            'street': req.body.street ? req.body.street : null,
+            'building': req.body.building ? req.body.building : null,
+            'landmark': req.body.landmark ? req.body.landmark : null,
+            'lat': req.body.lat ? req.body.lat : null,
+            'long': req.body.long ? req.body.long : null,
+        }
+        const addressResp = await userHelper.addAddress(user_id, address_data);
+        res.json(addressResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
 module.exports = router;
