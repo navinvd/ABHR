@@ -416,11 +416,11 @@ router.post('/list', (req, res, next) => {
                     $sort: { colname: -1 }
                 } 
             } 
-            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery); 
+            defaultQuery.splice(defaultQuery.length - 1, 0, searchQuery); 
         }
         console.log('search data==>', req.body.search);
         console.log('type of==>',typeof req.body.search);
-        if (req.body.search != undefined && req.body.search) {
+        if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
                 var match = { $or: [] };
