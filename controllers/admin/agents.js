@@ -403,9 +403,25 @@ router.post('/list', (req, res, next) => {
                 }
             }
         ];
-        console.log(req.body.search);
-        if (req.body.search != undefined) {
-            if (req.body.search.value != undefined) {
+        if(req.body.order != undefined){
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if(order == "asc"){
+                var sortableQuery = {
+                    $sort: { colname: 1 }
+                }
+            } else {
+                var sortableQuery = {
+                    $sort: { colname: -1 }
+                } 
+            } 
+            defaultQuery.splice(defaultQuery.length - 1, 0, searchQuery); 
+        }
+        console.log('search data==>', req.body.search);
+        console.log('type of==>',typeof req.body.search);
+        if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
+            if (req.body.search.value) {
                 var regex = new RegExp(req.body.search.value);
                 var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
@@ -431,6 +447,7 @@ router.post('/list', (req, res, next) => {
             defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
             console.log("==>", JSON.stringify(defaultQuery));
         }
+        console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>', err);
@@ -494,6 +511,21 @@ router.post('/rental_list', (req, res, next) => {
             {
                 $unwind: {
                     "path": "$agentId",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userId"
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$userId",
                     "preserveNullAndEmptyArrays": true
                 }
             },
