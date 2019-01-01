@@ -403,6 +403,21 @@ router.post('/list', (req, res, next) => {
                 }
             }
         ];
+        if(req.body.order){
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if(order == "asc"){
+                var sortableQuery = {
+                    $sort: { colname: 1 }
+                }
+            } else {
+                var sortableQuery = {
+                    $sort: { colname: -1 }
+                } 
+            } 
+            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery); 
+        }
         console.log(req.body.search);
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
