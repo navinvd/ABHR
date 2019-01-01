@@ -6,6 +6,9 @@ const CarBooking = require('./../models/car_booking');
 const CarBrand = require('./../models/car_brand');
 const CarCompany = require('./../models/car_company');
 const CarModel = require('./../models/car_model');
+const Country = require('./../models/country');
+const State = require('./../models/state');
+const City = require('./../models/city');
 const moment = require('moment');
 
 let carHelper = {};
@@ -300,10 +303,10 @@ carHelper.getCarReviews = async (car_id) => {
         let data = await CarReview.find({ car_id: new ObjectId(car_id) }).lean().exec();
 
         if (data && data.length > 0) {
-            return { status: 'success', message: "Car review has been found", data: data }
+            return { status: 'success', message: "Car review has been found", data: {reviews :data } }
         }
         else {
-            return { status: 'failed', message: "No car reviews yet", data: data }
+            return { status: 'failed', message: "No car reviews yet"}
         }
 
     } catch (err) {
@@ -608,6 +611,47 @@ carHelper.cancelBooking = async function (data) {
     }
     catch(err){
         return { status: 'failed', message: "Error occured while cancelling your car booking" }
+    }
+}
+
+
+// Check_Service_Availibility
+carHelper.Check_Service_Availibility = async function (data) {
+    try{
+         if(data.type === 'country'){
+             var data = await Country.find({}).lean().exec();
+
+             if(data && data.length > 0){
+                 return { status: 'success', message: "Available country list", data : { country : data } }
+             }
+             else{
+                return { status: 'failed', message: "No country available" }
+             }
+        }
+        else if(data.type === 'state'){
+             var data = await State.find({country_id : ObjectId(data.id)}).lean().exec();
+
+             if(data && data.length > 0){
+                 return { status: 'success', message: "Available state list", data : { state : data } }
+             }
+             else{
+                return { status: 'failed', message: "No state available for this country" }
+             }
+        }
+        else if(data.type === 'city'){
+             var data = await City.find({state_id :ObjectId(data.id)}).lean().exec();
+
+             if(data && data.length > 0){
+                 return { status: 'success', message: "Available city list", data : { city : data } }
+             }
+             else{
+                return { status: 'failed', message: "No city available for this state" }
+             }
+        }
+    }
+    catch(err)
+    {
+         return { status: 'failed', message: "Error occured while fetching country -> State -> City data" }
     }
 }
 

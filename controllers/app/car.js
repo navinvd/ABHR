@@ -312,15 +312,27 @@ router.post('/filter', async (req, res) => {
                 defaultQuery.splice(3, 0, searchQuery);
             }
         }
-        if (req.body.navigation) {
-            let navigationOject = req.body.navigation;
-            var searchQuery = {
-                "$match": {
-                    "is_navigation": navigationOject,
+        if (typeof req.body.navigation !== 'undefined') {
+            if (req.body.navigation === false) {
+                let navigationOject = req.body.navigation;
+                console.log('NAVIGATION 1======>', navigationOject);
+                var searchQuery = {
+                    "$match": {
+                        "is_navigation": navigationOject,
+                    }
                 }
+                defaultQuery.splice(3, 0, searchQuery);
+            } else {
+                console.log('NAVIGATION 2======>', req.body.navigation);
+                var searchQuery = {
+                    "$match": {
+                        "is_navigation": true,
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
             }
-            defaultQuery.splice(3, 0, searchQuery);
-        } else {
+        }
+        else {
             var searchQuery = {
                 "$match": {
                     "is_navigation": true,
@@ -328,6 +340,7 @@ router.post('/filter', async (req, res) => {
             }
             defaultQuery.splice(3, 0, searchQuery);
         }
+
         if (req.body.transmission) {
             let transmissionObject = req.body.transmission;
             var searchQuery = {
@@ -374,21 +387,21 @@ router.post('/filter', async (req, res) => {
         // sorting
         if (typeof req.body.sort_by !== 'undefined') {
             let sort_by = parseInt(req.body.sort_by);
-            if(sort_by === 0){
+            if (sort_by === 0) {
                 var searchQuery = {
                     $sort: {
                         'total_avg_rating': -1
                     }
                 }
             }
-            if(sort_by === 1){
+            if (sort_by === 1) {
                 var searchQuery = {
                     $sort: {
                         'car.rent_price': -1
                     }
                 }
             }
-            if(sort_by === 2){
+            if (sort_by === 2) {
                 var searchQuery = {
                     $sort: {
                         'car.rent_price': 1
@@ -846,11 +859,11 @@ router.post('/book', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter delivery address",
         },
-        'delivery_time':{
+        'delivery_time': {
             notEmpty: true,
             errorMessage: "Please enter delivery time",
         },
-        'total_booking_amount':{
+        'total_booking_amount': {
             notEmpty: true,
             errorMessage: "Please enter total booking amount",
         }
@@ -861,22 +874,22 @@ router.post('/book', async (req, res) => {
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
         console.log(toDate);
         var data = {
-            "userId" : req.body.user_id,
-            "carId" : req.body.car_id,
+            "userId": req.body.user_id,
+            "carId": req.body.car_id,
             "from_time": req.body.fromDate,
             "to_time": toDate, // auto calculation
             "days": req.body.days,
             "booking_rent": req.body.rent_per_day,
             "delivery_address": req.body.delivery_address, // add field in db as well,
             "delivery_time": req.body.delivery_time, // add field in db as well',
-            "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,   
+            "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
             "total_booking_amount": req.body.total_booking_amount, // add this field to db
             "trip_status": "upcoming"
-        }        
+        }
         const bookingResp = await carHelper.carBook(data);
 
         res.json(bookingResp);
- 
+
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -935,16 +948,16 @@ router.post('/cancel-booking', async (req, res) => {
     if (!errors) {
 
         var data = {
-            "userId" : req.body.user_id,
-            "carId" : req.body.car_id,
+            "userId": req.body.user_id,
+            "carId": req.body.car_id,
             "cancel_date": req.body.cancel_date,
             "cancel_reason": req.body.cancel_reason ? req.body.cancel_reason : null,
             "trip_status": "cancelled"
-        }        
+        }
         const cancelBookingResp = await carHelper.cancelBooking(data);
 
         res.json(cancelBookingResp);
- 
+
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -955,5 +968,81 @@ router.post('/cancel-booking', async (req, res) => {
 });
 
 
+
+//Check Car Service Availability
+router.post('/service-availability', async (req, res) => {
+    if (req.body.type !== undefined) {
+        if (req.body.type === 'country') {
+            var schema = {
+                'type': {
+                    notEmpty: true,
+                    errorMessage: "Please enter type",
+                }
+            };
+            req.checkBody(schema);
+            var errors = req.validationErrors();
+        }
+        else if (req.body.type === 'state') {
+            var schema = {
+                'id': {
+                    notEmpty: true,
+                    errorMessage: "Please enter country id",
+                },
+                'type': {
+                    notEmpty: true,
+                    errorMessage: "Please enter type",
+                }
+            };
+            req.checkBody(schema);
+            var errors = req.validationErrors();
+        } else if (req.body.type === 'city') {
+            var schema = {
+                'id': {
+                    notEmpty: true,
+                    errorMessage: "Please enter state id",
+                },
+                'type': {
+                    notEmpty: true,
+                    errorMessage: "Please enter type",
+                }
+            };
+            req.checkBody(schema);
+            var errors = req.validationErrors();
+        }
+
+        if (!errors) {
+            // here id may be country or state id base on condition
+            if (req.body.type === 'state' || req.body.type === 'city') {
+                var data = {
+                    id: req.body.id,
+                    type: req.body.type
+                }
+            }
+            else {
+                var data = {
+                    type: req.body.type
+                }
+            }
+
+            const serviceResp = await carHelper.Check_Service_Availibility(data);
+
+            res.json(serviceResp);
+            // res.json('ok');
+
+        } else {
+            res.status(config.BAD_REQUEST).json({
+                status: 'failed',
+                message: "Validation Error",
+                errors
+            });
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Please Pass type in body",
+        });
+    }
+});
 
 module.exports = router;
