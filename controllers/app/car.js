@@ -576,12 +576,13 @@ router.get('/addbrandmodels', async (req, res) => {
 
 
 /**
- * @api {post} /app/car/review/:car_id Add car Review
+ * @api {post} /app/car/add-review
  * @apiName add car Review
  * @apiDescription Used to add car review 
  * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
+ * @apiParam {Number} car_id car Id
  * @apiParam {Number} user_id user Id
  * @apiParam {Number} stars review stars
  * @apiParam {String} username reviwer name
@@ -593,8 +594,13 @@ router.get('/addbrandmodels', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/review/:car_id', async (req, res) => {
+
+router.post('/add-review', async (req, res) => {
     var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
+        },
         'user_id': {
             notEmpty: true,
             errorMessage: "Please enter user id"
@@ -612,8 +618,8 @@ router.post('/review/:car_id', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         var review_data = {
-            'car_id': new ObjectId(req.params.car_id),
-            'user_id': new ObjectId(req.body.user_id),
+            'car_id': req.body.car_id,
+            'user_id': req.body.user_id,
             'stars': req.body.stars,
             'username': req.body.username,
             'review_text': req.body.review_text ? req.body.review_text : ''
@@ -629,11 +635,13 @@ router.post('/review/:car_id', async (req, res) => {
 });
 
 /**
- * @api {post} /app/car/review/:car_id Get car reviews
+ * @api {post} /app/car/review Get car reviews
  * @apiName Car Reviews
  * @apiDescription To display specific car reviews
  * @apiGroup App - Car
  * 
+ * @apiParam {Number} car_id car Id
+ * @apiParam {Number} [user_id] user Id
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -641,8 +649,19 @@ router.post('/review/:car_id', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.get('/review/:car_id', async (req, res) => {
-    const carReviewResp = await carHelper.getCarReviews(new ObjectId(req.params.car_id));
+
+// router.get('/review/:car_id', async (req, res) => {
+//     const carReviewResp = await carHelper.getCarReviews(new ObjectId(req.params.car_id));
+//     res.json(carReviewResp);
+// });
+ 
+router.post('/review', async (req, res) => {
+    var data = {};
+    data.car_id = req.body.car_id;
+    if(req.body.user_id !== undefined){
+        data.user_id = req.body.user_id;
+    }   
+    const carReviewResp = await carHelper.getCarReviews(data);
     res.json(carReviewResp);
 });
 
