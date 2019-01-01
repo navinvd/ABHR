@@ -10,7 +10,7 @@ const Country = require('./../models/country');
 const State = require('./../models/state');
 const City = require('./../models/city');
 const moment = require('moment');
-const _ =  require('underscore');
+const _ = require('underscore');
 
 let carHelper = {};
 
@@ -292,16 +292,16 @@ carHelper.addReview = async function (review_data) {
     let car_review = new CarReview(review_data);
     try {
         let dt = await CarReview.find({
-            $and : [
-                {car_id : new ObjectId(review_data.car_id)},
-                {user_id : new ObjectId(review_data.user_id)}
+            $and: [
+                { car_id: new ObjectId(review_data.car_id) },
+                { user_id: new ObjectId(review_data.user_id) }
             ]
         });
 
-        if(dt && dt.length > 0){
-            return { status: 'failed', message: "You have all ready given review to this car"}    
+        if (dt && dt.length > 0) {
+            return { status: 'failed', message: "You have all ready given review to this car" }
         }
-        else{
+        else {
             let data = await car_review.save();
             return { status: 'success', message: "Car review has been added", data: data }
         }
@@ -316,30 +316,30 @@ carHelper.getCarReviews = async (datta) => {
         let is_reviewed; // true / false
         let data = await CarReview.find({ car_id: new ObjectId(datta.car_id) }).lean().exec();
 
-        if(datta.user_id !== undefined){
+        if (datta.user_id !== undefined) {
             // re-arrang data
             var reviewObj = _.find(data, function (o) { return o.user_id == datta.user_id });
-           
-            if(reviewObj != undefined){ // if user review find
-                var i = _.findIndex(data, function(o) { return o == reviewObj })
-                data.splice(i,1); // array
+
+            if (reviewObj != undefined) { // if user review find
+                var i = _.findIndex(data, function (o) { return o == reviewObj })
+                data.splice(i, 1); // array
                 data.unshift(reviewObj);
                 is_reviewed = true
-            }   
-            else{
+            }
+            else {
                 is_reviewed = false
-            }         
+            }
         }
         if (data && data.length > 0) {
-            if(datta.user_id !== undefined){
-                return { status: 'success', message: "Car review has been found", data: {reviews : data , is_reviewed : is_reviewed } }
+            if (datta.user_id !== undefined) {
+                return { status: 'success', message: "Car review has been found", data: { reviews: data, is_reviewed: is_reviewed } }
             }
-            else{
-                return { status: 'success', message: "Car review has been found", data: {reviews : data } }
+            else {
+                return { status: 'success', message: "Car review has been found", data: { reviews: data } }
             }
         }
         else {
-            return { status: 'failed', message: "No car reviews yet"}
+            return { status: 'failed', message: "No car reviews yet" }
         }
 
     } catch (err) {
@@ -624,11 +624,11 @@ carHelper.carBook = async function (booking_data) {
 
 // cancel car booking
 carHelper.cancelBooking = async function (data) {
-   try{
+    try {
         var condition = {
-            $and : [
-                {userId: new ObjectId(data.userId)},
-                {carId: new ObjectId(data.carId)}
+            $and: [
+                { userId: new ObjectId(data.userId) },
+                { carId: new ObjectId(data.carId) }
             ]
         }
 
@@ -642,7 +642,7 @@ carHelper.cancelBooking = async function (data) {
             return { status: 'failed', message: "Error occured while cancelling your car booking" }
         }
     }
-    catch(err){
+    catch (err) {
         return { status: 'failed', message: "Error occured while cancelling your car booking" }
     }
 }
@@ -650,41 +650,40 @@ carHelper.cancelBooking = async function (data) {
 
 // Check_Service_Availibility
 carHelper.Check_Service_Availibility = async function (data) {
-    try{
-         if(data.type === 'country'){
-             var data = await Country.find({}).lean().exec();
+    try {
+        if (data.type === 'country') {
+            var data = await Country.find({}).lean().exec();
 
-             if(data && data.length > 0){
-                 return { status: 'success', message: "Available country list", data : { country : data } }
-             }
-             else{
+            if (data && data.length > 0) {
+                return { status: 'success', message: "Available country list", data: { country: data } }
+            }
+            else {
                 return { status: 'failed', message: "No country available" }
-             }
+            }
         }
-        else if(data.type === 'state'){
-             var data = await State.find({country_id : ObjectId(data.id)}).lean().exec();
+        else if (data.type === 'state') {
+            var data = await State.find({ country_id: ObjectId(data.id) }).lean().exec();
 
-             if(data && data.length > 0){
-                 return { status: 'success', message: "Available state list", data : { state : data } }
-             }
-             else{
+            if (data && data.length > 0) {
+                return { status: 'success', message: "Available state list", data: { state: data } }
+            }
+            else {
                 return { status: 'failed', message: "No state available for this country" }
-             }
+            }
         }
-        else if(data.type === 'city'){
-             var data = await City.find({state_id :ObjectId(data.id)}).lean().exec();
+        else if (data.type === 'city') {
+            var data = await City.find({ state_id: ObjectId(data.id) }).lean().exec();
 
-             if(data && data.length > 0){
-                 return { status: 'success', message: "Available city list", data : { city : data } }
-             }
-             else{
+            if (data && data.length > 0) {
+                return { status: 'success', message: "Available city list", data: { city: data } }
+            }
+            else {
                 return { status: 'failed', message: "No city available for this state" }
-             }
+            }
         }
     }
-    catch(err)
-    {
-         return { status: 'failed', message: "Error occured while fetching country -> State -> City data" }
+    catch (err) {
+        return { status: 'failed', message: "Error occured while fetching country -> State -> City data" }
     }
 }
 

@@ -130,4 +130,14 @@ userHelper.changePassword = async (data) => {
 };
 
 
+// Add Address
+userHelper.addAddress = async function (user_id, address_data) {
+    try {
+        var data = await User.update({_id : new ObjectId(user_id)}, {$push: {address : address_data } });
+        return { status: 'success', message: "Address has been added", data: {address : address_data} }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while adding address" };
+    }
+};
+
 module.exports = userHelper;
