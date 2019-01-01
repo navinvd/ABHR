@@ -303,10 +303,10 @@ carHelper.getCarReviews = async (car_id) => {
         let data = await CarReview.find({ car_id: new ObjectId(car_id) }).lean().exec();
 
         if (data && data.length > 0) {
-            return { status: 'success', message: "Car review has been found", data: data }
+            return { status: 'success', message: "Car review has been found", data: {reviews :data } }
         }
         else {
-            return { status: 'failed', message: "No car reviews yet", data: data }
+            return { status: 'failed', message: "No car reviews yet"}
         }
 
     } catch (err) {
