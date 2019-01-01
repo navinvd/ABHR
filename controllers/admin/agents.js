@@ -403,7 +403,7 @@ router.post('/list', (req, res, next) => {
                 }
             }
         ];
-        if(req.body.order){
+        if(req.body.order != undefined){
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
