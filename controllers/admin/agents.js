@@ -418,7 +418,8 @@ router.post('/list', (req, res, next) => {
             } 
             defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery); 
         }
-        console.log(req.body.search);
+        console.log()
+        console.log('type of==>',typeof req.body.search);
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
