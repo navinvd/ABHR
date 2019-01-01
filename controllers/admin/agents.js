@@ -403,23 +403,23 @@ router.post('/list', (req, res, next) => {
                 }
             }
         ];
-        if(typeof req.body.order !== 'undefined' && req.body.order !== null && Object.keys(req.body.order).length >0){
+        console.log('order========================>',req.body.order.length);
+        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
             if(order == "asc"){
                 var sortableQuery = {
-                    $sort: { colname: 1 }
+                    $sort: { [colname]: 1 }
                 }
             } else {
                 var sortableQuery = {
-                    $sort: { colname: -1 }
+                    $sort: { [colname]: -1 }
                 } 
             } 
-            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery); 
+            console.log('sort===>',sortableQuery);
+            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
         }
-        console.log('search data==>', req.body.search);
-        console.log('type of==>',typeof req.body.search);
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
             if (req.body.search.value) {
                 var regex = new RegExp(req.body.search.value);
@@ -438,14 +438,12 @@ router.post('/list', (req, res, next) => {
                         match['$or'].push(json)
                     }
                 });
+                var searchQuery = {
+                    $match: match
+                }
+                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                console.log("==>", JSON.stringify(searchQuery));
             }
-            console.log('re.body.search==>', req.body.search.value);
-
-            var searchQuery = {
-                $match: match
-            }
-            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
         }
         console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
         User.aggregate(defaultQuery, function (err, data) {
