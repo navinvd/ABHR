@@ -403,7 +403,7 @@ router.post('/list', (req, res, next) => {
                 }
             }
         ];
-        if(req.body.order != undefined){
+        if(typeof req.body.order !== 'undefined' && req.body.order !== null && Object.keys(req.body.order).length >0){
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
@@ -416,7 +416,7 @@ router.post('/list', (req, res, next) => {
                     $sort: { colname: -1 }
                 } 
             } 
-            defaultQuery.splice(defaultQuery.length - 1, 0, searchQuery); 
+            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery); 
         }
         console.log('search data==>', req.body.search);
         console.log('type of==>',typeof req.body.search);
