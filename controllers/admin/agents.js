@@ -421,7 +421,7 @@ router.post('/list', (req, res, next) => {
         console.log('search data==>', req.body.search);
         console.log('type of==>',typeof req.body.search);
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
-            if (req.body.search.value != undefined) {
+            if (req.body.search.value) {
                 var regex = new RegExp(req.body.search.value);
                 var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
