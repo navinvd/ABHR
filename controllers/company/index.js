@@ -140,6 +140,7 @@ router.post('/forget_password', async(req, res, next) => {
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
             var data = {link: config.FRONT_END_URL + '/reset-password?detials=' + buffer};
+            console.log(data);
             mailHelper.send('forget_password', option, data, function (err, res) {
                 if (err) {
                     console.log("Mail Error:", err);

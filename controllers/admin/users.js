@@ -204,85 +204,85 @@ router.post('/list', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if(!errors){
-        var defaultQuery = [
-            {
-                $lookup: {
-                    from: 'car_booking',
-                    foreignField: 'userId',
-                    localField: '_id',
-                    as: "rentalDetails",
-                }
-            },
-            {
-                $unwind: {
-                    "path": "$rentalDetails",
-                    "preserveNullAndEmptyArrays": true
-                }
-            },
+
+         var defaultQuery = [
             {
                 $match: {
                     "isDeleted": false,
                     "type": "user"
                 }
             },
+           
             {
-                $sort: {'createdAt': -1}
-            },
-            {
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
-                    }
+                $lookup: {
+                    from: 'car_booking',
+                    foreignField: 'userId',
+                    localField: '_id',
+                    as: "rental",
                 }
             },
-            {
-                $project: {
-                    "recordsTotal": 1,
-                    "users": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+          {
+                "$project": {
+                  first_name : 1,
+                  last_name: 1,
+                  email: 1,
+                  createdAt: 1,
+                  count:{ $size: "$rental"}
+
                 }
             }
         ];
-        console.log(req.body.search);
-        if (req.body.search != undefined) {
-            if(req.body.search.value != undefined){
-                var regex = new RegExp(req.body.search.value);
-                var match = {$or: []};
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
-                            }
-                        }
-                        match['$or'].push(json)
-                    }
-                });
-            }
-            console.log('re.body.search==>', req.body.search.value);
-
-            var searchQuery = {
-                $match: match
-            }
-            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
+        if (req.body.start) {
+            defaultQuery.push({
+                "$skip": req.body.start
+            })
         }
+        if (req.body.length) {
+            defaultQuery.push({
+                "$limit": req.body.length
+            })
+        }
+        if (req.body.sort) {
+            defaultQuery.push({
+                "$sort": req.body.sort
+            })
+        }
+
+        // if (req.body.search != undefined) {
+        //     if(req.body.search.value != undefined){
+        //         var regex = new RegExp(req.body.search.value);
+        //         var match = {$or: []};
+        //         req.body['columns'].forEach(function (obj) {
+        //             if (obj.name) {
+        //                 var json = {};
+        //                 if (obj.isNumber) {
+        //                     json[obj.name] = parseInt(req.body.search.value)
+        //                 } else {
+        //                     json[obj.name] = {
+        //                         "$regex": regex,
+        //                         "$options": "i"
+        //                     }
+        //                 }
+        //                 match['$or'].push(json)
+        //             }
+        //         });
+        //     }
+        //     var searchQuery = {
+        //         $match: match
+        //     }
+        //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+        // }
+       var datas= User.aggregate(filteredrecords);
+console.log("data", datas.length);
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
                 return next(err);
             } else {
-                console.log('result===>',data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    //result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data,
+                    recordsTotal:data.length
                 });
             }
         })

@@ -47,7 +47,7 @@ var UserSchema = new Schema({
         building :{type: String},
         landmark :{type: String},
         lat: {type: Number, default: null},
-        long: {type: Number, default: null},
+        long: {type: Number, default: null}
     }],
     email: {
         type: String,
