@@ -419,7 +419,7 @@ router.post('/list', (req, res, next) => {
             defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery); 
         }
         console.log(req.body.search);
-        if (req.body.search != undefined) {
+        if (typeof req.body.search != 'undefined') {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
                 var match = { $or: [] };
@@ -446,6 +446,7 @@ router.post('/list', (req, res, next) => {
             defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
             console.log("==>", JSON.stringify(defaultQuery));
         }
+        console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>', err);
