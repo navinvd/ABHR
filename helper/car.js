@@ -10,6 +10,7 @@ const Country = require('./../models/country');
 const State = require('./../models/state');
 const City = require('./../models/city');
 const moment = require('moment');
+const _ =  require('underscore');
 
 let carHelper = {};
 
@@ -290,20 +291,52 @@ carHelper.getcarDetailbyId = async (car_id) => {
 carHelper.addReview = async function (review_data) {
     let car_review = new CarReview(review_data);
     try {
-        let data = await car_review.save();
-        return { status: 'success', message: "Car review has been added", data: data }
+        let dt = await CarReview.find({
+            $and : [
+                {car_id : new ObjectId(review_data.car_id)},
+                {user_id : new ObjectId(review_data.user_id)}
+            ]
+        });
+
+        if(dt && dt.length > 0){
+            return { status: 'failed', message: "You have all ready given review to this car"}    
+        }
+        else{
+            let data = await car_review.save();
+            return { status: 'success', message: "Car review has been added", data: data }
+        }
     } catch (err) {
         return { status: 'failed', message: "Error occured while adding car review" };
     }
 };
 
 // get car reviews
-carHelper.getCarReviews = async (car_id) => {
+carHelper.getCarReviews = async (datta) => {
     try {
-        let data = await CarReview.find({ car_id: new ObjectId(car_id) }).lean().exec();
+        let is_reviewed; // true / false
+        let data = await CarReview.find({ car_id: new ObjectId(datta.car_id) }).lean().exec();
 
+        if(datta.user_id !== undefined){
+            // re-arrang data
+            var reviewObj = _.find(data, function (o) { return o.user_id == datta.user_id });
+           
+            if(reviewObj != undefined){ // if user review find
+                var i = _.findIndex(data, function(o) { return o == reviewObj })
+                data.splice(i,1); // array
+                data.unshift(reviewObj);
+                is_reviewed = true
+            }   
+            else{
+                is_reviewed = false
+            }         
+        }
         if (data && data.length > 0) {
-            return { status: 'success', message: "Car review has been found", data: {reviews :data } }
+            if(datta.user_id !== undefined){
+                return { status: 'success', message: "Car review has been found", data: {reviews : data , is_reviewed : is_reviewed } }
+            }
+            else{
+                return { status: 'success', message: "Car review has been found", data: {reviews : data } }
+            }
         }
         else {
             return { status: 'failed', message: "No car reviews yet"}
