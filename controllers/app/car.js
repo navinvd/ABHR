@@ -312,10 +312,10 @@ router.post('/filter', async (req, res) => {
                 defaultQuery.splice(3, 0, searchQuery);
             }
         }
-        if(typeof req.body.navigation !== 'undefined'){
+        if (typeof req.body.navigation !== 'undefined') {
             if (req.body.navigation === false) {
                 let navigationOject = req.body.navigation;
-                console.log('NAVIGATION 1======>',navigationOject);
+                console.log('NAVIGATION 1======>', navigationOject);
                 var searchQuery = {
                     "$match": {
                         "is_navigation": navigationOject,
@@ -332,7 +332,7 @@ router.post('/filter', async (req, res) => {
                 defaultQuery.splice(3, 0, searchQuery);
             }
         }
-        else{
+        else {
             var searchQuery = {
                 "$match": {
                     "is_navigation": true,
@@ -340,7 +340,7 @@ router.post('/filter', async (req, res) => {
             }
             defaultQuery.splice(3, 0, searchQuery);
         }
-        
+
         if (req.body.transmission) {
             let transmissionObject = req.body.transmission;
             var searchQuery = {
@@ -971,67 +971,78 @@ router.post('/cancel-booking', async (req, res) => {
 
 //Check Car Service Availability
 router.post('/service-availability', async (req, res) => {
-if(req.body.type !== undefined){
-    if (req.body.type === 'state') {
-        var schema = {
-            'id': {
-                notEmpty: true,
-                errorMessage: "Please enter country id",
-            },
-            'type': {
-                notEmpty: true,
-                errorMessage: "Please enter type",
+    if (req.body.type !== undefined) {
+        if (req.body.type === 'country') {
+            var schema = {
+                'type': {
+                    notEmpty: true,
+                    errorMessage: "Please enter type",
+                }
+            };
+            req.checkBody(schema);
+            var errors = req.validationErrors();
+        }
+        else if (req.body.type === 'state') {
+            var schema = {
+                'id': {
+                    notEmpty: true,
+                    errorMessage: "Please enter country id",
+                },
+                'type': {
+                    notEmpty: true,
+                    errorMessage: "Please enter type",
+                }
+            };
+            req.checkBody(schema);
+            var errors = req.validationErrors();
+        } else if (req.body.type === 'city') {
+            var schema = {
+                'id': {
+                    notEmpty: true,
+                    errorMessage: "Please enter state id",
+                },
+                'type': {
+                    notEmpty: true,
+                    errorMessage: "Please enter type",
+                }
+            };
+            req.checkBody(schema);
+            var errors = req.validationErrors();
+        }
+
+        if (!errors) {
+            // here id may be country or state id base on condition
+            if (req.body.type === 'state' || req.body.type === 'city') {
+                var data = {
+                    id: req.body.id,
+                    type: req.body.type
+                }
             }
-        };
-        req.checkBody(schema);
-        var errors = req.validationErrors();
-    }else if(req.body.type === 'city'){
-        var schema = {
-            'id': {
-                notEmpty: true,
-                errorMessage: "Please enter state id",
-            },
-            'type': {
-                notEmpty: true,
-                errorMessage: "Please enter type",
+            else {
+                var data = {
+                    type: req.body.type
+                }
             }
-        };
-        req.checkBody(schema);
-        var errors = req.validationErrors();
+
+            const serviceResp = await carHelper.Check_Service_Availibility(data);
+
+            res.json(serviceResp);
+            // res.json('ok');
+
+        } else {
+            res.status(config.BAD_REQUEST).json({
+                status: 'failed',
+                message: "Validation Error",
+                errors
+            });
+        }
     }
-
-    if (!errors || errors === undefined) {
-
-        var data = req.body.id
-            
-        const cancelBookingResp = await carHelper.Check_Service_Availibility(data);
-
-        res.json(cancelBookingResp);
-        // res.json('ok');
-
-    } else {
+    else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
-            message: "Validation Error",
-            errors
+            message: "Please Pass type in body",
         });
     }
-}
-else
-{
-    res.status(config.BAD_REQUEST).json({
-        status: 'failed',
-        message: "Please Pass type in body",
-    });
-}
-
-
-
 });
-
-
-
-
-
 
 module.exports = router;
