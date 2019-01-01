@@ -498,6 +498,21 @@ router.post('/rental_list', (req, res, next) => {
                 }
             },
             {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userId"
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$userId",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $match: { "isDeleted": false }
             },
             {
