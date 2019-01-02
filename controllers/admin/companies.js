@@ -409,7 +409,6 @@ router.post('/list', (req, res, next) => {
                     }
                 });
             }
-
             var searchQuery = {
                 $match: match
             }
@@ -506,6 +505,45 @@ router.post('/rental_list',(req, res, next) => {
                 }
             }
         ];
+        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if(order == "asc"){
+                var sortableQuery = {
+                    $sort: { [colname]: 1 }
+                }
+            } else {
+                var sortableQuery = {
+                    $sort: { [colname]: -1 }
+                } 
+            } 
+            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
+        }
+        if (req.body.search != undefined) {
+            if(req.body.search.value != undefined){
+                var regex = new RegExp(req.body.search.value);
+                var match = {$or: []};
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+        }
         CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>',err);
@@ -621,6 +659,21 @@ router.post('/car_list',(req, res, next) => {
             
             
         ];
+        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if(order == "asc"){
+                var sortableQuery = {
+                    $sort: { [colname]: 1 }
+                }
+            } else {
+                var sortableQuery = {
+                    $sort: { [colname]: -1 }
+                } 
+            } 
+            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
+        }
         if (req.body.search != undefined) {
             if(req.body.search.value != undefined){
                 var regex = new RegExp(req.body.search.value);
@@ -640,13 +693,10 @@ router.post('/car_list',(req, res, next) => {
                     }
                 });
             }
-            console.log('re.body.search==>', req.body.search.value);
-
             var searchQuery = {
                 $match: match
             }
             defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
         }
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {

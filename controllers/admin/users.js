@@ -272,8 +272,7 @@ router.post('/list', (req, res, next) => {
         //     }
         //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
         // }
-       var datas= User.aggregate(filteredrecords);
-console.log("data", datas.length);
+        var datas= User.aggregate(filteredrecords);
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
