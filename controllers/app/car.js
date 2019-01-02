@@ -654,13 +654,13 @@ router.post('/add-review', async (req, res) => {
 //     const carReviewResp = await carHelper.getCarReviews(new ObjectId(req.params.car_id));
 //     res.json(carReviewResp);
 // });
- 
+
 router.post('/review', async (req, res) => {
     var data = {};
     data.car_id = req.body.car_id;
-    if(req.body.user_id !== undefined){
+    if (req.body.user_id !== undefined) {
         data.user_id = req.body.user_id;
-    }   
+    }
     const carReviewResp = await carHelper.getCarReviews(data);
     res.json(carReviewResp);
 });
@@ -802,23 +802,6 @@ router.post('/checkCarAvailability', async (req, res) => {
     }
 });
 
-
-
-/**
- {
-    "user_id" : "5c0f65db827058583d81f3c8",
-    "car_id" : "5c135adedf044151e9329f22",
-    "fromDate": "2019-01-01",
-    "days": 5,
-    "rent_per_day": 200,
-    "delivery_address": "320, regent square surat india",
-    "delivery_time": "7am - 9am",
-    "coupon_code": "ABCD",
-    "total_booking_amount": "5000"
-}
- */
-
-
 /**
  * @api {post} /app/car/book Book Car
  * @apiName Car Booking
@@ -882,6 +865,14 @@ router.post('/book', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter delivery time",
         },
+        'lat': {
+            notEmpty: true,
+            errorMessage: "Please enter lattitude",
+        },
+        'long': {
+            notEmpty: true,
+            errorMessage: "Please enter longitude",
+        },
         'total_booking_amount': {
             notEmpty: true,
             errorMessage: "Please enter total booking amount",
@@ -903,6 +894,8 @@ router.post('/book', async (req, res) => {
             "delivery_time": req.body.delivery_time, // add field in db as well',
             "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
             "total_booking_amount": req.body.total_booking_amount, // add this field to db
+            "lat": req.body.lat ? req.body.lat : null, // add this field to db
+            "long": req.body.long ? req.body.long : null, // add this field to db
             "trip_status": "upcoming"
         }
         const bookingResp = await carHelper.carBook(data);
@@ -1063,5 +1056,47 @@ router.post('/service-availability', async (req, res) => {
         });
     }
 });
+
+
+
+//Check Delivery Radius car will book if it lies in companies radius
+router.post('/check-delivery-radius', async (req, res) => {
+
+    var schema = {
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car company id",
+        },
+        'lat': {
+            notEmpty: true,
+            errorMessage: "Please enter latitude",
+        },
+        'long': {
+            notEmpty: true,
+            errorMessage: "Please enter longitude",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+
+    if (!errors) {
+        let data = {
+            company_id : req.body.car_rental_company_id,
+            lat : req.body.lat,
+            long : req.body.long
+        }
+       let radiusResp = await carHelper.checkRadius(data);
+       res.json(radiusResp);
+    }
+    else{
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
 
 module.exports = router;
