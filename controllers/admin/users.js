@@ -147,7 +147,7 @@ router.put('/', auth, function (req, res, next) {
 });
 
 /**
- * @api {get} /user/:id?type='admin' User Details By Id
+ * @api {get} /user/:id type='admin' User Details By Id
  * @apiName User Details By Id
  * @apiDescription Get User details By user id
  * @apiGroup Admin - Users
@@ -272,8 +272,7 @@ router.post('/list', (req, res, next) => {
         //     }
         //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
         // }
-       var datas= User.aggregate(filteredrecords);
-console.log("data", datas.length);
+        var datas= User.aggregate(filteredrecords);
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);

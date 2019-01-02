@@ -1982,8 +1982,8 @@
   },
   {
     "type": "get",
-    "url": "/user/:id?type='admin'",
-    "title": "User Details By Id",
+    "url": "/user/:id",
+    "title": "type='admin' User Details By Id",
     "name": "User_Details_By_Id",
     "description": "<p>Get User details By user id</p>",
     "group": "Admin___Users",
@@ -3011,76 +3011,6 @@
   },
   {
     "type": "get",
-    "url": "/app/user/:id?",
-    "title": "User Details By Id",
-    "name": "User_Details_By_Id",
-    "description": "<p>Get User details By user id</p>",
-    "group": "AppUser",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p>User Id</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Users unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/app/user.js",
-    "groupTitle": "AppUser"
-  },
-  {
-    "type": "get",
     "url": "/app/user/notification_setting/:userId",
     "title": "get notification setting data for perticular user",
     "name": "User_Notificationsetting_Data",
@@ -3146,6 +3076,76 @@
       }
     },
     "version": "0.0.0",
+    "filename": "controllers/app/user.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "get",
+    "url": "/app/verification_details/:id",
+    "title": "User Details By Id",
+    "name": "User_verification_Details_By_Id",
+    "description": "<p>Get User details By user id</p>",
+    "group": "AppUser",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>User Id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
     "filename": "controllers/app/user.js",
     "groupTitle": "AppUser"
   },

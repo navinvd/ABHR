@@ -77,6 +77,7 @@ router.post('/add', (req, res, next) => {
     if (!errors) {
         var files = [];
         var galleryArray = [];
+        console.log('request here======>',req.files);
         if (req.files) {
             files = req.files['car_gallery'];
             if (!Array.isArray(files)) {

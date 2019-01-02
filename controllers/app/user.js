@@ -521,8 +521,8 @@ router.post('/licenceDataUpdate',(req, res, next) => {
 });
 
 /**
- * @api {get} /app/user/:id? User Details By Id
- * @apiName User Details By Id
+ * @api {get} /app/verification_details/:id  User Details By Id
+ * @apiName User verification Details By Id
  * @apiDescription Get User details By user id
  * @apiGroup AppUser
  * @apiVersion 0.0.0
@@ -548,8 +548,6 @@ router.get('/verification_details/:id', function (req, res, next) {
         }
     });
 });
-
-
 
 /**
  * @api {post} /app/user/add-address Add user addresses
