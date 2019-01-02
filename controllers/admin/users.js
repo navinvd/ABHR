@@ -147,7 +147,7 @@ router.put('/', auth, function (req, res, next) {
 });
 
 /**
- * @api {get} /user/:id?type='admin' User Details By Id
+ * @api {get} /user/:id type='admin' User Details By Id
  * @apiName User Details By Id
  * @apiDescription Get User details By user id
  * @apiGroup Admin - Users

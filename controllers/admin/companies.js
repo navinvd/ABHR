@@ -16,7 +16,8 @@ var _ = require('underscore');
 var mailHelper = require('./../../helper/mail');
 var generator = require('generate-password');
 const carHelper = require('./../../helper/car');
-
+var fs = require('fs');
+var path = require('path');
 
 /**
  * @api {post} /admin/company/add create new company
@@ -56,7 +57,7 @@ router.post('/add', (req, res, next) => {
             length: 10,
             numbers: true
         });
-        req.body['password'] =  generatepassword;
+        req.body['password'] = generatepassword;
         async.waterfall([
             function (callback) {
                 // Finding place and insert if not found
@@ -177,7 +178,7 @@ router.post('/add', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/update', (req, res, next) =>{
+router.put('/update', (req, res, next) => {
     console.log('here');
     var schema = {
         'company_id': {
@@ -261,7 +262,7 @@ router.put('/update', (req, res, next) =>{
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/delete', (req, res, next) =>{
+router.put('/delete', (req, res, next) => {
     console.log('here');
     var schema = {
         'company_id': {
@@ -272,7 +273,7 @@ router.put('/delete', (req, res, next) =>{
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Company.update({ _id: { $eq: req.body.company_id } }, { $set: {'isDeleted' : true} }, function (err, response) {
+        Company.update({ _id: { $eq: req.body.company_id } }, { $set: { 'isDeleted': true } }, function (err, response) {
             if (err) {
                 return next(err);
             } else {
@@ -305,13 +306,13 @@ router.put('/delete', (req, res, next) =>{
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 
-router.get('/details/:id', (req, res, next) =>{
+router.get('/details/:id', (req, res, next) => {
     Company.findOne({ _id: { $eq: req.params.id }, "isDeleted": false }, function (err, data) {
         if (err) {
             return next(err);
         } else {
             res.status(config.OK_STATUS).json({
-                status : "Success",
+                status: "Success",
                 data: data,
             });
         }
@@ -347,7 +348,7 @@ router.post('/list', (req, res, next) => {
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if(!errors){
+    if (!errors) {
         var defaultQuery = [
             {
                 $match: {
@@ -355,7 +356,7 @@ router.post('/list', (req, res, next) => {
                 }
             },
             {
-                $sort: {'createdAt': -1}
+                $sort: { 'createdAt': -1 }
             },
             {
                 $group: {
@@ -371,29 +372,29 @@ router.post('/list', (req, res, next) => {
             {
                 $project: {
                     "recordsTotal": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             }
         ];
-        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if(order == "asc"){
+            if (order == "asc") {
                 var sortableQuery = {
                     $sort: { [colname]: 1 }
                 }
             } else {
                 var sortableQuery = {
                     $sort: { [colname]: -1 }
-                } 
-            } 
-            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
+                }
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
         }
         if (req.body.search != undefined) {
-            if(req.body.search.value != undefined){
+            if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
-                var match = {$or: []};
+                var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
@@ -416,13 +417,13 @@ router.post('/list', (req, res, next) => {
         }
         Company.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
+                console.log('err===>', err);
                 return next(err);
             } else {
-                console.log('result===>',data);
+                console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
                 });
             }
         })
@@ -450,7 +451,7 @@ router.post('/list', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/rental_list',(req, res, next) => {
+router.post('/rental_list', (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -463,16 +464,16 @@ router.post('/rental_list',(req, res, next) => {
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if(!errors){
+    if (!errors) {
         var defaultQuery = [
             {
                 $lookup:
-                        {
-                            from: "users",
-                            localField: "agentId",
-                            foreignField: "_id",
-                            as: "agentId"
-                        }
+                {
+                    from: "users",
+                    localField: "agentId",
+                    foreignField: "_id",
+                    as: "agentId"
+                }
             },
             {
                 $unwind: {
@@ -481,10 +482,10 @@ router.post('/rental_list',(req, res, next) => {
                 }
             },
             {
-                $match: {"isDeleted": false}
+                $match: { "isDeleted": false }
             },
             {
-                $sort: {'createdAt': -1}
+                $sort: { 'createdAt': -1 }
             },
             {
                 $group: {
@@ -501,29 +502,29 @@ router.post('/rental_list',(req, res, next) => {
                 $project: {
                     "_id": 1,
                     "recordsTotal": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             }
         ];
-        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if(order == "asc"){
+            if (order == "asc") {
                 var sortableQuery = {
                     $sort: { [colname]: 1 }
                 }
             } else {
                 var sortableQuery = {
                     $sort: { [colname]: -1 }
-                } 
-            } 
-            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
+                }
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
         }
         if (req.body.search != undefined) {
-            if(req.body.search.value != undefined){
+            if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
-                var match = {$or: []};
+                var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
@@ -546,13 +547,13 @@ router.post('/rental_list',(req, res, next) => {
         }
         CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
+                console.log('err===>', err);
                 return next(err);
             } else {
-                console.log('result===>',data);
+                console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
                 });
             }
         })
@@ -582,7 +583,7 @@ router.post('/rental_list',(req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/car_list',(req, res, next) => {
+router.post('/car_list', (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -592,14 +593,14 @@ router.post('/car_list',(req, res, next) => {
             notEmpty: true,
             errorMessage: "length is required"
         },
-        'company_id' : {
+        'company_id': {
             notEmpty: true,
             errorMessage: "company_id is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if(!errors){
+    if (!errors) {
         var defaultQuery = [
             {
                 $lookup: {
@@ -631,12 +632,12 @@ router.post('/car_list',(req, res, next) => {
             },
             {
                 $match: {
-                        "isDeleted": false,
-                        "car_rental_company_id" : new ObjectId(req.body.company_id)
+                    "isDeleted": false,
+                    "car_rental_company_id": new ObjectId(req.body.company_id)
                 }
             },
             {
-                $sort: {'createdAt': -1}
+                $sort: { 'createdAt': -1 }
             },
             {
                 $group: {
@@ -653,36 +654,42 @@ router.post('/car_list',(req, res, next) => {
                 $project: {
                     "_id": 1,
                     "recordsTotal": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             },
-            
-            
+
+
         ];
-        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if(order == "asc"){
+            if (order == "asc") {
                 var sortableQuery = {
                     $sort: { [colname]: 1 }
                 }
             } else {
                 var sortableQuery = {
                     $sort: { [colname]: -1 }
-                } 
-            } 
-            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
+                }
+            }
+            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
         }
         if (req.body.search != undefined) {
-            if(req.body.search.value != undefined){
+            if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
-                var match = {$or: []};
+                var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
                         if (obj.isNumber) {
                             json[obj.name] = parseInt(req.body.search.value)
+                        } else if (obj.isBoolean) {
+                            if (req.body.search.value === "Yes" || req.body.search.value === "yes") {
+                                json[obj.name] = true;
+                            } else {
+                                json[obj.name] = false;
+                            }
                         } else {
                             json[obj.name] = {
                                 "$regex": regex,
@@ -700,13 +707,13 @@ router.post('/car_list',(req, res, next) => {
         }
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
+                console.log('err===>', err);
                 return next(err);
             } else {
-                console.log('result===>',data);
+                console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
                 });
             }
         })
@@ -839,7 +846,7 @@ router.post('/car/add', (req, res, next) => {
                     filename = splitName[0] + '_copy' + extention;
                     filepath = dir + '/' + filename;
                 }
-                var json = {name: filename, type: file['mimetype']}
+                var json = { name: filename, type: file['mimetype'] }
                 galleryArray.push(json);
                 file.mv(filepath, function (err) {
                     if (err) {
@@ -871,7 +878,7 @@ router.post('/car/add', (req, res, next) => {
             error: errors
         });
     }
-  });
+});
 
 
 /* @api {put} /admin/company/car/edit Edit car
@@ -911,11 +918,11 @@ router.post('/car/edit', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Car.update({_id: {$eq: req.body.car_id}}, {$set: req.body}, function (err, response) {
+        Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
             if (err) {
                 return next(err);
             } else {
-                res.status(config.OK_STATUS).json({statusmessage: "Car updated successfully"});
+                res.status(config.OK_STATUS).json({ message: "Car updated successfully" });
             }
         });
     } else {
@@ -924,7 +931,7 @@ router.post('/car/edit', (req, res, next) => {
             error: errors
         });
     }
-  });
+});
 
 /* @api {post} /admin/company/car/gallery_edit Edit car
  * @apiName edit Car
@@ -951,7 +958,7 @@ router.post('/car/gallery_edit', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var carDetails = await Car.find({_id : req.body.car_id, isDeleted : false}, { car_gallery :1}).exec();
+        var carDetails = await Car.find({ _id: req.body.car_id, isDeleted: false }, { car_gallery: 1 }).exec();
         var carData = carDetails[0].car_gallery;
         var carImageArray = [];
         var addcarArray = [];
@@ -972,29 +979,29 @@ router.post('/car/gallery_edit', async (req, res, next) => {
                 var extention = path.extname(file.name);
                 var splitName = file.name.split('.');
                 var filename = splitName[0] + extention;
-                if(carImageArray.indexOf(file.filename) == -1) {
-                    var json = {name: filename, type: file['mimetype']}
+                if (carImageArray.indexOf(file.filename) == -1) {
+                    var json = { name: filename, type: file['mimetype'] }
                     addcarArray.push(json);
                     file.mv(filepath, function (err) {
                         if (err) {
                             each_callback(each_callback)
                         } else {
-    
+
                         }
                     });
                     each_callback();
                 }
             })
-        }else {
+        } else {
             res.status(config.BAD_REQUEST).json({
                 message: "No file selected",
             });
         }
-        Car.update({_id: {$eq: req.body.car_id}}, {$set: req.body}, function (err, response) {
+        Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
             if (err) {
                 return next(err);
             } else {
-                res.status(config.OK_STATUS).json({message: "Car updated successfully"});
+                res.status(config.OK_STATUS).json({ message: "Car updated successfully" });
             }
         });
     } else {
