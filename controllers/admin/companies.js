@@ -415,6 +415,9 @@ router.post('/list', (req, res, next) => {
             }
             defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
         }
+
+        console.log("Query : ",JSON.stringify(defaultQuery));
+
         Company.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>', err);
@@ -881,6 +884,7 @@ router.post('/car/add', (req, res, next) => {
         var files = [];
         var galleryArray = [];
         if (req.files) {
+            console.log(req.files);
             files = req.files['car_gallery'];
             if (!Array.isArray(files)) {
                 files = [files];
@@ -967,6 +971,45 @@ router.post('/car/edit', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+        var files = [];
+        var galleryArray = [];
+        var new_images = [];
+        var old_images = [];
+        var car_images = [];
+        if(req.body.is_change_photo){
+            if (req.files) {
+                console.log(req.files);
+                files = req.files['new_images'];
+                if (!Array.isArray(files)) {
+                    files = [files];
+                }
+                var dir = "./upload/car";
+                async.each(files, function (file, each_callback) {
+                    var extention = path.extname(file.name);
+                    var splitName = file.name.split('.');
+                    var filename = splitName[0] + extention;
+                    var filepath = dir + '/' + filename;
+                    if (fs.existsSync(filepath)) {
+                        filename = splitName[0] + '_copy' + extention;
+                        filepath = dir + '/' + filename;
+                    }
+                    var json = { name: filename, type: file['mimetype'] }
+                    galleryArray.push(json);
+                    file.mv(filepath, function (err) {
+                        if (err) {
+                            each_callback(each_callback)
+                        } else {
+    
+                        }
+                    });
+                    each_callback()
+                })
+            }
+        }
+        new_images = galleryArray;
+        old_images = req.body.old_images;
+        car_images = { ...new_images, ...old_images };
+        req.body.car_gallery = car_images;
         Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
             if (err) {
                 return next(err);
@@ -997,69 +1040,90 @@ router.post('/car/edit', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/car/gallery_edit', async (req, res, next) => {
-    var schema = {
-        'car_id': {
-            notEmpty: true,
-            errorMessage: "Car Id is required"
-        }
-    };
-    req.checkBody(schema);
-    var errors = req.validationErrors();
-    if (!errors) {
-        var carDetails = await Car.find({ _id: req.body.car_id, isDeleted: false }, { car_gallery: 1 }).exec();
-        var carData = carDetails[0].car_gallery;
-        var carImageArray = [];
-        var addcarArray = [];
-        carData.forEach((ele) => {
-            carImageArray.push(ele.name);
-        });
-        addcarArray = carImageArray;
-        console.log(addcarArray);
+// router.post('/car/gallery_edit', async (req, res, next) => {
+//     var schema = {
+//         'car_id': {
+//             notEmpty: true,
+//             errorMessage: "Car Id is required"
+//         }
+//     };
+//     req.checkBody(schema);
+//     var errors = req.validationErrors();
+//     if (!errors) {
+//         var files = [];
+//         var galleryArray = [];
+//         if (req.files) {
+//             files = req.files['new_images'];
+//             if (!Array.isArray(files)) {
+//                 files = [files];
+//             }
+//             var dir = "./upload/car";
+//             async.each(files, function (file, each_callback) {
+//                 var extention = path.extname(file.name);
+//                 var splitName = file.name.split('.');
+//                 var filename = splitName[0] + extention;
+//                 var filepath = dir + '/' + filename;
+//                 if (fs.existsSync(filepath)) {
+//                     filename = splitName[0] + '_copy' + extention;
+//                     filepath = dir + '/' + filename;
+//                 }
+//                 var json = { name: filename, type: file['mimetype'] }
+//                 galleryArray.push(json);
+//                 file.mv(filepath, function (err) {
+//                     if (err) {
+//                         each_callback(each_callback)
+//                     } else {
+//                     }
+//                 });
+//                 each_callback()
+//             })
+//         }
+//         new_images = galleryArray;
+//         var old_images = req.body.old_images;
+//         let Carimages = { ...new_images, ...old_images };
+//         if (req.files) {
+//             files = req.files['car_images'];
+//             if (!Array.isArray(files)) {
+//                 files = [files];
+//             }
+//             var dir = "./upload/car";
+//             async.each(files, function (file, each_callback) {
 
-        if (req.files) {
-            files = req.files['car_images'];
-            if (!Array.isArray(files)) {
-                files = [files];
-            }
-            var dir = "./upload/car";
-            async.each(files, function (file, each_callback) {
+//                 var extention = path.extname(file.name);
+//                 var splitName = file.name.split('.');
+//                 var filename = splitName[0] + extention;
+//                 if (carImageArray.indexOf(file.filename) == -1) {
+//                     var json = { name: filename, type: file['mimetype'] }
+//                     addcarArray.push(json);
+//                     file.mv(filepath, function (err) {
+//                         if (err) {
+//                             each_callback(each_callback)
+//                         } else {
 
-                var extention = path.extname(file.name);
-                var splitName = file.name.split('.');
-                var filename = splitName[0] + extention;
-                if (carImageArray.indexOf(file.filename) == -1) {
-                    var json = { name: filename, type: file['mimetype'] }
-                    addcarArray.push(json);
-                    file.mv(filepath, function (err) {
-                        if (err) {
-                            each_callback(each_callback)
-                        } else {
-
-                        }
-                    });
-                    each_callback();
-                }
-            })
-        } else {
-            res.status(config.BAD_REQUEST).json({
-                message: "No file selected",
-            });
-        }
-        Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
-            if (err) {
-                return next(err);
-            } else {
-                res.status(config.OK_STATUS).json({ message: "Car updated successfully" });
-            }
-        });
-    } else {
-        res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: errors
-        });
-    }
-});
+//                         }
+//                     });
+//                     each_callback();
+//                 }
+//             })
+//         } else {
+//             res.status(config.BAD_REQUEST).json({
+//                 message: "No file selected",
+//             });
+//         }
+//         Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
+//             if (err) {
+//                 return next(err);
+//             } else {
+//                 res.status(config.OK_STATUS).json({ message: "Car updated successfully" });
+//             }
+//         });
+//     } else {
+//         res.status(config.BAD_REQUEST).json({
+//             message: "Validation Error",
+//             error: errors
+//         });
+//     }
+// });
 
 /**
  * @api {put} /admin/company/car/delete Delete car
