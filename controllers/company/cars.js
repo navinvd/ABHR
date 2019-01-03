@@ -227,6 +227,13 @@ router.post('/list',(req, res, next) => {
                         var json = {};
                         if (obj.isNumber) {
                             json[obj.name] = parseInt(req.body.search.value)
+                        } else if (obj.isBoolean) {
+                            var check = req.body.search.value.toLowerCase();
+                            if (check === "yes" || check === "ye" || check === "y") {
+                                json[obj.name] = true;
+                            } else {
+                                json[obj.name] = false;
+                            }
                         } else {
                             json[obj.name] = {
                                 "$regex": regex,
@@ -237,13 +244,10 @@ router.post('/list',(req, res, next) => {
                     }
                 });
             }
-            console.log('re.body.search==>', req.body.search.value);
-
             var searchQuery = {
                 $match: match
             }
             defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
         }
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
