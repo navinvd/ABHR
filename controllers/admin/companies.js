@@ -685,7 +685,8 @@ router.post('/car_list', (req, res, next) => {
                         if (obj.isNumber) {
                             json[obj.name] = parseInt(req.body.search.value)
                         } else if (obj.isBoolean) {
-                            if (req.body.search.value === "Yes" || req.body.search.value === "yes") {
+                            var check = req.body.search.value.toLowerCase();
+                            if (check === "yes" || check === "ye" || check === "y") {
                                 json[obj.name] = true;
                             } else {
                                 json[obj.name] = false;
