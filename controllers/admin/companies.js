@@ -567,6 +567,54 @@ router.post('/rental_list', (req, res, next) => {
 });
 
 /**
+ * @api {post} /admin/company/change_status Active/Deactive status change
+ * @apiName status company Rental
+ * @apiDescription To change company status
+ * @apiGroup Admin - Companies
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} company_id company_id 
+ * @apiParam {String} status changed status for company
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/change_status', (req, res, next) => {
+    var schema = {
+        'company_id': {
+            notEmpty: true,
+            errorMessage: "company_id is required"
+        },
+        'status': {
+            notEmpty: true,
+            errorMessage: "status is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        Company.update({ "_id": new ObjectId(req.body.company_id)}, { $set: { "is_Active": req.body.status}}, function (err, data) {
+            if (err) {
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: data
+                });
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+/**
  * @api {post} /admin/company/car_list List of all car of perticular company
  * @apiName company car List
  * @apiDescription To display company car list with pagination

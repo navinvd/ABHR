@@ -32,6 +32,10 @@ var CarCompanySchema = new Schema({
             default: 'Point'
         }
     },
+    is_Active:{
+        type: Boolean,
+        default: true
+    },
     is_verified: {
         type: Boolean,
         default: true
