@@ -195,9 +195,6 @@ router.post('/list',(req, res, next) => {
                 $match: {"isDeleted": false,}
             },
             {
-                $sort: {'createdAt': -1}
-            },
-            {
                 $group: {
                     "_id": "",
                     "recordsTotal": {
