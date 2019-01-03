@@ -687,4 +687,29 @@ carHelper.Check_Service_Availibility = async function (data) {
     }
 }
 
+
+// check radius
+carHelper.checkRadius = async function (data) {
+    try {
+        // for 100 meter radius
+        let radius = await CarCompany.aggregate([{
+            $match: {
+                $and: [
+                    { _id: new ObjectId(data.company_id) }, //0.621371 100 mtr 
+                    { service_location: { $geoWithin: { $centerSphere: [[data.long, data.lat], 6.213712 / 3963.2] } } }
+                ]
+            }
+        }]
+        );
+        if (radius && radius.length > 0) {
+            return { status: 'success', message: "Service is available to your location", data: { rental_company: radius } }
+        }
+        else {
+            return { status: 'failed', message: "Service is not available to your location " }
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while mapping radius", err }
+    }   
+}
+
 module.exports = carHelper;

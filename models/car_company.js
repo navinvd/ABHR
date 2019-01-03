@@ -25,6 +25,13 @@ var CarCompanySchema = new Schema({
     refreshToken: String,
     place_id : mongoose.Schema.Types.ObjectId,
     agent_ids : [mongoose.Schema.Types.ObjectId],
+    service_location: {
+        coordinates: [Number], // [<longitude>, <latitude>]
+        type: {
+            type: String,
+            default: 'Point'
+        }
+    },
     is_verified: {
         type: Boolean,
         default: true
