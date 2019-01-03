@@ -357,8 +357,65 @@ router.post('/list', (req, res, next) => {
             },
             {
                 $sort: { 'createdAt': -1 }
-            },
-            {
+            }];
+            if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+                var colIndex = req.body.order[0].column;
+                var colname = req.body.columns[colIndex].name;
+                var order = req.body.order[0].dir;
+                if (order == "asc") {
+                    // var sortableQuery = [
+                    //     {
+                    //         $project: {
+                    //             "data": "$$ROOT",
+                    //             "sort_index": { "$toLower": [colname] }
+                    //         }
+                    //     },
+                    //     {
+                    //         "$sort": {
+                    //             "sort_index": -1
+                    //         }
+                    //     },
+                    //     {
+                    //         "$replaceRoot": { newRoot: "$data" }
+                    //     }
+                    // ]
+                    var sortableQuery = {
+                        $sort: { [colname]: 1 }
+                    }
+                } else {
+                    var sortableQuery = {
+                        $sort: { [colname]: -1 }
+                    }
+                }
+                defaultQuery = defaultQuery.concat(sortableQuery);
+            }
+            if (req.body.search != undefined) {
+                if (req.body.search.value != undefined) {
+                    var regex = new RegExp(req.body.search.value);
+                    var match = { $or: [] };
+                    req.body['columns'].forEach(function (obj) {
+                        if (obj.name) {
+                            var json = {};
+                            if (obj.isNumber) {
+                                json[obj.name] = parseInt(req.body.search.value)
+                            } else {
+                                json[obj.name] = {
+                                    "$regex": regex,
+                                    "$options": "i"
+                                }
+                            }
+                            match['$or'].push(json)
+                        }
+                    });
+                }
+                var searchQuery = {
+                    $match: match
+                }
+                defaultQuery = defaultQuery.concat(searchQuery);
+            }
+    
+
+            defaultQuery = defaultQuery.concat([{
                 $group: {
                     "_id": "",
                     "recordsTotal": {
@@ -375,48 +432,8 @@ router.post('/list', (req, res, next) => {
                     "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             }
-        ];
-        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-            var colIndex = req.body.order[0].column;
-            var colname = req.body.columns[colIndex].name;
-            var order = req.body.order[0].dir;
-            if (order == "asc") {
-                var sortableQuery = {
-                    $sort: { [colname]: 1 }
-                }
-            } else {
-                var sortableQuery = {
-                    $sort: { [colname]: -1 }
-                }
-            }
-            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
-        }
-        if (req.body.search != undefined) {
-            if (req.body.search.value != undefined) {
-                var regex = new RegExp(req.body.search.value);
-                var match = { $or: [] };
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
-                            }
-                        }
-                        match['$or'].push(json)
-                    }
-                });
-            }
-            var searchQuery = {
-                $match: match
-            }
-            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-        }
-
-        console.log("Query : ",JSON.stringify(defaultQuery));
+        ]);
+        console.log("Query : ", JSON.stringify(defaultQuery));
 
         Company.aggregate(defaultQuery, function (err, data) {
             if (err) {
@@ -599,7 +616,7 @@ router.post('/change_status', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Company.update({ "_id": new ObjectId(req.body.company_id)}, { $set: { "is_Active": req.body.status}}, function (err, data) {
+        Company.update({ "_id": new ObjectId(req.body.company_id) }, { $set: { "is_Active": req.body.status } }, function (err, data) {
             if (err) {
                 return next(err);
             } else {
@@ -934,7 +951,7 @@ router.post('/car/add', (req, res, next) => {
 });
 
 
-/* @api {put} /admin/company/car/edit Edit car
+/* @api {post} /admin/company/car/edit Edit car
  * @apiName edit Car
  * @apiDescription Used for Edit Car 
  * @apiGroup Admin - Cars
@@ -961,7 +978,7 @@ router.post('/car/add', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/car/edit', (req, res, next) => {
+router.post('/car/edit', async (req, res, next) => {
     var schema = {
         'car_id': {
             notEmpty: true,
@@ -971,12 +988,15 @@ router.post('/car/edit', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+        var old_imageResp = await Car.find({"_id": req.body.car_id}, {"car_gallery._id":1}).exec();
+        var old_db_images = JSON.stringify(old_imageResp[0].car_gallery);
         var files = [];
         var galleryArray = [];
+        var oldArray =[];
         var new_images = [];
         var old_images = [];
         var car_images = [];
-        if(req.body.is_change_photo){
+        if (req.body.is_change_photo) {
             if (req.files) {
                 console.log(req.files);
                 files = req.files['new_images'];
@@ -999,7 +1019,7 @@ router.post('/car/edit', (req, res, next) => {
                         if (err) {
                             each_callback(each_callback)
                         } else {
-    
+
                         }
                     });
                     each_callback()
@@ -1008,7 +1028,16 @@ router.post('/car/edit', (req, res, next) => {
         }
         new_images = galleryArray;
         old_images = req.body.old_images;
-        car_images = { ...new_images, ...old_images };
+        old_images.each((image)=> {
+            if(old_db_images.indexOf(image._id) == -1){
+                var filePath = './upload/car/'+ image.name; 
+                fs.unlinkSync(filePath);
+            } else{
+                var json = { name: image.name, type: image.type }
+                oldArray.push(json);
+            }
+        });
+        car_images = { ...new_images, ...oldArray };
         req.body.car_gallery = car_images;
         Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
             if (err) {
