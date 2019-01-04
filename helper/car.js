@@ -65,6 +65,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         {
             $project: {
                 _id: 1,
+                vat_rate : 1, 
                 car_rental_company_id: 1,
                 car_brand: "$brandDetails.brand_name",
                 car_model: "$modelDetails.model_name",

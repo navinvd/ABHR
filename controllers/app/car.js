@@ -1058,6 +1058,22 @@ router.post('/service-availability', async (req, res) => {
 });
 
 
+/**
+ * @api {post} /app/car/check-delivery-radius Check car delivery radius
+ * @apiName Check car delivery radius
+ * @apiDescription Check car will be deliver or not on given location by user when book particular car
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Number} car_rental_company_id company id whose car is booking
+ * @apiParam {Number} lat lattitude
+ * @apiParam {Number} long longitude
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 
 //Check Delivery Radius car will book if it lies in companies radius
 router.post('/check-delivery-radius', async (req, res) => {
