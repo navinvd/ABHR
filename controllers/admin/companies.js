@@ -62,15 +62,18 @@ router.post('/add', (req, res, next) => {
             function (callback) {
                 // Finding place and insert if not found
                 if (req.body.address) {
-                    Place.findOne({ "google_place_id": { $eq: req.body.address.placeId } }, function (err, data) {
+                    Place.findOne({
+                        "google_place_id": {
+                            $eq: req.body.address.placeId
+                        }
+                    }, function (err, data) {
                         if (err) {
                             callback(err);
                         } else {
                             if (data.length != 0) {
                                 req.body['place_id'] = data.google_place_id
                                 callback(null);
-                            }
-                            else {
+                            } else {
                                 var addressData = req.body.address;
                                 var placeModel = new Place(addressData);
                                 placeModel.save(function (err, placeData) {
@@ -142,14 +145,15 @@ router.post('/add', (req, res, next) => {
                     }
                 });
 
-            }], function (err, result) {
-                if (err) {
-                    console.log("Here");
-                    return next(err);
-                } else {
-                    res.status(config.OK_STATUS).json(result);
-                }
-            });
+            }
+        ], function (err, result) {
+            if (err) {
+                console.log("Here");
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json(result);
+            }
+        });
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
@@ -192,15 +196,18 @@ router.put('/update', (req, res, next) => {
         async.waterfall([
             function (callback) {
                 if (req.body.address) {
-                    Place.findOne({ "google_place_id": { $eq: req.body.address.placeId } }, function (err, data) {
+                    Place.findOne({
+                        "google_place_id": {
+                            $eq: req.body.address.placeId
+                        }
+                    }, function (err, data) {
                         if (err) {
                             callback(err);
                         } else {
                             if (data.length != 0) {
                                 req.body['place_id'] = data.google_place_id
                                 callback(null, req.body);
-                            }
-                            else {
+                            } else {
                                 var addressData = req.body.address;
                                 var placeModel = new Place(addressData);
                                 placeModel.save(function (err, placeData) {
@@ -219,7 +226,13 @@ router.put('/update', (req, res, next) => {
                 }
             },
             function (userData, callback) {
-                Company.update({ _id: { $eq: req.body.company_id } }, { $set: userData }, function (err, response) {
+                Company.update({
+                    _id: {
+                        $eq: req.body.company_id
+                    }
+                }, {
+                    $set: userData
+                }, function (err, response) {
                     if (err) {
                         callback(err);
                     } else {
@@ -231,14 +244,15 @@ router.put('/update', (req, res, next) => {
                         callback(null, result);
                     }
                 });
-            }], function (err, result) {
-                if (err) {
-                    console.log("Here");
-                    return next(err);
-                } else {
-                    res.status(config.OK_STATUS).json(result);
-                }
-            });
+            }
+        ], function (err, result) {
+            if (err) {
+                console.log("Here");
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json(result);
+            }
+        });
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
@@ -273,7 +287,15 @@ router.put('/delete', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Company.update({ _id: { $eq: req.body.company_id } }, { $set: { 'isDeleted': true } }, function (err, response) {
+        Company.update({
+            _id: {
+                $eq: req.body.company_id
+            }
+        }, {
+            $set: {
+                'isDeleted': true
+            }
+        }, function (err, response) {
             if (err) {
                 return next(err);
             } else {
@@ -307,7 +329,12 @@ router.put('/delete', (req, res, next) => {
  */
 
 router.get('/details/:id', (req, res, next) => {
-    Company.findOne({ _id: { $eq: req.params.id }, "isDeleted": false }, function (err, data) {
+    Company.findOne({
+        _id: {
+            $eq: req.params.id
+        },
+        "isDeleted": false
+    }, function (err, data) {
         if (err) {
             return next(err);
         } else {
@@ -349,73 +376,81 @@ router.post('/list', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var defaultQuery = [
-            {
+        var defaultQuery = [{
                 $match: {
                     "isDeleted": false,
                 }
             },
             {
-                $sort: { 'createdAt': -1 }
-            }];
-            if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-                var colIndex = req.body.order[0].column;
-                var colname = req.body.columns[colIndex].name;
-                var order = req.body.order[0].dir;
-                if (order == "asc") {
-                    // var sortableQuery = [
-                    //     {
-                    //         $project: {
-                    //             "data": "$$ROOT",
-                    //             "sort_index": { "$toLower": [colname] }
-                    //         }
-                    //     },
-                    //     {
-                    //         "$sort": {
-                    //             "sort_index": -1
-                    //         }
-                    //     },
-                    //     {
-                    //         "$replaceRoot": { newRoot: "$data" }
-                    //     }
-                    // ]
-                    var sortableQuery = {
-                        $sort: { [colname]: 1 }
-                    }
-                } else {
-                    var sortableQuery = {
-                        $sort: { [colname]: -1 }
+                $sort: {
+                    'createdAt': -1
+                }
+            }
+        ];
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if (order == "asc") {
+                // var sortableQuery = [
+                //     {
+                //         $project: {
+                //             "data": "$$ROOT",
+                //             "sort_index": { "$toLower": [colname] }
+                //         }
+                //     },
+                //     {
+                //         "$sort": {
+                //             "sort_index": -1
+                //         }
+                //     },
+                //     {
+                //         "$replaceRoot": { newRoot: "$data" }
+                //     }
+                // ]
+                var sortableQuery = {
+                    $sort: {
+                        [colname]: 1
                     }
                 }
-                defaultQuery = defaultQuery.concat(sortableQuery);
+            } else {
+                var sortableQuery = {
+                    $sort: {
+                        [colname]: -1
+                    }
+                }
             }
-            if (req.body.search != undefined) {
-                if (req.body.search.value != undefined) {
-                    var regex = new RegExp(req.body.search.value);
-                    var match = { $or: [] };
-                    req.body['columns'].forEach(function (obj) {
-                        if (obj.name) {
-                            var json = {};
-                            if (obj.isNumber) {
-                                json[obj.name] = parseInt(req.body.search.value)
-                            } else {
-                                json[obj.name] = {
-                                    "$regex": regex,
-                                    "$options": "i"
-                                }
+            defaultQuery = defaultQuery.concat(sortableQuery);
+        }
+        if (req.body.search != undefined) {
+            if (req.body.search.value != undefined) {
+                var regex = new RegExp(req.body.search.value);
+                var match = {
+                    $or: []
+                };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
                             }
-                            match['$or'].push(json)
                         }
-                    });
-                }
-                var searchQuery = {
-                    $match: match
-                }
-                defaultQuery = defaultQuery.concat(searchQuery);
+                        match['$or'].push(json)
+                    }
+                });
             }
-    
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery = defaultQuery.concat(searchQuery);
+        }
 
-            defaultQuery = defaultQuery.concat([{
+
+        defaultQuery = defaultQuery.concat([{
                 $group: {
                     "_id": "",
                     "recordsTotal": {
@@ -429,7 +464,9 @@ router.post('/list', (req, res, next) => {
             {
                 $project: {
                     "recordsTotal": 1,
-                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                    "data": {
+                        "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
+                    }
                 }
             }
         ]);
@@ -443,7 +480,10 @@ router.post('/list', (req, res, next) => {
                 console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
+                    result: data.length != 0 ? data[0] : {
+                        recordsTotal: 0,
+                        data: []
+                    }
                 });
             }
         })
@@ -485,10 +525,8 @@ router.post('/rental_list', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var defaultQuery = [
-            {
-                $lookup:
-                {
+        var defaultQuery = [{
+                $lookup: {
                     from: "users",
                     localField: "agentId",
                     foreignField: "_id",
@@ -502,10 +540,14 @@ router.post('/rental_list', (req, res, next) => {
                 }
             },
             {
-                $match: { "isDeleted": false }
+                $match: {
+                    "isDeleted": false
+                }
             },
             {
-                $sort: { 'createdAt': -1 }
+                $sort: {
+                    'createdAt': -1
+                }
             },
             {
                 $group: {
@@ -522,7 +564,9 @@ router.post('/rental_list', (req, res, next) => {
                 $project: {
                     "_id": 1,
                     "recordsTotal": 1,
-                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                    "data": {
+                        "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
+                    }
                 }
             }
         ];
@@ -532,11 +576,15 @@ router.post('/rental_list', (req, res, next) => {
             var order = req.body.order[0].dir;
             if (order == "asc") {
                 var sortableQuery = {
-                    $sort: { [colname]: 1 }
+                    $sort: {
+                        [colname]: 1
+                    }
                 }
             } else {
                 var sortableQuery = {
-                    $sort: { [colname]: -1 }
+                    $sort: {
+                        [colname]: -1
+                    }
                 }
             }
             defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
@@ -544,7 +592,9 @@ router.post('/rental_list', (req, res, next) => {
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
-                var match = { $or: [] };
+                var match = {
+                    $or: []
+                };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
@@ -573,7 +623,10 @@ router.post('/rental_list', (req, res, next) => {
                 console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
+                    result: data.length != 0 ? data[0] : {
+                        recordsTotal: 0,
+                        data: []
+                    }
                 });
             }
         })
@@ -616,7 +669,13 @@ router.post('/change_status', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Company.update({ "_id": new ObjectId(req.body.company_id) }, { $set: { "is_Active": req.body.status } }, function (err, data) {
+        Company.update({
+            "_id": new ObjectId(req.body.company_id)
+        }, {
+            $set: {
+                "is_Active": req.body.status
+            }
+        }, function (err, data) {
             if (err) {
                 return next(err);
             } else {
@@ -669,8 +728,7 @@ router.post('/car_list', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var defaultQuery = [
-            {
+        var defaultQuery = [{
                 $lookup: {
                     from: 'car_model',
                     foreignField: '_id',
@@ -705,7 +763,9 @@ router.post('/car_list', (req, res, next) => {
                 }
             },
             {
-                $sort: { 'createdAt': -1 }
+                $sort: {
+                    'createdAt': -1
+                }
             },
             {
                 $group: {
@@ -722,7 +782,9 @@ router.post('/car_list', (req, res, next) => {
                 $project: {
                     "_id": 1,
                     "recordsTotal": 1,
-                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                    "data": {
+                        "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
+                    }
                 }
             },
 
@@ -734,11 +796,15 @@ router.post('/car_list', (req, res, next) => {
             var order = req.body.order[0].dir;
             if (order == "asc") {
                 var sortableQuery = {
-                    $sort: { [colname]: 1 }
+                    $sort: {
+                        [colname]: 1
+                    }
                 }
             } else {
                 var sortableQuery = {
-                    $sort: { [colname]: -1 }
+                    $sort: {
+                        [colname]: -1
+                    }
                 }
             }
             defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
@@ -746,7 +812,9 @@ router.post('/car_list', (req, res, next) => {
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
-                var match = { $or: [] };
+                var match = {
+                    $or: []
+                };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
@@ -782,7 +850,10 @@ router.post('/car_list', (req, res, next) => {
                 console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
+                    result: data.length != 0 ? data[0] : {
+                        recordsTotal: 0,
+                        data: []
+                    }
                 });
             }
         })
@@ -916,7 +987,10 @@ router.post('/car/add', (req, res, next) => {
                     filename = splitName[0] + '_copy' + extention;
                     filepath = dir + '/' + filename;
                 }
-                var json = { name: filename, type: file['mimetype'] }
+                var json = {
+                    name: filename,
+                    type: file['mimetype']
+                }
                 galleryArray.push(json);
                 file.mv(filepath, function (err) {
                     if (err) {
@@ -988,12 +1062,16 @@ router.post('/car/edit', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var old_imageResp = await Car.find({"_id": new ObjectId(req.body.car_id)}, {"car_gallery._id":1}).exec();
+        var old_imageResp = await Car.find({
+            "_id": new ObjectId(req.body.car_id)
+        }, {
+            "car_gallery._id": 1
+        }).exec();
         var old_db_images = JSON.stringify(old_imageResp[0].car_gallery);
-        console.log('here====>',old_db_images);
+        console.log('here====>', old_db_images);
         var files = [];
         var galleryArray = [];
-        var oldArray =[];
+        var oldArray = [];
         var new_images = [];
         var old_images = [];
         var car_images = [];
@@ -1006,51 +1084,74 @@ router.post('/car/edit', async (req, res, next) => {
                     files = [files];
                 }
                 var dir = "./upload/car";
-                async.each(files, function (file, each_callback) {
-                    var extention = path.extname(file.name);
-                    var splitName = file.name.split('.');
-                    var filename = splitName[0] + extention;
-                    var filepath = dir + '/' + filename;
-                    if (fs.existsSync(filepath)) {
-                        filename = splitName[0] + '_copy' + extention;
-                        filepath = dir + '/' + filename;
-                    }
-                    var json = { name: filename, type: file['mimetype'] }
-                    galleryArray.push(json);
-                    file.mv(filepath, function (err) {
-                        if (err) {
-                            each_callback(each_callback)
-                        } else {
-
+                try {
+                    async.each(files, function (file, each_callback) {
+                        var extention = path.extname(file.name);
+                        var splitName = file.name.split('.');
+                        var filename = splitName[0] + extention;
+                        var filepath = dir + '/' + filename;
+                        if (fs.existsSync(filepath)) {
+                            filename = splitName[0] + '_copy' + extention;
+                            filepath = dir + '/' + filename;
                         }
-                    });
-                    each_callback()
-                })
+                        var json = {
+                            name: filename,
+                            type: file['mimetype']
+                        }
+                        galleryArray.push(json);
+                        file.mv(filepath, function (err) {
+                            if (err) {
+                                each_callback(each_callback)
+                            } else {
+
+                            }
+                        });
+                        each_callback()
+                    })
+                } catch (error) {
+                    console.log('error => ', error);
+                }
             }
         }
         new_images = galleryArray;
-        if(req.body.old_images){
-            old_images = req.body.old_images;
-            old_images.each((image)=> {
-                if(old_db_images.indexOf(image._id) == -1){
-                    var filePath = './upload/car/'+ image.name; 
-                    fs.unlinkSync(filePath);
-                } else{
-                    var json = { name: image.name, type: image.type }
-                    oldArray.push(json);
-                }
-            });
+        try {
+            old_images = JSON.parse(req.body.old_images);
+            console.log('old_images ==> ', old_images);
+            if (Array.isArray(old_images)) {
+                old_images.forEach((image) => {
+                    if (old_db_images.indexOf(image._id) == -1) {
+                        var filePath = './upload/car/' + image.name;
+                        fs.unlinkSync(filePath);
+                    } else {
+                        var json = {
+                            name: image.name,
+                            type: image.type
+                        }
+                        oldArray.push(json);
+                    }
+                });
+            }
+        } catch (error) {
+            console.log('error2 => ', error);
         }
         car_images.push(...new_images);
         car_images.push(...oldArray);
         console.log(car_images);
         req.body.car_gallery = car_images;
-        console.log('re.body=====>',req.body);
-        Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
+        console.log('re.body=====>', req.body);
+        Car.update({
+            _id: {
+                $eq: req.body.car_id
+            }
+        }, {
+            $set: req.body
+        }, function (err, response) {
             if (err) {
                 return next(err);
             } else {
-                res.status(config.OK_STATUS).json({ message: "Car updated successfully" });
+                res.status(config.OK_STATUS).json({
+                    message: "Car updated successfully"
+                });
             }
         });
     } else {
@@ -1187,7 +1288,13 @@ router.put('/car/delete', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Car.update({ _id: new ObjectId(req.body.car_id) }, { $set: { 'isDeleted': true } }, function (err, response) {
+        Car.update({
+            _id: new ObjectId(req.body.car_id)
+        }, {
+            $set: {
+                'isDeleted': true
+            }
+        }, function (err, response) {
             if (err) {
                 return next(err);
             } else {
