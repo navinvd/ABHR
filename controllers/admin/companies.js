@@ -380,7 +380,6 @@ router.post('/list', (req, res, next) => {
                 $match: {
                     "isDeleted": false,
                 }
-<<<<<<< HEAD
             }];
             if (req.body.search != undefined) {
                 if (req.body.search.value != undefined) {
@@ -396,65 +395,6 @@ router.post('/list', (req, res, next) => {
                                     "$regex": regex,
                                     "$options": "i"
                                 }
-=======
-            },
-            {
-                $sort: {
-                    'createdAt': -1
-                }
-            }
-        ];
-        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-            var colIndex = req.body.order[0].column;
-            var colname = req.body.columns[colIndex].name;
-            var order = req.body.order[0].dir;
-            if (order == "asc") {
-                // var sortableQuery = [
-                //     {
-                //         $project: {
-                //             "data": "$$ROOT",
-                //             "sort_index": { "$toLower": [colname] }
-                //         }
-                //     },
-                //     {
-                //         "$sort": {
-                //             "sort_index": -1
-                //         }
-                //     },
-                //     {
-                //         "$replaceRoot": { newRoot: "$data" }
-                //     }
-                // ]
-                var sortableQuery = {
-                    $sort: {
-                        [colname]: 1
-                    }
-                }
-            } else {
-                var sortableQuery = {
-                    $sort: {
-                        [colname]: -1
-                    }
-                }
-            }
-            defaultQuery = defaultQuery.concat(sortableQuery);
-        }
-        if (req.body.search != undefined) {
-            if (req.body.search.value != undefined) {
-                var regex = new RegExp(req.body.search.value);
-                var match = {
-                    $or: []
-                };
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
->>>>>>> 64df8a881293c3d248067b86ff466f39bfd58fa2
                             }
                             match['$or'].push(json)
                         }
@@ -466,7 +406,6 @@ router.post('/list', (req, res, next) => {
                 defaultQuery = defaultQuery.concat(searchQuery);
             }
 
-<<<<<<< HEAD
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
@@ -522,28 +461,6 @@ router.post('/list', (req, res, next) => {
                 }
             }
             ]);
-=======
-        defaultQuery = defaultQuery.concat([{
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
-                    }
-                }
-            },
-            {
-                $project: {
-                    "recordsTotal": 1,
-                    "data": {
-                        "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
-                    }
-                }
-            }
-        ]);
->>>>>>> 64df8a881293c3d248067b86ff466f39bfd58fa2
         console.log("Query : ", JSON.stringify(defaultQuery));
         
         Company.aggregate(defaultQuery, function (err, data) {
