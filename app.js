@@ -29,7 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'doc')));
 app.use('/upload', express.static(path.join(__dirname, 'upload')));
 app.use(function (req, res, next) {
-
+    console.log('here===>', config.node_port);
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', '*');
 
