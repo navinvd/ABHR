@@ -358,80 +358,80 @@ router.post('/list', (req, res, next) => {
             {
                 $sort: { 'createdAt': -1 }
             }];
-            if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-                var colIndex = req.body.order[0].column;
-                var colname = req.body.columns[colIndex].name;
-                var order = req.body.order[0].dir;
-                if (order == "asc") {
-                    // var sortableQuery = [
-                    //     {
-                    //         $project: {
-                    //             "data": "$$ROOT",
-                    //             "sort_index": { "$toLower": [colname] }
-                    //         }
-                    //     },
-                    //     {
-                    //         "$sort": {
-                    //             "sort_index": -1
-                    //         }
-                    //     },
-                    //     {
-                    //         "$replaceRoot": { newRoot: "$data" }
-                    //     }
-                    // ]
-                    var sortableQuery = {
-                        $sort: { [colname]: 1 }
-                    }
-                } else {
-                    var sortableQuery = {
-                        $sort: { [colname]: -1 }
-                    }
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if (order == "asc") {
+                // var sortableQuery = [
+                //     {
+                //         $project: {
+                //             "data": "$$ROOT",
+                //             "sort_index": { "$toLower": [colname] }
+                //         }
+                //     },
+                //     {
+                //         "$sort": {
+                //             "sort_index": -1
+                //         }
+                //     },
+                //     {
+                //         "$replaceRoot": { newRoot: "$data" }
+                //     }
+                // ]
+                var sortableQuery = {
+                    $sort: { [colname]: 1 }
                 }
-                defaultQuery = defaultQuery.concat(sortableQuery);
+            } else {
+                var sortableQuery = {
+                    $sort: { [colname]: -1 }
+                }
             }
-            if (req.body.search != undefined) {
-                if (req.body.search.value != undefined) {
-                    var regex = new RegExp(req.body.search.value);
-                    var match = { $or: [] };
-                    req.body['columns'].forEach(function (obj) {
-                        if (obj.name) {
-                            var json = {};
-                            if (obj.isNumber) {
-                                json[obj.name] = parseInt(req.body.search.value)
-                            } else {
-                                json[obj.name] = {
-                                    "$regex": regex,
-                                    "$options": "i"
-                                }
+            defaultQuery = defaultQuery.concat(sortableQuery);
+        }
+        if (req.body.search != undefined) {
+            if (req.body.search.value != undefined) {
+                var regex = new RegExp(req.body.search.value);
+                var match = { $or: [] };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
                             }
-                            match['$or'].push(json)
                         }
-                    });
-                }
-                var searchQuery = {
-                    $match: match
-                }
-                defaultQuery = defaultQuery.concat(searchQuery);
-            }
-    
-
-            defaultQuery = defaultQuery.concat([{
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
+                        match['$or'].push(json)
                     }
-                }
-            },
-            {
-                $project: {
-                    "recordsTotal": 1,
-                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                });
+            }
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery = defaultQuery.concat(searchQuery);
+        }
+
+
+        defaultQuery = defaultQuery.concat([{
+            $group: {
+                "_id": "",
+                "recordsTotal": {
+                    "$sum": 1
+                },
+                "data": {
+                    "$push": "$$ROOT"
                 }
             }
+        },
+        {
+            $project: {
+                "recordsTotal": 1,
+                "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+            }
+        }
         ]);
         console.log("Query : ", JSON.stringify(defaultQuery));
 
@@ -988,12 +988,12 @@ router.post('/car/edit', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var old_imageResp = await Car.find({"_id": new ObjectId(req.body.car_id)}, {"car_gallery._id":1}).exec();
+        var old_imageResp = await Car.find({ "_id": new ObjectId(req.body.car_id) }, { "car_gallery._id": 1 }).exec();
         var old_db_images = JSON.stringify(old_imageResp[0].car_gallery);
-        console.log('here====>',old_db_images);
+        console.log('here====>', old_db_images);
         var files = [];
         var galleryArray = [];
-        var oldArray =[];
+        var oldArray = [];
         var new_images = [];
         var old_images = [];
         var car_images = [];
@@ -1006,46 +1006,54 @@ router.post('/car/edit', async (req, res, next) => {
                     files = [files];
                 }
                 var dir = "./upload/car";
-                async.each(files, function (file, each_callback) {
-                    var extention = path.extname(file.name);
-                    var splitName = file.name.split('.');
-                    var filename = splitName[0] + extention;
-                    var filepath = dir + '/' + filename;
-                    if (fs.existsSync(filepath)) {
-                        filename = splitName[0] + '_copy' + extention;
-                        filepath = dir + '/' + filename;
-                    }
-                    var json = { name: filename, type: file['mimetype'] }
-                    galleryArray.push(json);
-                    file.mv(filepath, function (err) {
-                        if (err) {
-                            each_callback(each_callback)
-                        } else {
-
+                try {
+                    async.each(files, function (file, each_callback) {
+                        var extention = path.extname(file.name);
+                        var splitName = file.name.split('.');
+                        var filename = splitName[0] + extention;
+                        var filepath = dir + '/' + filename;
+                        if (fs.existsSync(filepath)) {
+                            filename = splitName[0] + '_copy' + extention;
+                            filepath = dir + '/' + filename;
                         }
-                    });
-                    each_callback()
-                })
+                        var json = { name: filename, type: file['mimetype'] }
+                        galleryArray.push(json);
+                        file.mv(filepath, function (err) {
+                            if (err) {
+                                each_callback(each_callback)
+                            } else {
+
+                            }
+                        });
+                        each_callback()
+                    })
+                } catch (error) {
+                    console.log('error => ', error);
+                }
             }
         }
         new_images = galleryArray;
-        if(req.body.old_images){
-            old_images = req.body.old_images;
-            old_images.each((image)=> {
-                if(old_db_images.indexOf(image._id) == -1){
-                    var filePath = './upload/car/'+ image.name; 
-                    fs.unlinkSync(filePath);
-                } else{
-                    var json = { name: image.name, type: image.type }
-                    oldArray.push(json);
-                }
-            });
+        try {
+            if (Array.isArray(req.body.old_images)) {
+                old_images = req.body.old_images;
+                old_images.forEach((image) => {
+                    if (old_db_images.indexOf(image._id) == -1) {
+                        var filePath = './upload/car/' + image.name;
+                        fs.unlinkSync(filePath);
+                    } else {
+                        var json = { name: image.name, type: image.type }
+                        oldArray.push(json);
+                    }
+                });
+            }
+        } catch (error) {
+            console.log('error2 => ', error);
         }
         car_images.push(...new_images);
         car_images.push(...oldArray);
         console.log(car_images);
         req.body.car_gallery = car_images;
-        console.log('re.body=====>',req.body);
+        console.log('re.body=====>', req.body);
         Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
             if (err) {
                 return next(err);
