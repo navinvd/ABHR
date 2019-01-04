@@ -988,8 +988,9 @@ router.post('/car/edit', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var old_imageResp = await Car.find({"_id": req.body.car_id}, {"car_gallery._id":1}).exec();
+        var old_imageResp = await Car.find({"_id": new ObjectId(req.body.car_id)}, {"car_gallery._id":1}).exec();
         var old_db_images = JSON.stringify(old_imageResp[0].car_gallery);
+        console.log('here====>',old_db_images);
         var files = [];
         var galleryArray = [];
         var oldArray =[];
@@ -997,6 +998,7 @@ router.post('/car/edit', async (req, res, next) => {
         var old_images = [];
         var car_images = [];
         if (req.body.is_change_photo) {
+            console.log('in is change photo');
             if (req.files) {
                 console.log(req.files);
                 files = req.files['new_images'];
@@ -1027,18 +1029,23 @@ router.post('/car/edit', async (req, res, next) => {
             }
         }
         new_images = galleryArray;
-        old_images = req.body.old_images;
-        old_images.each((image)=> {
-            if(old_db_images.indexOf(image._id) == -1){
-                var filePath = './upload/car/'+ image.name; 
-                fs.unlinkSync(filePath);
-            } else{
-                var json = { name: image.name, type: image.type }
-                oldArray.push(json);
-            }
-        });
-        car_images = { ...new_images, ...oldArray };
+        if(req.body.old_images){
+            old_images = req.body.old_images;
+            old_images.each((image)=> {
+                if(old_db_images.indexOf(image._id) == -1){
+                    var filePath = './upload/car/'+ image.name; 
+                    fs.unlinkSync(filePath);
+                } else{
+                    var json = { name: image.name, type: image.type }
+                    oldArray.push(json);
+                }
+            });
+        }
+        car_images.push(...new_images);
+        car_images.push(...oldArray);
+        console.log(car_images);
         req.body.car_gallery = car_images;
+        console.log('re.body=====>',req.body);
         Car.update({ _id: { $eq: req.body.car_id } }, { $set: req.body }, function (err, response) {
             if (err) {
                 return next(err);
