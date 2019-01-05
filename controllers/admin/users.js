@@ -190,7 +190,7 @@ router.get('/:id', function (req, res, next) {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/list', (req, res, next) => {
+router.post('/list', async (req, res, next) => {
     console.log('here==================>');
     var schema = {
         'start': {
@@ -221,6 +221,21 @@ router.post('/list', (req, res, next) => {
                 }
             }
         ];
+        defaultQuery = defaultQuery.concat([
+            {
+                "$project": {
+                //   data: "$$ROOT",
+                  first_name : 1,
+                  last_name: 1,
+                  email: 1,
+                  createdAt: 1,
+                  app_user_status:1,
+                  count:{ $size: "$rental"}
+                }
+            }
+        ]);
+        totalRecords = await User.aggregate(defaultQuery);
+        console.log('totalrecords=====>', totalRecords);
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
@@ -284,19 +299,6 @@ router.post('/list', (req, res, next) => {
                 })    
             }
         }
-        defaultQuery = defaultQuery.concat([
-            {
-                "$project": {
-                //   data: "$$ROOT",
-                  first_name : 1,
-                  last_name: 1,
-                  email: 1,
-                  createdAt: 1,
-                  app_user_status:1,
-                  count:{ $size: "$rental"}
-                }
-            }
-        ]);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
@@ -344,8 +346,7 @@ router.post('/list', (req, res, next) => {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
                     //result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
-                    result: {data: data, recordsTotal: data.length
-                    } ,
+                    result: {recordsTotal: totalRecords.length, data: data} ,
                 });
             }
         })
