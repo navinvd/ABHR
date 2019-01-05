@@ -219,17 +219,6 @@ router.post('/list', (req, res, next) => {
                     localField: '_id',
                     as: "rental",
                 }
-            },
-            {
-                "$project": {
-                //   data: "$$ROOT",
-                  first_name : 1,
-                  last_name: 1,
-                  email: 1,
-                  createdAt: 1,
-                  app_user_status:1,
-                  count:{ $size: "$rental"}
-                }
             }
         ];
         if (req.body.search != undefined) {
@@ -295,14 +284,19 @@ router.post('/list', (req, res, next) => {
                 })    
             }
         }
-        // defaultQuery = defaultQuery.concat([
-        // {
-        //     $project: {
-        //         "recordsTotal": 1,
-        //         "data": "$data" 
-        //     }
-        // }
-        // ]);
+        defaultQuery = defaultQuery.concat([
+            {
+                "$project": {
+                //   data: "$$ROOT",
+                  first_name : 1,
+                  last_name: 1,
+                  email: 1,
+                  createdAt: 1,
+                  app_user_status:1,
+                  count:{ $size: "$rental"}
+                }
+            }
+        ]);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
@@ -343,7 +337,6 @@ router.post('/list', (req, res, next) => {
         //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
         // }
         // var datas= User.aggregate(filteredrecords);
-        console.log("==>", JSON.stringify(defaultQuery));
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
@@ -351,9 +344,8 @@ router.post('/list', (req, res, next) => {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
                     //result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
-                    result: data,
-                    recordsTotal: data.length
-
+                    result: {data: data, recordsTotal: data.length
+                    } ,
                 });
             }
         })
