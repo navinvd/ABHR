@@ -222,13 +222,12 @@ router.post('/list', async (req, res, next) => {
             }
         ];
         console.log('filtered by=====>',req.body.filtered_by);
-        if(req.body.filtered_by){
-            defaultQuery = defaultQuery.concat({
-                $match: {
-                    "app_user_type": req.body.filtered_by,
-                }
+        if(typeof req.body.filtered_by !== 'undefined' && req.body.filtered_by){
+            defaultQuery.push({
+                $match: {"app_user_status": req.body.filtered_by}
             });
         }
+        
         defaultQuery = defaultQuery.concat([
             {
                 "$project": {
@@ -242,6 +241,7 @@ router.post('/list', async (req, res, next) => {
                 }
             }
         ]);
+        console.log('default Query===>',JSON.stringify(defaultQuery));
         totalRecords = await User.aggregate(defaultQuery);
         console.log('totalrecords=====>', totalRecords);
         if (req.body.search != undefined) {
