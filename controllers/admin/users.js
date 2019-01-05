@@ -191,6 +191,7 @@ router.get('/:id', function (req, res, next) {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/list', (req, res, next) => {
+    console.log('here==================>');
     var schema = {
         'start': {
             notEmpty: true,
@@ -204,7 +205,6 @@ router.post('/list', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if(!errors){
-
          var defaultQuery = [
             {
                 $match: {
@@ -212,7 +212,6 @@ router.post('/list', (req, res, next) => {
                     "type": "user"
                 }
             },
-           
             {
                 $lookup: {
                     from: 'car_booking',
@@ -221,17 +220,87 @@ router.post('/list', (req, res, next) => {
                     as: "rental",
                 }
             },
-          {
+            {
                 "$project": {
                   first_name : 1,
                   last_name: 1,
                   email: 1,
                   createdAt: 1,
                   count:{ $size: "$rental"}
-
                 }
             }
         ];
+        if (req.body.search != undefined) {
+            if (req.body.search.value != undefined) {
+                var regex = new RegExp(req.body.search.value);
+                var match = { $or: [] };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery = defaultQuery.concat(searchQuery);
+        }
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            colname = '$'+colname;
+            var order = req.body.order[0].dir;
+            if(order == "asc") {
+                defaultQuery = defaultQuery.concat({
+                    $project: {
+                        "records": "$$ROOT",
+                        "sort_index": { "$toLower": [colname] }
+                    }
+                },
+                {
+                    $sort: {
+                            "sort_index": 1
+                    }
+                },
+                {
+                    $replaceRoot: { newRoot: "$records" }
+                },
+                
+                )      
+            } else {
+                defaultQuery = defaultQuery.concat({
+                    $project: {
+                        "records": "$$ROOT",
+                        "sort_index": { "$toLower": [colname] }
+                    }
+                },
+                {
+                    $sort: {
+                        "sort_index": -1
+                    }
+                },
+                {
+                    $replaceRoot: { newRoot: "$records" }
+                })    
+            }
+        }
+        // defaultQuery = defaultQuery.concat([
+        // {
+        //     $project: {
+        //         "recordsTotal": 1,
+        //         "data": "$data" 
+        //     }
+        // }
+        // ]);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
@@ -242,12 +311,11 @@ router.post('/list', (req, res, next) => {
                 "$limit": req.body.length
             })
         }
-        if (req.body.sort) {
-            defaultQuery.push({
-                "$sort": req.body.sort
-            })
-        }
-
+        // if (req.body.sort) {
+        //     defaultQuery.push({
+        //         "$sort": req.body.sort
+        //     })
+        // }
         // if (req.body.search != undefined) {
         //     if(req.body.search.value != undefined){
         //         var regex = new RegExp(req.body.search.value);
@@ -272,7 +340,8 @@ router.post('/list', (req, res, next) => {
         //     }
         //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
         // }
-        var datas= User.aggregate(filteredrecords);
+        // var datas= User.aggregate(filteredrecords);
+        console.log("==>", JSON.stringify(defaultQuery));
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
@@ -281,7 +350,8 @@ router.post('/list', (req, res, next) => {
                     message: "Success",
                     //result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
                     result: data,
-                    recordsTotal:data.length
+                    recordsTotal: data.length
+
                 });
             }
         })
@@ -381,13 +451,11 @@ router.post('/registered_list', (req, res, next) => {
         }
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
                 return next(err);
             } else {
-                console.log('result===>',data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data.length > 0 ? data[0] : null
                 });
             }
         })
