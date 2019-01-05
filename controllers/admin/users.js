@@ -222,10 +222,12 @@ router.post('/list', (req, res, next) => {
             },
             {
                 "$project": {
+                //   data: "$$ROOT",
                   first_name : 1,
                   last_name: 1,
                   email: 1,
                   createdAt: 1,
+                  app_user_status:1,
                   count:{ $size: "$rental"}
                 }
             }
@@ -397,7 +399,7 @@ router.post('/registered_list', (req, res, next) => {
                 $match: {
                     "isDeleted": false,
                     "type": "user",
-                    "app_user_status": "registered"
+                    "app_user_status": "only registered"
                 }
             },
             {
