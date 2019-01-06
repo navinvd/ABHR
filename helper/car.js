@@ -9,8 +9,13 @@ const CarModel = require('./../models/car_model');
 const Country = require('./../models/country');
 const State = require('./../models/state');
 const City = require('./../models/city');
+const CarHandOver = require('./../models/car_hand_over');
 const moment = require('moment');
 const _ = require('underscore');
+var config = require('./../config');
+var fs = require('fs');
+var paths = require('path');
+var async = require("async");
 
 let carHelper = {};
 
@@ -65,7 +70,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
         {
             $project: {
                 _id: 1,
-                vat_rate : 1, 
+                vat_rate: 1,
                 car_rental_company_id: 1,
                 car_brand: "$brandDetails.brand_name",
                 car_model: "$modelDetails.model_name",
@@ -697,7 +702,7 @@ carHelper.checkRadius = async function (data) {
             $match: {
                 $and: [
                     { _id: new ObjectId(data.company_id) }, //0.621371 100 mtr 
-                    { service_location: { $geoWithin: { $centerSphere: [[data.long, data.lat], 6.213712 / 3963.2] } } }
+                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 6.213712 / 3963.2] } } }
                 ]
             }
         }]
@@ -710,7 +715,107 @@ carHelper.checkRadius = async function (data) {
         }
     } catch (err) {
         return { status: 'failed', message: "Error occured while mapping radius", err }
-    }   
+    }
 }
+
+
+// car_handover for agent app
+carHelper.car_handover = async (req, car_handover_data) => {
+    try {
+
+        let car_hand_over_data = {
+            'user_id': car_handover_data.user_id,
+            'car_id': car_handover_data.car_id,
+            'agent_id': car_handover_data.agent_id,
+            'defected_points': car_handover_data.defected_points,
+            'milage': car_handover_data.milage,
+            'petrol_tank': car_handover_data.petrol_tank,
+            'notes': car_handover_data.notes ? car_handover_data.notes : null
+        }
+        // console.log('HElper =>', req.files)
+
+        if (req.files) {
+            if(req.files.car_defects_gallery){
+                // console.log('Gallary=>',req.files)
+                var gallary = [];  
+                var gallaryArray = [];
+                var gallary = req.files.car_defects_gallery;
+                if(!Array.isArray(gallary)){
+                    gallary = [gallary];
+                    console.log('DATATAT=>',gallary);
+                }
+                console.log('DATATAT=>',gallary);
+                var dir = "./upload/car_defect";
+                async.each(gallary, function(gal){
+                    var extention = paths.extname(gal.name);
+                    var filename = "car_defect" + Date.now() + extention;
+                    var filepath = dir + '/' + filename;
+
+                    if (fs.existsSync(filepath)) {
+                        filename = "car_defect" + Date.now() + 1 + extention;
+                        filepath = dir + '/' + filename;
+                    }
+                    var json_gal = {name: filename, type: gal['mimetype']}
+                    gallaryArray.push(json_gal);
+
+                    gal.mv(filepath, function (err) {
+                        if (err) {
+                            return { status: "failed", message: "Error accured while uplaod car defected images" };
+                        }
+                    });
+
+                })
+                
+            }
+
+
+            /** Save data ith signature */
+            if (req.files.signature) {
+                var mimetype = config.mimetypes;
+                if (mimetype.indexOf(req.files.signature.mimetype) != -1) {
+                    // upload now
+                    console.log('Comming');
+                    var file = req.files.signature; // store entire file object
+                    var dir = "./upload/signature";
+                    extention = paths.extname(file.name);
+                    savefilename = "signature_" + Date.now() + extention;
+            
+                    file.mv(dir + '/' + savefilename, async function (err) {
+                        if (err) {
+                            return { status: "failed", message: "Error accured while uplaod signature" };
+                        } else {
+                            // console.log('Signature uploaded');
+                            // save to db
+                            car_hand_over_data.signature = savefilename;
+                            car_hand_over_data.car_defects_gallery = gallaryArray;
+
+                            let car_hand_over = new CarHandOver(car_hand_over_data);
+                            let data = await car_hand_over.save();
+                        
+                            return { status: "success", message: "Car hand over successfully"}; 
+                        }
+
+                    });     
+                    
+                }
+                else {
+                    return { status: 'failed', message: "Enter valid signature formate" };
+                }
+            }
+            else {
+                return { status: 'failed', message: "Please enter your signature" };
+            }
+            // Signature save
+        }
+        else {
+            return { status: 'failed', message: "Please enter signature" };
+        }
+
+    }
+    catch (err) {
+        return { status: 'failed', message: "Error accured while hand over car", err }
+    }
+};
+
 
 module.exports = carHelper;

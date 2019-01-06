@@ -817,6 +817,8 @@ router.post('/checkCarAvailability', async (req, res) => {
  * @apiParam {String} delivery_time Car Delivery Time (eg. 7am - 9am)
  * @apiParam {Number} [coupon_code] coupon code (eg. ABCD)
  * @apiParam {Number} total_booking_amount Total car booking amount
+ * @apiParam {Number} latitude latitude
+ * @apiParam {Number} longitude longitude
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -865,11 +867,11 @@ router.post('/book', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter delivery time",
         },
-        'lat': {
+        'latitude': {
             notEmpty: true,
             errorMessage: "Please enter lattitude",
         },
-        'long': {
+        'longitude': {
             notEmpty: true,
             errorMessage: "Please enter longitude",
         },
@@ -894,8 +896,8 @@ router.post('/book', async (req, res) => {
             "delivery_time": req.body.delivery_time, // add field in db as well',
             "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
             "total_booking_amount": req.body.total_booking_amount, // add this field to db
-            "lat": req.body.lat ? req.body.lat : null, // add this field to db
-            "long": req.body.long ? req.body.long : null, // add this field to db
+            "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
+            "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
             "trip_status": "upcoming"
         }
         const bookingResp = await carHelper.carBook(data);
@@ -1065,8 +1067,8 @@ router.post('/service-availability', async (req, res) => {
  * @apiGroup App - Car
  * 
  * @apiParam {Number} car_rental_company_id company id whose car is booking
- * @apiParam {Number} lat lattitude
- * @apiParam {Number} long longitude
+ * @apiParam {Number} latitude latitude
+ * @apiParam {Number} longitude longitude
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -1083,11 +1085,11 @@ router.post('/check-delivery-radius', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter car company id",
         },
-        'lat': {
+        'latitude': {
             notEmpty: true,
             errorMessage: "Please enter latitude",
         },
-        'long': {
+        'longitude': {
             notEmpty: true,
             errorMessage: "Please enter longitude",
         }
@@ -1098,8 +1100,8 @@ router.post('/check-delivery-radius', async (req, res) => {
     if (!errors) {
         let data = {
             company_id : req.body.car_rental_company_id,
-            lat : req.body.lat,
-            long : req.body.long
+            latitude : req.body.latitude,
+            longitude : req.body.longitude
         }
        let radiusResp = await carHelper.checkRadius(data);
        res.json(radiusResp);
