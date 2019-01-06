@@ -95,7 +95,8 @@ var UserSchema = new Schema({
     },
     app_user_status: {
         type: String,
-        enum: ["registered", "rented"]
+        enum: ["only registered", "rented"],
+        default: "only registered"
     },
     socialmediaID :{
         type: String,

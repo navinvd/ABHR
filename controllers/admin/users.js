@@ -190,7 +190,8 @@ router.get('/:id', function (req, res, next) {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/list', (req, res, next) => {
+router.post('/list', async (req, res, next) => {
+    console.log('here==================>');
     var schema = {
         'start': {
             notEmpty: true,
@@ -204,7 +205,6 @@ router.post('/list', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if(!errors){
-
          var defaultQuery = [
             {
                 $match: {
@@ -212,7 +212,6 @@ router.post('/list', (req, res, next) => {
                     "type": "user"
                 }
             },
-           
             {
                 $lookup: {
                     from: 'car_booking',
@@ -220,142 +219,35 @@ router.post('/list', (req, res, next) => {
                     localField: '_id',
                     as: "rental",
                 }
-            },
-          {
+            }
+        ];
+        console.log('filtered by=====>',req.body.filtered_by);
+        if(typeof req.body.filtered_by !== 'undefined' && req.body.filtered_by){
+            defaultQuery.push({
+                $match: {"app_user_status": req.body.filtered_by}
+            });
+        }
+        
+        defaultQuery = defaultQuery.concat([
+            {
                 "$project": {
+                //   data: "$$ROOT",
                   first_name : 1,
                   last_name: 1,
                   email: 1,
                   createdAt: 1,
+                  app_user_status:1,
                   count:{ $size: "$rental"}
-
                 }
             }
-        ];
-        if (req.body.start) {
-            defaultQuery.push({
-                "$skip": req.body.start
-            })
-        }
-        if (req.body.length) {
-            defaultQuery.push({
-                "$limit": req.body.length
-            })
-        }
-        if (req.body.sort) {
-            defaultQuery.push({
-                "$sort": req.body.sort
-            })
-        }
-
-        // if (req.body.search != undefined) {
-        //     if(req.body.search.value != undefined){
-        //         var regex = new RegExp(req.body.search.value);
-        //         var match = {$or: []};
-        //         req.body['columns'].forEach(function (obj) {
-        //             if (obj.name) {
-        //                 var json = {};
-        //                 if (obj.isNumber) {
-        //                     json[obj.name] = parseInt(req.body.search.value)
-        //                 } else {
-        //                     json[obj.name] = {
-        //                         "$regex": regex,
-        //                         "$options": "i"
-        //                     }
-        //                 }
-        //                 match['$or'].push(json)
-        //             }
-        //         });
-        //     }
-        //     var searchQuery = {
-        //         $match: match
-        //     }
-        //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-        // }
-        var datas= User.aggregate(filteredrecords);
-        User.aggregate(defaultQuery, function (err, data) {
-            if (err) {
-                return next(err);
-            } else {
-                res.status(config.OK_STATUS).json({
-                    message: "Success",
-                    //result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
-                    result: data,
-                    recordsTotal:data.length
-                });
-            }
-        })
-    } else {
-        res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: errors
-        });
-    }
-});
-
-/* @api {post} /admin/user/registered_list List of all registered users
- * @apiName Registered Users List
- * @apiDescription To display registered users list with pagination
- * @apiGroup Admin - Users
- * @apiVersion 0.0.0
- * 
- * @apiParam {String} start pagination start page no
- * @apiParam {String} end pagination length no of page length
- * 
- * @apiHeader {String}  Content-Type application/json 
- * @apiHeader {String}  x-access-token Users unique access-key   
- * 
- * @apiSuccess (Success 200) {String} message Success message.
- * @apiError (Error 4xx) {String} message Validation or error message.
- */
-router.post('/registered_list', (req, res, next) => {
-    var schema = {
-        'start': {
-            notEmpty: true,
-            errorMessage: "start is required"
-        },
-        'length': {
-            notEmpty: true,
-            errorMessage: "length is required"
-        }
-    };
-    req.checkBody(schema);
-    var errors = req.validationErrors();
-    if(!errors){
-        var defaultQuery = [
-            {
-                $match: {
-                    "isDeleted": false,
-                    "type": "user",
-                    "app_user_status": "registered"
-                }
-            },
-            {
-                $sort: {'createdAt': -1}
-            },
-            {
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
-                    }
-                }
-            },
-            {
-                $project: {
-                    "recordsTotal": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
-                }
-            }
-        ];
-        console.log(req.body.search);
+        ]);
+        console.log('default Query===>',JSON.stringify(defaultQuery));
+        totalRecords = await User.aggregate(defaultQuery);
+        console.log('totalrecords=====>', totalRecords);
         if (req.body.search != undefined) {
-            if(req.body.search.value != undefined){
+            if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
-                var match = {$or: []};
+                var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
@@ -371,23 +263,69 @@ router.post('/registered_list', (req, res, next) => {
                     }
                 });
             }
-            console.log('re.body.search==>', req.body.search.value);
-
             var searchQuery = {
                 $match: match
             }
-            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
+            defaultQuery = defaultQuery.concat(searchQuery);
         }
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            colname = '$'+colname;
+            var order = req.body.order[0].dir;
+            if(order == "asc") {
+                defaultQuery = defaultQuery.concat({
+                    $project: {
+                        "records": "$$ROOT",
+                        "sort_index": { "$toLower": [colname] }
+                    }
+                },
+                {
+                    $sort: {
+                            "sort_index": 1
+                    }
+                },
+                {
+                    $replaceRoot: { newRoot: "$records" }
+                },
+                
+                )      
+            } else {
+                defaultQuery = defaultQuery.concat({
+                    $project: {
+                        "records": "$$ROOT",
+                        "sort_index": { "$toLower": [colname] }
+                    }
+                },
+                {
+                    $sort: {
+                        "sort_index": -1
+                    }
+                },
+                {
+                    $replaceRoot: { newRoot: "$records" }
+                })    
+            }
+        }
+        if (req.body.start) {
+            defaultQuery.push({
+                "$skip": req.body.start
+            })
+        }
+        if (req.body.length) {
+            defaultQuery.push({
+                "$limit": req.body.length
+            })
+        }
+        console.log('Default query=====>',defaultQuery);
         User.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
                 return next(err);
             } else {
-                console.log('result===>',data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    //result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: {recordsTotal: totalRecords.length, data: data} ,
                 });
             }
         })

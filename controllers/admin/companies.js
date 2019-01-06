@@ -405,7 +405,6 @@ router.post('/list', (req, res, next) => {
                 }
                 defaultQuery = defaultQuery.concat(searchQuery);
             }
-
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
@@ -848,7 +847,6 @@ router.post('/car_list', (req, res, next) => {
                 });
             }
         })
-
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",

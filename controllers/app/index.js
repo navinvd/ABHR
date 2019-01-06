@@ -87,7 +87,7 @@ router.post('/registration', (req, res, next) => {
             deviceType: req.body.deviceType,
             deviceToken:req.body.deviceToken,
             type: req.body.user_type,
-            app_user_status: "registered"
+            app_user_status: "only registered"
         };
         User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}, function (err, data) {
             if (err) {
