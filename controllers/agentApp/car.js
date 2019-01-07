@@ -139,9 +139,9 @@ router.post('/car-list', async (req, res) => {
     var match_object = [];
     var apply_filter = 0; // not applying now
 
-    if (req.body.deliverd_rental) { // for upcomming car default filter
+    if (req.body.confirm_rental) { // for upcomming car default filter
         apply_filter = 1
-        match_object.push({ 'trip_status': req.body.deliverd_rental })
+        match_object.push({ 'trip_status': req.body.confirm_rental })
     }
     else {
         apply_filter = 1
@@ -151,6 +151,16 @@ router.post('/car-list', async (req, res) => {
     if (req.body.cancellation) { // for cancelled car
         apply_filter = 1
         match_object.push({ 'trip_status': req.body.cancellation })
+    }
+
+    if(req.body.deliverd_rental){ // car which is deliver to customer now come in in-progress status in db
+        apply_filter = 1
+        match_object.push({ 'trip_status': req.body.deliverd_rental })
+    }
+
+    if(req.body.return){ // when customer finish their trip then he return car
+        apply_filter = 1
+        match_object.push({ 'trip_status': req.body.return })
     }
 
     if (req.body.today) {
@@ -431,6 +441,10 @@ router.post('/handover', async (req, res) => {
         'petrol_tank': {
             notEmpty: true,
             errorMessage: "Please enter car petrol tank fuel"
+        },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number"
         }
     };
     req.checkBody(schema);
@@ -447,6 +461,7 @@ router.post('/handover', async (req, res) => {
             'milage' : req.body.milage, 
             'petrol_tank' : req.body.petrol_tank,
             'notes' : req.body.notes ? req.body.notes : null,
+            'booking_number' : req.body.booking_number
             // 'signature' : req.body.signature ?  req.body.signature : null,
             // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
         }

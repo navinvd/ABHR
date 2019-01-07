@@ -730,7 +730,8 @@ carHelper.car_handover = async (req, car_handover_data) => {
             'defected_points': car_handover_data.defected_points,
             'milage': car_handover_data.milage,
             'petrol_tank': car_handover_data.petrol_tank,
-            'notes': car_handover_data.notes ? car_handover_data.notes : null
+            'notes': car_handover_data.notes ? car_handover_data.notes : null,
+            'booking_number': car_handover_data.booking_number
         }
         // console.log('HElper =>', req.files)
 
@@ -796,6 +797,12 @@ carHelper.car_handover = async (req, car_handover_data) => {
 
                         let car_hand_over = new CarHandOver(car_hand_over_data);
                         let data = await car_hand_over.save();
+
+                        // after car handnover we need to change car booking status to -> in-progress
+                        let booking_number =  {booking_number : car_hand_over_data.booking_number}; 
+                        let trip_status  = { $set: {trip_status : 'inprogress'} };
+                     
+                        await CarBooking.updateOne(booking_number,trip_status);
 
                         return { status: "success", message: "Car hand over successfully" };
                     }
