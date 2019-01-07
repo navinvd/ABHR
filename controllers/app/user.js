@@ -619,4 +619,52 @@ router.post('/add-address', async (req, res) => {
 });
 
 
+
+/**
+ * @api {post} /app/user/addresses Get user addresses
+ * @apiName Get User Addresses
+ * @apiDescription Get user adddresses
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id User Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// Get All address of user
+router.post('/addresses', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user_id = req.body.user_id;
+        var data = await User.find({_id : ObjectId(user_id)});
+        if(data && data.length > 0 && data[0].address.length > 0){
+            return res.status(200).json({ status: 'success', message: "Address has been found", data: data[0].address});
+        }
+        else
+        {
+            return res.status(200).json({ status: 'failed', message: "No Address for this user"});
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
 module.exports = router;
