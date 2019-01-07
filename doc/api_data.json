@@ -2058,76 +2058,6 @@
     "groupTitle": "Admin___Users"
   },
   {
-    "type": "get",
-    "url": "/user/:id",
-    "title": "type='admin' User Details By Id",
-    "name": "User_Details_By_Id",
-    "description": "<p>Get User details By user id</p>",
-    "group": "Admin___Users",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p>User Id</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Users unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/admin/users.js",
-    "groupTitle": "Admin___Users"
-  },
-  {
     "type": "post",
     "url": "/app/user/add-address",
     "title": "Add user addresses",
@@ -3081,6 +3011,76 @@
   },
   {
     "type": "post",
+    "url": "/app/user/remove-notification",
+    "title": "Remove Notification",
+    "name": "Remove_Notification",
+    "description": "<p>To Remove Notification</p>",
+    "group": "AppUser",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "notification_id",
+            "description": "<p>notification id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/user.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "post",
     "url": "/app/user/sendEmail",
     "title": "send email on user register email",
     "name": "Send_Otp_to_user_by_email",
@@ -3529,6 +3529,13 @@
             "optional": true,
             "field": "coupon_code",
             "description": "<p>coupon code (eg. ABCD)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "coupon_percentage",
+            "description": "<p>coupon percentage (eg. 10)</p>"
           },
           {
             "group": "Parameter",
@@ -4337,7 +4344,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/app/car.js",
+    "filename": "controllers/agentApp/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -4470,7 +4477,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/agentApp/car.js",
+    "filename": "controllers/app/car.js",
     "groupTitle": "App___Car"
   },
   {

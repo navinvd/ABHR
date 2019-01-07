@@ -66,7 +66,7 @@ router.get('/notification_setting/:userId', async (req, res) => {
 });
 
 /**
- * @api {get} /app/user/remove-notification Remove Notification
+ * @api {post} /app/user/remove-notification Remove Notification
  * @apiName Remove Notification
  * @apiDescription To Remove Notification
  * @apiGroup AppUser
