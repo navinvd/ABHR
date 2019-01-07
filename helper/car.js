@@ -735,18 +735,18 @@ carHelper.car_handover = async (req, car_handover_data) => {
         // console.log('HElper =>', req.files)
 
         if (req.files) {
-            if(req.files.car_defects_gallery){
+            if (req.files.car_defects_gallery) {
                 // console.log('Gallary=>',req.files)
-                var gallary = [];  
+                var gallary = [];
                 var gallaryArray = [];
                 var gallary = req.files.car_defects_gallery;
-                if(!Array.isArray(gallary)){
+                if (!Array.isArray(gallary)) {
                     gallary = [gallary];
-                    console.log('DATATAT=>',gallary);
+                    console.log('DATATAT=>', gallary);
                 }
-                console.log('DATATAT=>',gallary);
+                console.log('DATATAT=>', gallary);
                 var dir = "./upload/car_defect";
-                async.each(gallary, function(gal){
+                async.each(gallary, function (gal) {
                     var extention = paths.extname(gal.name);
                     var filename = "car_defect" + Date.now() + extention;
                     var filepath = dir + '/' + filename;
@@ -755,7 +755,7 @@ carHelper.car_handover = async (req, car_handover_data) => {
                         filename = "car_defect" + Date.now() + 1 + extention;
                         filepath = dir + '/' + filename;
                     }
-                    var json_gal = {name: filename, type: gal['mimetype']}
+                    var json_gal = { name: filename, type: gal['mimetype'] }
                     gallaryArray.push(json_gal);
 
                     gal.mv(filepath, function (err) {
@@ -765,7 +765,7 @@ carHelper.car_handover = async (req, car_handover_data) => {
                     });
 
                 })
-                
+
             }
 
 
@@ -779,24 +779,29 @@ carHelper.car_handover = async (req, car_handover_data) => {
                     var dir = "./upload/signature";
                     extention = paths.extname(file.name);
                     savefilename = "signature_" + Date.now() + extention;
-            
-                    file.mv(dir + '/' + savefilename, async function (err) {
+                    var makeEntry = 1;
+                    await file.mv(dir + '/' + savefilename, async function (err) {
                         if (err) {
+                            makeEntry = 0;
                             return { status: "failed", message: "Error accured while uplaod signature" };
-                        } else {
-                            // console.log('Signature uploaded');
-                            // save to db
-                            car_hand_over_data.signature = savefilename;
-                            car_hand_over_data.car_defects_gallery = gallaryArray;
-
-                            let car_hand_over = new CarHandOver(car_hand_over_data);
-                            let data = await car_hand_over.save();
-                        
-                            return { status: "success", message: "Car hand over successfully"}; 
                         }
+                        else {
+                            console.log('HHHHHHHHHHHHH');
+                        }
+                    });
 
-                    });     
-                    
+                    if (makeEntry == 1) {
+                        car_hand_over_data.signature = savefilename;
+                        car_hand_over_data.car_defects_gallery = gallaryArray;
+
+                        let car_hand_over = new CarHandOver(car_hand_over_data);
+                        let data = await car_hand_over.save();
+
+                        return { status: "success", message: "Car hand over successfully" };
+                    }
+                    else{
+                        return { status: "failed", message: "Error accured while uplaod signature" };
+                    }
                 }
                 else {
                     return { status: 'failed', message: "Enter valid signature formate" };
