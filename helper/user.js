@@ -43,6 +43,21 @@ userHelper.getUsernotificationSettingData = async function (userId) {
     }
 };
 
+
+userHelper.removeNotification = async function (notification_id) {
+    try {        
+        var data = await CarNotification.update({_id : new ObjectId(notification_id)},{ $set: {isDeleted: true } })
+        if (data && data.n > 0) {
+            return { status: 'success', message: "notification has been removed"}
+        } else {
+            return { status: 'failed', message: "no notification found to remove" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while removing notification", err };
+    }
+};
+
+
 // change first & last name of user
 userHelper.changeProfile = async (user_id, data) => {
     try {
