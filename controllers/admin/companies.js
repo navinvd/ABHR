@@ -405,7 +405,7 @@ router.post('/list', (req, res, next) => {
                 var colname = req.body.columns[colIndex].name;
                 var order = req.body.order[0].dir;
                 if(order == "asc") {
-                    if(req.body['columns'][colIndex].isBoolean){
+                    if(typeof req.body.columns[colIndex].isBoolean !== 'undefined' && req.body.columns[colIndex].isBoolean){
                         defaultQuery = defaultQuery.concat({
                             $sort: {
                                 [colname] : 1
@@ -429,10 +429,10 @@ router.post('/list', (req, res, next) => {
                         })    
                     }  
                 } else {
-                    if(req.body['columns'][colIndex].isBoolean){
+                    if(typeof req.body.columns[colIndex].isBoolean !== 'undefined' && req.body.columns[colIndex].isBoolean){
                         defaultQuery = defaultQuery.concat({
                             $sort: {
-                                [colname] : 1
+                                [colname] : -1
                             }
                         })
                     } else{
