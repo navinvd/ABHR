@@ -329,12 +329,7 @@ router.put('/delete', (req, res, next) => {
  */
 
 router.get('/details/:id', (req, res, next) => {
-    Company.findOne({
-        _id: {
-            $eq: req.params.id
-        },
-        "isDeleted": false
-    }, function (err, data) {
+    Company.findOne({_id: {$eq: req.params.id},"isDeleted": false}, function (err, data) {
         if (err) {
             return next(err);
         } else {
@@ -460,14 +455,10 @@ router.post('/list', (req, res, next) => {
                 }
             }
             ]);
-        console.log("Query : ", JSON.stringify(defaultQuery));
-        
         Company.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>', err);
                 return next(err);
             } else {
-                console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
                     result: data.length != 0 ? data[0] : {
