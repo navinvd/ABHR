@@ -403,7 +403,6 @@ router.post('/list', (req, res, next) => {
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
-                colname = '$'+colname;
                 var order = req.body.order[0].dir;
                 if(order == "asc") {
                     if(req.body['columns'][colIndex].isBoolean){
@@ -413,6 +412,7 @@ router.post('/list', (req, res, next) => {
                             }
                         })
                     } else{
+                        colname = '$'+colname;
                         defaultQuery = defaultQuery.concat({
                             $project: {
                                 "records": "$$ROOT",
@@ -436,6 +436,7 @@ router.post('/list', (req, res, next) => {
                             }
                         })
                     } else{
+                        colname = '$'+colname;
                         defaultQuery = defaultQuery.concat({
                             $project: {
                                 "records": "$$ROOT",
