@@ -61,10 +61,10 @@ var BookingSchema = new Schema({
         type:  Number,
         required : true
     },
-    lat: {
+    latitude: {
         type: Number,
     },
-    long: {
+    longitude: {
         type: Number,
     },
     AC_status: {

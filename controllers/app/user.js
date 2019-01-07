@@ -563,8 +563,8 @@ router.get('/verification_details/:id', function (req, res, next) {
  * @apiParam {String} [street] street
  * @apiParam {String} [building] building
  * @apiParam {String} [landmark] landmark
- * @apiParam {Number} [lat] lattitude
- * @apiParam {Number} [long] longitude
+ * @apiParam {Number} [latitude] latitude
+ * @apiParam {Number} [longitude] longitude
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -604,8 +604,8 @@ router.post('/add-address', async (req, res) => {
             'street': req.body.street ? req.body.street : null,
             'building': req.body.building ? req.body.building : null,
             'landmark': req.body.landmark ? req.body.landmark : null,
-            'lat': req.body.lat ? req.body.lat : null,
-            'long': req.body.long ? req.body.long : null,
+            'latitude': req.body.latitude ? req.body.latitude : null,
+            'longitude': req.body.longitude ? req.body.longitude : null,
         }
         const addressResp = await userHelper.addAddress(user_id, address_data);
         res.json(addressResp);

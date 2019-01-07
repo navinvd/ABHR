@@ -8,8 +8,8 @@ var CitySchema = new Schema({
         type: String,
         required: true
     },
-    lat: {type: Number, default: null},
-    long: {type: Number, default: null},
+    latitude: {type: Number, default: null},
+    longitude: {type: Number, default: null},
     isActive: {
         type: Boolean,
         default:true 
