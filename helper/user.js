@@ -21,7 +21,7 @@ userHelper.getAllNotifications = async function (userId) {
     try {
         const notifications = await CarNotification.find({ "isDeleted": false, "userId": userId });
         if (notifications && notifications.length > 0) {
-            return { status: 'success', message: "notification data found", data: notifications }
+            return { status: 'success', message: "notification data found", data: { notifications : notifications} }
         } else {
             return { status: 'failed', message: "No notification available" };
         }
@@ -34,7 +34,7 @@ userHelper.getUsernotificationSettingData = async function (userId) {
     try {
         const notification_settingData = await CarNotificationSetting.find({ "isDeleted": false, "userId": userId });
         if (notification_settingData && notification_settingData.length > 0) {
-            return { status: 'success', message: "notificationsetting data found", data: notification_settingData }
+            return { status: 'success', message: "notificationsetting data found", data: { notificationData : notification_settingData} }
         } else {
             return { status: 'failed', message: "user is not found" };
         }
