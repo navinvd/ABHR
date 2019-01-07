@@ -113,11 +113,11 @@ userHelper.changePassword = async (data) => {
                     return { status: 'success', message: "Password has been changed successfully" }
                 }
                 else {
-                    return { status: 'success', message: "Password has been changed successfully" }
+                    return { status: 'failed', message: "Password has not been changed successfully" }
                 }
             }
             else {
-                return { status: 'success', message: "Invailid old password" }
+                return { status: 'failed', message: "Invailid old password" }
             }
         }
         else {
