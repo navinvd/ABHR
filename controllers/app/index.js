@@ -44,7 +44,7 @@ router.use('/coupon', coupon);
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/registration', (req, res, next) => {
+router.post('/registration', async (req, res, next) => {
     console.log('here0');
     var schema = {
         'first_name': {
@@ -79,6 +79,7 @@ router.post('/registration', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+
         var Data = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
