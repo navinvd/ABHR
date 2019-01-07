@@ -44,7 +44,7 @@ router.use('/coupon', coupon);
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/registration', (req, res, next) => {
+router.post('/registration', async (req, res, next) => {
     console.log('here0');
     var schema = {
         'first_name': {
@@ -79,6 +79,7 @@ router.post('/registration', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+
         var Data = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
@@ -303,7 +304,8 @@ router.post('/social_login', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, user_type: req.body.user_type}).exec();
+        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, type: req.body.user_type, email:req.body.email}).exec();
+        console.log('user=====>',user);
         if (user) {
             var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                 expiresIn: 60 * 60 * 24 // expires in 24 hours

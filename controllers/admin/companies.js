@@ -403,38 +403,55 @@ router.post('/list', (req, res, next) => {
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
-                colname = '$'+colname;
                 var order = req.body.order[0].dir;
                 if(order == "asc") {
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
-                    {
-                        $sort: {
-                                "sort_index": 1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })      
+                    if(typeof req.body.columns[colIndex].isBoolean !== 'undefined' && req.body.columns[colIndex].isBoolean){
+                        defaultQuery = defaultQuery.concat({
+                            $sort: {
+                                [colname] : 1
+                            }
+                        })
+                    } else{
+                        colname = '$'+colname;
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                        {
+                            $sort: {
+                                    "sort_index": 1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })    
+                    }  
                 } else {
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })    
+                    if(typeof req.body.columns[colIndex].isBoolean !== 'undefined' && req.body.columns[colIndex].isBoolean){
+                        defaultQuery = defaultQuery.concat({
+                            $sort: {
+                                [colname] : -1
+                            }
+                        })
+                    } else{
+                        colname = '$'+colname;
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                        {
+                            $sort: {
+                                    "sort_index": 1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })    
+                    }    
                 }
             }
             defaultQuery = defaultQuery.concat([{

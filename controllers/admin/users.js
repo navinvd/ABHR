@@ -402,6 +402,23 @@ router.post('/rented_list', (req, res, next) => {
                     "model_name":"$car_model.model_name",
                     "brand_name":"$car_brand.brand_name"
                 }
+            },
+            {
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "recordsTotal": 1,
+                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                }
             }];
             if (req.body.search != undefined) {
                 if(req.body.search.value != undefined){
@@ -464,23 +481,7 @@ router.post('/rented_list', (req, res, next) => {
                     })    
                 }
             }
-            defaultQuery.concat({
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
-                    }
-                }
-            },
-            {
-                $project: {
-                    "recordsTotal": 1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
-                }
-            })
+            console.log('defaultQuery===>',defaultQuery);
         CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
