@@ -608,32 +608,32 @@ router.post('/car/rental_list', (req, res, next) => {
                     "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
                 }
             }];
-            if (req.body.search != undefined) {
-                if(req.body.search.value != undefined){
-                    var regex = new RegExp(req.body.search.value);
-                    var match = {$or: []};
-                    req.body['columns'].forEach(function (obj) {
-                        if (obj.name) {
-                            var json = {};
-                            if (obj.isNumber) {
-                                json[obj.name] = parseInt(req.body.search.value)
-                            } else {
-                                json[obj.name] = {
-                                    "$regex": regex,
-                                    "$options": "i"
-                                }
-                            }
-                            match['$or'].push(json)
-                        }
-                    });
-                }
-                console.log('re.body.search==>', req.body.search.value);
-                var searchQuery = {
-                    $match: match
-                }
-                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-                console.log("==>", JSON.stringify(defaultQuery));
-            }
+            // if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
+            //     if(req.body.search.value != undefined){
+            //         var regex = new RegExp(req.body.search.value);
+            //         var match = {$or: []};
+            //         req.body['columns'].forEach(function (obj) {
+            //             if (obj.name) {
+            //                 var json = {};
+            //                 if (obj.isNumber) {
+            //                     json[obj.name] = parseInt(req.body.search.value)
+            //                 } else {
+            //                     json[obj.name] = {
+            //                         "$regex": regex,
+            //                         "$options": "i"
+            //                     }
+            //                 }
+            //                 match['$or'].push(json)
+            //             }
+            //         });
+            //     }
+            //     console.log('re.body.search==>', req.body.search.value);
+            //     var searchQuery = {
+            //         $match: match
+            //     }
+            //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+            //     console.log("==>", JSON.stringify(defaultQuery));
+            // }
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
