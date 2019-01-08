@@ -321,7 +321,7 @@ router.post('/social_login', async (req, res, next) => {
             var result = {
                 status: 'success',
                 message: "Login Successfully",
-                data: {user : user},
+                data: {user : user, first_time_register : false},
                 token: token
             };
             res.status(config.OK_STATUS).json(result);
@@ -350,7 +350,7 @@ router.post('/social_login', async (req, res, next) => {
                     var result = {
                         status: 'success',
                         message: "Login Successfully",
-                        data: {user : data},
+                        data: {user : data, first_time_register : true},
                         token: token
                     };
                     res.status(config.OK_STATUS).json(result);
