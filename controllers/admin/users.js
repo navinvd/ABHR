@@ -14,7 +14,8 @@ var _ = require('underscore');
 var jwt = require('jsonwebtoken');
 var mailHelper = require('./../../helper/mail');
 
-/* @api {post} /registration Registration
+
+/* @api {post} /admin/user/add Add
  * @apiName Registration
  * @apiDescription Used for RentalCar Company & Super Admin Registration
  * @apiGroup Admin - Users
@@ -103,8 +104,8 @@ router.post('/add', (req, res, next) => {
     }
   });
 
-/**
- * @api {put} /user Update User Details
+
+/* @api {put} /user Update User Details
  * @apiName Update User
  * @apiDescription Used to update user information
  * @apiGroup Admin - Users
@@ -147,8 +148,8 @@ router.put('/', auth, function (req, res, next) {
     }
 });
 
-
-/* @api {post} /admin/user/list List of all users
+/**
+ * @api {post} /admin/user/list List of all users
  * @apiName Users List
  * @apiDescription To display users list with pagination
  * @apiGroup Admin - Users
@@ -307,7 +308,8 @@ router.post('/list', async (req, res, next) => {
     }
 });
 
-/* @api {post} /admin/user/rented_list List of all rented users
+/**
+ * @api {post} /admin/user/rented_list List of all rented users
  * @apiName Rented Users List
  * @apiDescription To display Rented users list with pagination
  * @apiGroup Admin - Users
@@ -500,6 +502,20 @@ router.post('/rented_list', (req, res, next) => {
     }
 });
 
+/**
+* @api {get} /admin/user/details/:id Details of perticular user
+ * @apiName User Details 
+ * @apiDescription To display Details of users
+ * @apiGroup Admin - Users
+ * @apiVersion 0.0.0
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
 router.get('/details/:id', (req, res, next) => {
     try{
         var userId = new ObjectId(req.params.id);
