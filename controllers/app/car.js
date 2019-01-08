@@ -1120,4 +1120,421 @@ router.post('/check-delivery-radius', async (req, res) => {
 });
 
 
+// Test v2 of car filter
+
+// router.post('/filter2', async (req, res) => {
+//     var schema = {
+//         'fromDate': {
+//             notEmpty: true,
+//             errorMessage: "Please specify from when you need car",
+//             isISO8601: {
+//                 value: true,
+//                 errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+//             }
+//         },
+//         'days': {
+//             notEmpty: true,
+//             errorMessage: "Specify how many days you needed car",
+//             isInt: {
+//                 value: true,
+//                 errorMessage: "Please enter days in number only"
+//             }
+//         }
+//     };
+//     req.checkBody(schema);
+//     var errors = req.validationErrors();
+//     if (!errors) {
+//         var fromDate = req.body.fromDate
+//         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
+//         console.log(toDate);
+//         var defaultQuery = [
+//             {
+//                 $lookup: {
+//                     from: 'car_model',
+//                     foreignField: '_id',
+//                     localField: 'car_model_id',
+//                     as: "modelDetails",
+//                 }
+//             },
+//             {
+//                 $unwind: {
+//                     "path": "$modelDetails",
+//                     "preserveNullAndEmptyArrays": true
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: 'car_brand',
+//                     foreignField: '_id',
+//                     localField: 'car_brand_id',
+//                     as: "brandDetails",
+//                 }
+//             },
+//             {
+//                 $unwind: {
+//                     "path": "$brandDetails",
+//                     "preserveNullAndEmptyArrays": true
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: 'car_booking',
+//                     foreignField: 'carId',
+//                     localField: '_id',
+//                     as: "carBookingDetails",
+//                 }
+//             },
+//             {
+//                 $unwind: {
+//                     "path": "$carBookingDetails",
+//                     "preserveNullAndEmptyArrays": true
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: 'car_company',
+//                     foreignField: '_id',
+//                     localField: 'car_rental_company_id',
+//                     as: "companyDetails",
+//                 }
+//             },
+//             {
+//                 $unwind: {
+//                     "path": "$companyDetails",
+//                     "preserveNullAndEmptyArrays": true
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     _id: 1,
+//                     car_rental_company_id: 1,
+//                     car_brand: "$brandDetails.brand_name",
+//                     car_model: "$modelDetails.model_name",
+//                     car_model_number: "$modelDetails.model_number",
+//                     car_model_release_year: "$modelDetails.release_year",
+//                     car_color: 1,
+//                     rent_price: 1,
+//                     is_AC: 1,
+//                     is_luggage_carrier: 1,
+//                     licence_plate: 1,
+//                     no_of_person: 1,
+//                     transmission: 1,
+//                     is_delieverd: 1,
+//                     milage: 1,
+//                     is_navigation: 1,
+//                     driving_eligibility_criteria: 1,
+//                     car_class: 1,
+//                     is_avialable: 1,
+//                     car_model_id: 1,
+//                     car_brand_id: 1,
+//                     isDeleted: 1,
+//                     image_name: "$car_gallery.name" ? { $arrayElemAt: ["$car_gallery.name", 0] } : null,
+//                     // trip_status: "$carBookingDetails.trip_status", now
+//                     car_book_from_date: {
+//                         $dateToString: {
+//                             date: "$carBookingDetails.from_time",
+//                             format: "%Y-%m-%d"
+//                         }
+//                     },
+//                     car_book_to_date: {
+//                         $dateToString: {
+//                             date: "$carBookingDetails.to_time",
+//                             format: "%Y-%m-%d"
+//                         }
+//                     },
+//                     companyDetails: "$companyDetails"
+//                 }
+//             },
+//             {
+//                 $match: {
+//                     $and: [
+//                         {
+//                             $or: [
+//                                 { car_book_from_date: { $gt: toDate } },
+//                                 { car_book_to_date: { $lt: fromDate } },
+//                                 { car_book_from_date: { $eq: null } }
+//                             ]
+//                         },
+//                         { isDeleted: false }
+//                     ]
+//                 }
+
+//             },
+//             {
+//                 $lookup: {
+//                     from: 'car_reviews',
+//                     localField: '_id',
+//                     foreignField: 'car_id',
+//                     as: 'reviews'
+//                 }
+//             },
+//             {
+//                 $unwind: {
+//                     "path": "$reviews",
+//                     "preserveNullAndEmptyArrays": true
+//                 }
+//             },
+//             {
+//                 $group: {
+//                     _id: "$_id",
+//                     total_avg_rating: { $avg: "$reviews.stars" },
+//                     car: { "$first": "$$ROOT" }
+//                 }
+//             }
+
+//         ];
+//         var paginationArray = [
+//             {
+//                 $group: {
+//                     "_id": "",
+//                     "total": {
+//                         "$sum": 1
+//                     },
+//                     "data": {
+//                         "$push": "$$ROOT"
+//                     }
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     "_id": "",
+//                     "total": 1,
+//                     "data": { "$slice": ["$data", parseInt(req.body.itemPerpage) * (parseInt(req.body.currentPage) - 1), parseInt(req.body.itemPerpage)] }
+//                 }
+//             }];
+//         if (req.body.brand) {
+//             let brandOject = req.body.brand;
+//             if (brandOject.length > 0) {
+//                 brandOject = brandOject.map((b) => { return ObjectId(b) });
+//                 var searchQuery = {
+//                     "$match": {
+//                         "car_brand_id": { "$in": brandOject }
+//                     }
+//                 }
+//                 defaultQuery.splice(3, 0, searchQuery);
+//             }
+
+//         }
+//         if (req.body.model) {
+//             let modelOject = req.body.model;
+//             if (modelOject.length > 0) {
+//                 modelOject = modelOject.map((b) => { return ObjectId(b) });
+//                 var searchQuery = {
+//                     "$match": {
+//                         "car_model_id": { "$in": modelOject },
+//                     }
+//                 }
+//                 defaultQuery.splice(3, 0, searchQuery);
+//             }
+//         }
+//         if (typeof req.body.navigation !== 'undefined') {
+//             if (req.body.navigation === false) {
+//                 let navigationOject = req.body.navigation;
+//                 console.log('NAVIGATION 1======>', navigationOject);
+//                 var searchQuery = {
+//                     "$match": {
+//                         "is_navigation": navigationOject,
+//                     }
+//                 }
+//                 defaultQuery.splice(3, 0, searchQuery);
+//             } else {
+//                 console.log('NAVIGATION 2======>', req.body.navigation);
+//                 var searchQuery = {
+//                     "$match": {
+//                         "is_navigation": true,
+//                     }
+//                 }
+//                 defaultQuery.splice(3, 0, searchQuery);
+//             }
+//         }
+//         else {
+//             var searchQuery = {
+//                 "$match": {
+//                     "is_navigation": true,
+//                 }
+//             }
+//             defaultQuery.splice(3, 0, searchQuery);
+//         }
+
+//         if (req.body.transmission) {
+//             let transmissionObject = req.body.transmission;
+//             var searchQuery = {
+//                 "$match": {
+//                     "transmission": { "$in": transmissionObject },
+//                 }
+//             }
+//             defaultQuery.splice(3, 0, searchQuery);
+//         }
+//         if (req.body.car_class) {
+//             let classObject = req.body.car_class;
+//             var searchQuery = {
+//                 "$match": {
+//                     "car_class": { "$in": classObject },
+//                 }
+//             }
+//             defaultQuery.splice(3, 0, searchQuery);
+//         }
+//         if (req.body.capacity_of_people) {
+//             let copObject = req.body.capacity_of_people;
+//             var searchQuery = {
+//                 "$match": {
+//                     "no_of_person": { "$in": copObject },
+//                 }
+//             }
+//             defaultQuery.splice(3, 0, searchQuery);
+//         }
+//         if (req.body.milage) {
+//             let milageObject = req.body.milage;
+//             var searchQuery = {
+//                 "$match": {
+//                     "milage": { "$in": milageObject },
+//                 }
+//             }
+//             defaultQuery.splice(3, 0, searchQuery);
+//         } else {
+//             var searchQuery = {
+//                 "$match": {
+//                     "milage": "open",
+//                 }
+//             }
+//             defaultQuery.splice(3, 0, searchQuery);
+//         }
+
+//         // filter using lat - long
+
+//         if (req.body.location) { // pass like location : [lat,long]
+//             // car company agreegate
+//             // $match: {
+//             //     $and: [
+//             //         { _id: new ObjectId(data.company_id) }, //0.621371 100 mtr 
+//             //         { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 6.213712 / 3963.2] } } }
+//             //     ]
+//             // }
+
+//             // and: [
+//             //     { "$companyDetails.service_location": { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 6.213712 / 3963.2] } } }
+//             // ]
+
+//             // $match: {
+//             //     "companyDetails.service_location": { $geoWithin: { $centerSphere: [[72.831062, 21.17024], 1 / 1] } }
+//             // }
+
+//             var searchQuery = {
+//                 $match: {
+//                     "companyDetails.service_location": 
+//                         { $near :{
+//                             $geometry: { type: "Point",  coordinates: [ 72.831062, 21.17024 ] },
+//                             $minDistance: 1000,
+//                             $maxDistance: 5000
+//                             }
+//                      }
+//                 }
+//             }
+//             defaultQuery.splice(9, 0, searchQuery);
+            
+//         }
+
+
+
+//         // db.places.find(
+//         //     {
+//         //       location:
+//         //         { $near :
+//         //            {
+//         //              $geometry: { type: "Point",  coordinates: [ -73.9667, 40.78 ] },
+//         //              $minDistance: 1000,
+//         //              $maxDistance: 5000
+//         //            }
+//         //         }
+//         //     }
+//         //  )
+
+
+
+//         // let radius = await CarCompany.aggregate([{
+//         //     $match: {
+//         //         $and: [
+//         //             { _id: new ObjectId(data.company_id) }, //0.621371 100 mtr 
+//         //             { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 6.213712 / 3963.2] } } }
+//         //         ]
+//         //     }
+//         // }]
+//         // );
+
+
+
+//         // sorting
+//         if (typeof req.body.sort_by !== 'undefined') {
+//             let sort_by = parseInt(req.body.sort_by);
+//             if (sort_by === 0) {
+//                 var searchQuery = {
+//                     $sort: {
+//                         'total_avg_rating': -1
+//                     }
+//                 }
+//             }
+//             if (sort_by === 1) {
+//                 var searchQuery = {
+//                     $sort: {
+//                         'car.rent_price': -1
+//                     }
+//                 }
+//             }
+//             if (sort_by === 2) {
+//                 var searchQuery = {
+//                     $sort: {
+//                         'car.rent_price': 1
+//                     }
+//                 }
+//             }
+//             defaultQuery.push(searchQuery);
+//         }
+
+//         console.log('Default Query========>', JSON.stringify(defaultQuery));
+
+//         Car.aggregate(defaultQuery, function (err, data) {
+//             if (err) {
+//                 res.status(config.BAD_REQUEST).json({
+//                     status: "failed",
+//                     message: "error in fetching data",
+//                     err
+//                 });
+//             } else {
+//                 // console.log(data);
+//                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
+
+//                 if (data && data.length > 0) {
+//                     cars = data.map((c) => {
+//                         c.car["total_avg_rating"] = c.total_avg_rating;
+//                         delete c.car.reviews;
+//                         return c.car;
+//                     })
+
+//                     res.status(config.OK_STATUS).json({
+//                         status: "success",
+//                         message: "car data found",
+//                         data: { cars: cars },
+//                     });
+//                 }
+//                 else {
+//                     res.status(config.OK_STATUS).json({
+//                         status: "failed",
+//                         message: "No car data found"
+//                     });
+//                 }
+//             }
+//         });
+//     } else {
+//         res.status(config.BAD_REQUEST).json({
+//             status: 'failed',
+//             message: "Validation Error",
+//             errors
+//         });
+//     }
+// });
+
+
+
+
+
 module.exports = router;

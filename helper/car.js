@@ -438,7 +438,7 @@ carHelper.carBooking_past_history = async (user_id) => {
             }
         ]);
         if (data && data.length > 0) {
-            return { status: 'success', message: "Car booking past history", data: data }
+            return { status: 'success', message: "Car booking past history", data: {past_history: data } }
         }
         else {
             return { status: 'failed', message: "No car book yet", data: data }
@@ -479,7 +479,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
 
         ]);
         if (data && data.length > 0) {
-            return { status: 'success', message: "Car booking upcomming history", data: data }
+            return { status: 'success', message: "Car booking upcomming history", data: {upcoming_history: data } }
         }
         else {
             return { status: 'failed', message: "No car book yet", data: data }
