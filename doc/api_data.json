@@ -2409,7 +2409,6 @@
     "groupTitle": "Admin___Users"
   },
   {
-<<<<<<< HEAD
     "type": "post",
     "url": "/admin/user/list",
     "title": "List of all users",
@@ -2487,8 +2486,6 @@
     "groupTitle": "Admin___Users"
   },
   {
-=======
->>>>>>> 018b20e330fdd1c044d3b6d1c12b2b09b7338ff4
     "type": "post",
     "url": "/app/user/add-address",
     "title": "Add user addresses",
@@ -4775,7 +4772,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/agentApp/car.js",
+    "filename": "controllers/app/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -4908,7 +4905,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/app/car.js",
+    "filename": "controllers/agentApp/car.js",
     "groupTitle": "App___Car"
   },
   {
