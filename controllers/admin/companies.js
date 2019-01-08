@@ -494,14 +494,15 @@ router.post('/list', (req, res, next) => {
 });
 
 /**
- * @api {post} /admin/company/car/rental_list List of all rental of comapines
+ * @api {post} /admin/company/car/rental_list List of all rental of cars
  * @apiName Car Rental List
- * @apiDescription To display company rental list with pagination
+ * @apiDescription To display cars rental list with pagination
  * @apiGroup Admin - Cars
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
  * @apiParam {String} end pagination length no of page length
+ * @apiParam {String} car_id car id of perticular cars
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   

@@ -793,9 +793,9 @@ define({ "api": [
   {
     "type": "post",
     "url": "/admin/company/car/rental_list",
-    "title": "List of all rental of comapines",
+    "title": "List of all rental of cars",
     "name": "Car_Rental_List",
-    "description": "<p>To display company rental list with pagination</p>",
+    "description": "<p>To display cars rental list with pagination</p>",
     "group": "Admin___Cars",
     "version": "0.0.0",
     "parameter": {
@@ -814,6 +814,13 @@ define({ "api": [
             "optional": false,
             "field": "end",
             "description": "<p>pagination length no of page length</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>car id of perticular cars</p>"
           }
         ]
       }
