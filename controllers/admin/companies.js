@@ -574,7 +574,7 @@ router.post('/car/rental_list', (req, res, next) => {
             {
                 $match: {
                     'isDeleted': false,
-                    'userId': new ObjectId(req.body.car_id),
+                    'carId': new ObjectId(req.body.car_id),
                     'to_time': {
                         $lt: new Date(),
                     }
