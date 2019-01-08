@@ -816,6 +816,7 @@ router.post('/checkCarAvailability', async (req, res) => {
  * @apiParam {String} delivery_address Car Delivery Address (eg. 320, regent square surat india)
  * @apiParam {String} delivery_time Car Delivery Time (eg. 7am - 9am)
  * @apiParam {Number} [coupon_code] coupon code (eg. ABCD)
+ * @apiParam {Number} [coupon_percentage] coupon percentage (eg. 10)
  * @apiParam {Number} total_booking_amount Total car booking amount
  * @apiParam {Number} latitude latitude
  * @apiParam {Number} longitude longitude
@@ -895,6 +896,7 @@ router.post('/book', async (req, res) => {
             "delivery_address": req.body.delivery_address, // add field in db as well,
             "delivery_time": req.body.delivery_time, // add field in db as well',
             "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
+            "coupon_percentage": req.body.coupon_percentage ? req.body.coupon_percentage : null,
             "total_booking_amount": req.body.total_booking_amount, // add this field to db
             "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
             "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db

@@ -57,6 +57,9 @@ var BookingSchema = new Schema({
     coupon_code: {
         type:  String,
     },
+    coupon_percentage: {
+        type:  Number,
+    },
     total_booking_amount: {
         type:  Number,
         required : true

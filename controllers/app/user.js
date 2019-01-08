@@ -66,6 +66,44 @@ router.get('/notification_setting/:userId', async (req, res) => {
 });
 
 /**
+ * @api {post} /app/user/remove-notification Remove Notification
+ * @apiName Remove Notification
+ * @apiDescription To Remove Notification
+ * @apiGroup AppUser
+ *
+ * @apiParam {Number}  notification_id notification id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+ // remove notification
+router.post('/remove-notification', async (req, res) => {
+    var schema = {
+        'notification_id': {
+            notEmpty: true,
+            errorMessage: "Please enter notification id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const notificationResp = await userHelper.removeNotification(req.body.notification_id);
+        res.json(notificationResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
+
+
+/**
  * @api {post} /app/user/changeProfile change user profile
  * @apiName Change user profile
  * @apiDescription Used to change first name and last name of user
