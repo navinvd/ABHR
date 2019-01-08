@@ -688,7 +688,7 @@ router.post('/addresses', async (req, res) => {
         var user_id = req.body.user_id;
         var data = await User.find({_id : ObjectId(user_id)});
         if(data && data.length > 0 && data[0].address.length > 0){
-            return res.status(200).json({ status: 'success', message: "Address has been found", data: data[0].address});
+            return res.status(200).json({ status: 'success', message: "Address has been found", data: { addresses : data[0].address} });
         }
         else
         {

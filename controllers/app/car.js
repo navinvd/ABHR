@@ -211,6 +211,7 @@ router.post('/filter', async (req, res) => {
                     car_brand_id: 1,
                     isDeleted: 1,
                     image_name: "$car_gallery.name" ? { $arrayElemAt: ["$car_gallery.name", 0] } : null,
+                    // trip_status: "$carBookingDetails.trip_status", now
                     car_book_from_date: {
                         $dateToString: {
                             date: "$carBookingDetails.from_time",
@@ -384,6 +385,7 @@ router.post('/filter', async (req, res) => {
             }
             defaultQuery.splice(3, 0, searchQuery);
         }
+
         // sorting
         if (typeof req.body.sort_by !== 'undefined') {
             let sort_by = parseInt(req.body.sort_by);
@@ -1101,14 +1103,14 @@ router.post('/check-delivery-radius', async (req, res) => {
 
     if (!errors) {
         let data = {
-            company_id : req.body.car_rental_company_id,
-            latitude : req.body.latitude,
-            longitude : req.body.longitude
+            company_id: req.body.car_rental_company_id,
+            latitude: req.body.latitude,
+            longitude: req.body.longitude
         }
-       let radiusResp = await carHelper.checkRadius(data);
-       res.json(radiusResp);
+        let radiusResp = await carHelper.checkRadius(data);
+        res.json(radiusResp);
     }
-    else{
+    else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
@@ -1116,7 +1118,6 @@ router.post('/check-delivery-radius', async (req, res) => {
         });
     }
 });
-
 
 
 module.exports = router;
