@@ -435,6 +435,11 @@ carHelper.carBooking_past_history = async (user_id) => {
                         $lt: new Date(),
                     }
                 }
+                // $match: {
+                //     'isDeleted': false,
+                //     'userId': new ObjectId(user_id),
+                //     'trip_status': "finished" 
+                // }
             }
         ]);
         if (data && data.length > 0) {
@@ -701,8 +706,8 @@ carHelper.checkRadius = async function (data) {
         let radius = await CarCompany.aggregate([{
             $match: {
                 $and: [
-                    { _id: new ObjectId(data.company_id) }, //0.621371 100 mtr 
-                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 6.213712 / 3963.2] } } }
+                    { _id: new ObjectId(data.company_id) }, //0.621371 1 km  //  6.213712
+                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 0.621371 / 3963.2] } } }
                 ]
             }
         }]

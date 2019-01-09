@@ -143,10 +143,10 @@ router.post('/car-list', async (req, res) => {
         apply_filter = 1
         match_object.push({ 'trip_status': req.body.confirm_rental })
     }
-    else {
-        apply_filter = 1
-        match_object.push({ 'trip_status': 'upcoming' })
-    }
+    // else {
+    //     apply_filter = 1
+    //     match_object.push({ 'trip_status': 'upcoming' })
+    // }
 
     if (req.body.cancellation) { // for cancelled car
         apply_filter = 1
