@@ -26,7 +26,6 @@ var path = require('path');
  * 
  * @apiParam {String} start pagination start page no
  * @apiParam {String} end pagination length no of page length
- * @apiParam {String} car_id car id of perticular cars
  * 
  * @apiHeader {String}  Content-Type application/json   
  * @apiHeader {String}  x-access-token Admin unique access-key  
