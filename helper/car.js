@@ -428,17 +428,64 @@ carHelper.carBooking_past_history = async (user_id) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_details.car_model_id',
+                    as: 'model_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$model_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_details.car_brand_id',
+                    as: 'brand_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brand_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $addFields: {
+                    "car_details.car_brand": "$brand_details.brand_name",
+                    "car_details.car_model": "$model_details.model_name",
+                    "car_details.car_model_number": "$model_details.model_number",
+                    "car_details.car_model_release_year": "$model_details.release_year"
+                }
+            },
+            {
+                // $match: {
+                //     'isDeleted': false,
+                //     'userId': new ObjectId('5c2461eea3e4c014baafb01f'),
+                //     'from_time': {
+                //         $lt: new Date(),
+                //     }
+                // }
                 $match: {
                     'isDeleted': false,
                     'userId': new ObjectId(user_id),
-                    'from_time': {
-                        $lt: new Date(),
-                    }
+                    'trip_status': "finished"
                 }
             }
         ]);
         if (data && data.length > 0) {
-            return { status: 'success', message: "Car booking past history", data: {past_history: data } }
+
+                // console.log('DATA=>',data);
+
+                // var dataa = data.map((d)=>{
+                //     return delete d['model_details'];
+                // })
+            return { status: 'success', message: "Car booking past history", data: { past_history: data } }
         }
         else {
             return { status: 'failed', message: "No car book yet", data: data }
@@ -468,18 +515,59 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_details.car_model_id',
+                    as: 'model_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$model_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_details.car_brand_id',
+                    as: 'brand_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brand_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $addFields: {
+                    "car_details.car_brand": "$brand_details.brand_name",
+                    "car_details.car_model": "$model_details.model_name",
+                    "car_details.car_model_number": "$model_details.model_number",
+                    "car_details.car_model_release_year": "$model_details.release_year"
+                }
+            },
+            {
+                // $match: {
+                //     'isDeleted': false,
+                //     'userId': new ObjectId(user_id),
+                //     'from_time': {
+                //         $gte: new Date(),
+                //     }
+                // }
                 $match: {
                     'isDeleted': false,
                     'userId': new ObjectId(user_id),
-                    'from_time': {
-                        $gte: new Date(),
-                    }
+                    'trip_status': "upcoming"
                 }
             }
 
         ]);
         if (data && data.length > 0) {
-            return { status: 'success', message: "Car booking upcomming history", data: {upcoming_history: data } }
+            return { status: 'success', message: "Car booking upcomming history", data: { upcoming_history: data } }
         }
         else {
             return { status: 'failed', message: "No car book yet", data: data }
@@ -701,8 +789,8 @@ carHelper.checkRadius = async function (data) {
         let radius = await CarCompany.aggregate([{
             $match: {
                 $and: [
-                    { _id: new ObjectId(data.company_id) }, //0.621371 100 mtr 
-                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 6.213712 / 3963.2] } } }
+                    { _id: new ObjectId(data.company_id) }, //0.621371 1 km  //  6.213712
+                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 0.621371 / 3963.2] } } }
                 ]
             }
         }]
@@ -799,14 +887,14 @@ carHelper.car_handover = async (req, car_handover_data) => {
                         let data = await car_hand_over.save();
 
                         // after car handnover we need to change car booking status to -> in-progress
-                        let booking_number =  {booking_number : car_hand_over_data.booking_number}; 
-                        let trip_status  = { $set: {trip_status : 'inprogress'} };
-                     
-                        await CarBooking.updateOne(booking_number,trip_status);
+                        let booking_number = { booking_number: car_hand_over_data.booking_number };
+                        let trip_status = { $set: { trip_status: 'inprogress' } };
+
+                        await CarBooking.updateOne(booking_number, trip_status);
 
                         return { status: "success", message: "Car hand over successfully" };
                     }
-                    else{
+                    else {
                         return { status: "failed", message: "Error accured while uplaod signature" };
                     }
                 }
