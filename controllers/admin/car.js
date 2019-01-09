@@ -106,30 +106,19 @@ router.post('/report_list', async (req, res, next) => {
                   "totalrent": {"$sum": "$booking_rent"},
                 }
             },
-        //     {
-        //     $group : {
-        //        _id : '$carId',
-        //        no_of_rented: { $sum: 1},
-        //        data:{$push:'$$ROOT'},
-        //        totalrent: {"$sum": "$booking_rent"},
-        //     }
-        //   },
-        //   {
-        //     $unwind:'$data'
-        //   },
-        //   {
-        //       $project:{
-        //           no_of_rented:1,
-        //           car_details:'$data.car_details.car_color',
-        //           car_model: '$data.car_model.model_name',
-        //           car_brand: '$data.car_brand.brand_name',
-        //           company_name: '$data.car_compnay.name',
-        //           totalrent:1
-        //           }
-        //   }];
-          ];
+          {
+              $project:{
+                  _id:1,
+                  no_of_rented:1,
+                  company_name:1,
+                  car_modal : 1,
+                  car_brand: 1,
+                  isDeleted : 1,
+                  totalrent: 1,
+                  }
+          }];
           var totalrecords = await CarBooking.aggregate(defaultQuery);
-          console.log('req.body.search==>', typeof req.body.search.value);
+          console.log('req.body.search==>', req.body.search.value);
             if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length >0 && req.body.search.value !== '') {
                 if(req.body.search.value != undefined){
                     var regex = new RegExp(req.body.search.value);
@@ -138,6 +127,7 @@ router.post('/report_list', async (req, res, next) => {
                         if (obj.name) {
                             var json = {};
                             if (obj.isNumber) {
+                                console.log(typeof parseInt(req.body.search.value));
                                 json[obj.name] = parseInt(req.body.search.value)
                             } else {
                                 json[obj.name] = {
@@ -153,7 +143,7 @@ router.post('/report_list', async (req, res, next) => {
                 var searchQuery = {
                     $match: match
                 }
-                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                defaultQuery.push(searchQuery);
                 console.log("==>", JSON.stringify(defaultQuery));
             }
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {

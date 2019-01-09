@@ -654,6 +654,17 @@ router.post('/report_list', async (req, res, next) => {
                   "isDeleted" : {$first:"$car_details.isDeleted"},
                   "totalrent": {"$sum": "$booking_rent"},
                 }
+            },
+            {
+                $project:{
+                    _id:1,
+                    no_of_rented:1,
+                    company_name:1,
+                    car_modal : 1,
+                    car_brand: 1,
+                    isDeleted : 1,
+                    totalrent: 1,
+                    }
             }
         //     {
         //     $group : {
@@ -701,7 +712,7 @@ router.post('/report_list', async (req, res, next) => {
                 var searchQuery = {
                     $match: match
                 }
-                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                defaultQuery.push(searchQuery);
                 console.log("==>", JSON.stringify(defaultQuery));
             }
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
