@@ -34,7 +34,7 @@ var path = require('path');
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/report_list', (req, res, next) => {
+router.post('/report_list', async (req, res, next) => {
     console.log('here');
     var schema = {
         'start': {
@@ -122,32 +122,33 @@ router.post('/report_list', (req, res, next) => {
                   totalrent:1
                   }
           }];
-            // if (req.body.search != undefined) {
-            //     if(req.body.search.value != undefined){
-            //         var regex = new RegExp(req.body.search.value);
-            //         var match = {$or: []};
-            //         req.body['columns'].forEach(function (obj) {
-            //             if (obj.name) {
-            //                 var json = {};
-            //                 if (obj.isNumber) {
-            //                     json[obj.name] = parseInt(req.body.search.value)
-            //                 } else {
-            //                     json[obj.name] = {
-            //                         "$regex": regex,
-            //                         "$options": "i"
-            //                     }
-            //                 }
-            //                 match['$or'].push(json)
-            //             }
-            //         });
-            //     }
-            //     console.log('re.body.search==>', req.body.search.value);
-            //     var searchQuery = {
-            //         $match: match
-            //     }
-            //     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-            //     console.log("==>", JSON.stringify(defaultQuery));
-            // }
+          var totalrecords = await CarBooking.aggregate(defaultQuery);
+            if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
+                if(req.body.search.value != undefined){
+                    var regex = new RegExp(req.body.search.value);
+                    var match = {$or: []};
+                    req.body['columns'].forEach(function (obj) {
+                        if (obj.name) {
+                            var json = {};
+                            if (obj.isNumber) {
+                                json[obj.name] = parseInt(req.body.search.value)
+                            } else {
+                                json[obj.name] = {
+                                    "$regex": regex,
+                                    "$options": "i"
+                                }
+                            }
+                            match['$or'].push(json)
+                        }
+                    });
+                }
+                console.log('re.body.search==>', req.body.search.value);
+                var searchQuery = {
+                    $match: match
+                }
+                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                console.log("==>", JSON.stringify(defaultQuery));
+            }
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
@@ -194,14 +195,14 @@ router.post('/report_list', (req, res, next) => {
                 })
             }
             console.log('defaultQuery===>',JSON.stringify(defaultQuery));
-        CarBooking.aggregate(defaultQuery, function (err, data) {
+            CarBooking.aggregate(defaultQuery, function (err, data) {
             console.log('data===>',data);
             if (err) {
                 return next(err);
             } else {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data
+                    result: {data: data, recordsTotal: totalrecords.length}
                 });
             }
         })
