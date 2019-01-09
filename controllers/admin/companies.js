@@ -560,7 +560,7 @@ router.post('/car/rental_list', (req, res, next) => {
             {
                 $lookup: {
                     from: 'car_brand',
-                    localField: 'car_details.car_model_id',
+                    localField: 'car_details.car_brand_id',
                     foreignField: '_id',
                     as: 'car_brand'
                 }
@@ -674,6 +674,7 @@ router.post('/car/rental_list', (req, res, next) => {
             if (err) {
                 return next(err);
             } else {
+                console.log(data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
                     result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
