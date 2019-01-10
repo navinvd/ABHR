@@ -162,7 +162,7 @@ carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 
 
             return { status: 'success', message: "Car data found", data: { cars: cars } }
         } else {
-            return { status: 'failure', message: "No car data found" }
+            return { status: 'failed', message: "No car data found" }
         }
     } catch (err) {
         console.log("Err : ", err);

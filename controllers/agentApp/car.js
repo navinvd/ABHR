@@ -207,7 +207,7 @@ router.post('/car-list', async (req, res) => {
                 });
             }
             else {
-                res.status(config.OK_STATUS).json({
+                res.status(config.BAD_REQUEST).json({
                     status: "failed",
                     message: "No car data found"
                 });
@@ -397,7 +397,7 @@ router.post('/booking-details', async (req, res) => {
                     });
                 }
                 else {
-                    res.status(config.OK_STATUS).json({
+                    res.status(config.BAD_REQUEST).json({
                         status: "failed",
                         message: "No car booking details found"
                     });
@@ -468,7 +468,15 @@ router.post('/handover', async (req, res) => {
 
         const carHandOverResp = await CarHelper.car_handover(req, hand_over_data);
         console.log('RESP=>',carHandOverResp);
-        res.json(carHandOverResp);
+
+
+        if(carHandOverResp.status === 'success'){
+            res.status(config.OK_STATUS).json(carHandOverResp)
+        }
+        else{
+            res.status(config.BAD_REQUEST).json(carHandOverResp)
+        }
+        // res.json(carHandOverResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',

@@ -36,14 +36,14 @@ router.post('/notifications', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         const notificationResp = await userHelper.getAllNotifications(new ObjectId(req.body.user_id));
-       if(notificationResp.status === 'success'){
+        if (notificationResp.status === 'success') {
             res.status(config.OK_STATUS).json(notificationResp);
-       } 
-       else{
+        }
+        else {
             res.status(config.BAD_REQUEST).json(notificationResp);
-       }
+        }
 
-    } else{
+    } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "userId required",
@@ -67,10 +67,10 @@ router.post('/notifications', async (req, res) => {
  */
 router.get('/notification_setting/:userId', async (req, res) => {
     var userId = req.params.userId;
-    if (userId && (typeof userId != undefined && userId !=null)) {
+    if (userId && (typeof userId != undefined && userId != null)) {
         const notificationResp = await userHelper.getUsernotificationSettingData(new ObjectId(req.params.userId));
         res.json(notificationResp);
-    } else{
+    } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "userId required",
@@ -93,7 +93,7 @@ router.get('/notification_setting/:userId', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 
- // remove notification
+// remove notification
 router.post('/remove-notification', async (req, res) => {
     var schema = {
         'notification_id': {
@@ -105,7 +105,14 @@ router.post('/remove-notification', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         const notificationResp = await userHelper.removeNotification(req.body.notification_id);
-        res.json(notificationResp);
+
+        if (notificationResp.status === 'success') {
+            res.status(config.OK_STATUS).json(notificationResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(notificationResp);
+        }
+        // res.json(notificationResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -153,15 +160,23 @@ router.post('/changeProfile', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         var data = {}
-        if(req.body.first_name){
+        if (req.body.first_name) {
             data.first_name = req.body.first_name
         }
-        if(req.body.last_name){
+        if (req.body.last_name) {
             data.last_name = req.body.last_name
         }
 
         const profileResp = await userHelper.changeProfile(req.body.user_id, data);
-        res.json(profileResp);
+
+        if (profileResp.status === 'success') {
+            res.status(config.OK_STATUS).json(profileResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(profileResp);
+        }
+
+        // res.json(profileResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -213,11 +228,11 @@ router.post('/sendEmail', async (req, res) => {
             otp: Math.floor(100000 + Math.random() * 900000)
         }
         let mail_resp = await mail_helper.sendEmail("email_verification", options, data, user_id);
-        if(mail_resp.status === 'success'){
-            res.json({ status: 'success', message: "Otp has been sent to your email address", data : data.otp})
+        if (mail_resp.status === 'success') {
+            res.status(config.OK_STATUS).json({ status: 'success', message: "Otp has been sent to your email address", data: data.otp })
         }
-        else{
-            res.json({ status: 'failed', message: "Error accures while sending email to you"})
+        else {
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accures while sending email to you" })
         }
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -266,7 +281,16 @@ router.post('/verifyOTP', async (req, res) => {
             otp: parseInt(req.body.otp)
         }
         const verifyOtpResp = await userHelper.verifyOTP(data);
-        res.json(verifyOtpResp);
+        
+        
+        if (verifyOtpResp.status === 'success') {
+            res.status(config.OK_STATUS).json(verifyOtpResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(verifyOtpResp);
+        }
+
+        // res.json(verifyOtpResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -313,12 +337,18 @@ router.post('/changePassword', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         var data = {
-            "user_id" : req.body.user_id,
-            "old_password" : req.body.old_password,
-            "new_password" : req.body.new_password
+            "user_id": req.body.user_id,
+            "old_password": req.body.old_password,
+            "new_password": req.body.new_password
         }
         const changePasswordResp = await userHelper.changePassword(data);
-        res.json(changePasswordResp);
+        if (changePasswordResp.status === 'success') {
+            res.status(config.OK_STATUS).json(changePasswordResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(changePasswordResp);
+        }
+        // res.json(changePasswordResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -344,7 +374,7 @@ router.post('/changePassword', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 
-router.post('/idDataUpdate',(req, res, next) => {
+router.post('/idDataUpdate', (req, res, next) => {
     var schema = {
         'user_id': {
             notEmpty: true,
@@ -358,15 +388,15 @@ router.post('/idDataUpdate',(req, res, next) => {
         if (req.files) {
             console.log('here');
             const updateData = {
-                    front_image: '',
-                    back_image: '',
-                    type: '0',
-                }
+                front_image: '',
+                back_image: '',
+                type: '0',
+            }
             var mimetype = config.mimetypes;
-            if((mimetype.indexOf(req.files['front_image'].mimetype) != -1) && (mimetype.indexOf(req.files['back_image'].mimetype) != -1)){
+            if ((mimetype.indexOf(req.files['front_image'].mimetype) != -1) && (mimetype.indexOf(req.files['back_image'].mimetype) != -1)) {
                 async.waterfall([
                     function (callback) {
-                        if(req.files['front_image']){
+                        if (req.files['front_image']) {
                             var file = req.files.front_image;
                             var dir = "./upload/user/id_images";
                             extention = path.extname(file.name);
@@ -380,12 +410,12 @@ router.post('/idDataUpdate',(req, res, next) => {
                                     callback(null, frontfilename);
                                 }
                             });
-                        }else{
+                        } else {
                             callback(null);
                         }
                     },
                     function (frontfilename, callback) {
-                        if(req.files['back_image']){
+                        if (req.files['back_image']) {
                             var file = req.files.back_image;
                             var dir = "./upload/user/id_images";
                             extention = path.extname(file.name);
@@ -398,12 +428,12 @@ router.post('/idDataUpdate',(req, res, next) => {
                                     callback(null, backfilename);
                                 }
                             });
-                        }else{
+                        } else {
                             callback(null);
                         }
                     },
                     function (frontfilename, callback) {
-                        User.update({_id: {$eq: new ObjectId(req.body.user_id)}}, {$set: { id_card: updateData, id_card_verification: 1}}, function (err, response) {
+                        User.update({ _id: { $eq: new ObjectId(req.body.user_id) } }, { $set: { id_card: updateData, id_card_verification: 1 } }, function (err, response) {
                             if (err) {
                                 return next(err);
                             } else {
@@ -419,12 +449,12 @@ router.post('/idDataUpdate',(req, res, next) => {
                         res.status(config.OK_STATUS).json({
                             status: 'success',
                             message: "Image uploaded successfully",
-                            data : result
+                            data: result
                         });
                     }
                 });
-            } 
-            else{
+            }
+            else {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',
                     message: "Please select appropriate file format",
@@ -465,13 +495,13 @@ router.post('/idDataUpdate',(req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/licenceDataUpdate',(req, res, next) => {
+router.post('/licenceDataUpdate', (req, res, next) => {
     var schema = {
         'user_id': {
             notEmpty: true,
             errorMessage: "Please enter user id"
         },
-       
+
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
@@ -480,18 +510,18 @@ router.post('/licenceDataUpdate',(req, res, next) => {
         if (req.files) {
             console.log('here');
             const updateData = {
-                    front_image: '',
-                    back_image: '',
-                    number: req.body.licence_no,
-                    country: req.body.country,
-                    issue_date: req.body.issue_date,
-                    expiry_date: req.body.expiry_date
-                }
-                var mimetype = config.mimetypes;
-            if((mimetype.indexOf(req.files['front_image'].mimetype) != -1) && (mimetype.indexOf(req.files['back_image'].mimetype) != -1)){
+                front_image: '',
+                back_image: '',
+                number: req.body.licence_no,
+                country: req.body.country,
+                issue_date: req.body.issue_date,
+                expiry_date: req.body.expiry_date
+            }
+            var mimetype = config.mimetypes;
+            if ((mimetype.indexOf(req.files['front_image'].mimetype) != -1) && (mimetype.indexOf(req.files['back_image'].mimetype) != -1)) {
                 async.waterfall([
                     function (callback) {
-                        if(req.files['front_image']){
+                        if (req.files['front_image']) {
                             var file = req.files.front_image;
                             var dir = "./upload/user/licence";
                             extention = path.extname(file.name);
@@ -505,12 +535,12 @@ router.post('/licenceDataUpdate',(req, res, next) => {
                                     callback(null, frontfilename);
                                 }
                             });
-                        }else{
+                        } else {
                             callback(null);
                         }
                     },
                     function (frontfilename, callback) {
-                        if(req.files['back_image']){
+                        if (req.files['back_image']) {
                             var file = req.files.back_image;
                             var dir = "./upload/user/licence";
                             extention = path.extname(file.name);
@@ -523,12 +553,12 @@ router.post('/licenceDataUpdate',(req, res, next) => {
                                     callback(null, backfilename);
                                 }
                             });
-                        }else{
+                        } else {
                             callback(null);
                         }
                     },
                     function (frontfilename, callback) {
-                        User.update({_id: {$eq: new ObjectId(req.body.user_id)}}, {$set: { driving_license: updateData, driving_license_verification: 1}}, function (err, response) {
+                        User.update({ _id: { $eq: new ObjectId(req.body.user_id) } }, { $set: { driving_license: updateData, driving_license_verification: 1 } }, function (err, response) {
                             if (err) {
                                 return next(err);
                             } else {
@@ -544,13 +574,13 @@ router.post('/licenceDataUpdate',(req, res, next) => {
                         res.status(config.OK_STATUS).json({
                             status: 'success',
                             message: "Image uploaded successfully",
-                            data : result,
+                            data: result,
                             files: req.files
                         });
                     }
                 });
-            } 
-            else{
+            }
+            else {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',
                     message: "Please select appropriate file format",
@@ -587,14 +617,14 @@ router.post('/licenceDataUpdate',(req, res, next) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.get('/verification_details/:id', function (req, res, next) {
-    User.findOne({_id: new ObjectId(req.params.id), "isDeleted" : false, "type": "user"},{"phone_number_verified":1 , "email_verified": 1, "driving_license_verification": 1, "id_card_verification": 1, "id_card":1, "driving_license":1}, function (err, data) {
+    User.findOne({ _id: new ObjectId(req.params.id), "isDeleted": false, "type": "user" }, { "phone_number_verified": 1, "email_verified": 1, "driving_license_verification": 1, "id_card_verification": 1, "id_card": 1, "driving_license": 1 }, function (err, data) {
         if (err) {
             return next(err);
         } else {
             res.status(config.OK_STATUS).json({
                 status: "success",
                 message: "user Details data Found",
-                data: {user: data},
+                data: { user: data },
             });
         }
     });
@@ -659,7 +689,14 @@ router.post('/add-address', async (req, res) => {
             'longitude': req.body.longitude ? req.body.longitude : null,
         }
         const addressResp = await userHelper.addAddress(user_id, address_data);
-        res.json(addressResp);
+        if (addressResp.status === 'success') {
+            res.status(config.OK_STATUS).json(addressResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(addressResp);
+        }
+
+        // res.json(addressResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -699,13 +736,12 @@ router.post('/addresses', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         var user_id = req.body.user_id;
-        var data = await User.find({_id : ObjectId(user_id)});
-        if(data && data.length > 0 && data[0].address.length > 0){
-            return res.status(config.OK_STATUS).json({ status: 'success', message: "Address has been found", data: { addresses : data[0].address} });
+        var data = await User.find({ _id: ObjectId(user_id) });
+        if (data && data.length > 0 && data[0].address.length > 0) {
+            return res.status(config.OK_STATUS).json({ status: 'success', message: "Address has been found", data: { addresses: data[0].address } });
         }
-        else
-        {
-            return res.status(config.BAD_REQUEST).json({ status: 'failed', message: "No Address for this user"});
+        else {
+            return res.status(config.BAD_REQUEST).json({ status: 'failed', message: "No Address for this user" });
         }
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -747,15 +783,15 @@ router.post('/addresses/delete', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-    
+
         var user_id = req.body.user_id;
         var address_ids = req.body.address_id;
-        const addressResp = await userHelper.deleteAddress(user_id,address_ids);
+        const addressResp = await userHelper.deleteAddress(user_id, address_ids);
 
-        if(addressResp.status === 'success'){
+        if (addressResp.status === 'success') {
             res.status(config.OK_STATUS).json(addressResp);
         }
-        else{
+        else {
             res.status(config.BAD_REQUEST).json(addressResp);
         }
     } else {
@@ -799,9 +835,9 @@ router.post('/addresses/update', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter user id"
         },
-        'address_id':{
-            notEmpty : true,
-            errorMessage : "Please enter address id"
+        'address_id': {
+            notEmpty: true,
+            errorMessage: "Please enter address id"
         }
     };
     req.checkBody(schema);
@@ -811,37 +847,37 @@ router.post('/addresses/update', async (req, res) => {
         var address_id = req.body.address_id;
         var address_data = {};
 
-        if(req.body.country){
+        if (req.body.country) {
             address_data.country = req.body.country;
         }
-        if(req.body.state){
+        if (req.body.state) {
             address_data.state = req.body.state;
         }
-        if(req.body.city){
+        if (req.body.city) {
             address_data.city = req.body.city;
         }
-        if(req.body.street){
+        if (req.body.street) {
             address_data.street = req.body.street;
         }
-        if(req.body.building){
+        if (req.body.building) {
             address_data.building = req.body.building;
         }
-        if(req.body.landmark){
+        if (req.body.landmark) {
             address_data.landmark = req.body.landmark;
         }
-        if(req.body.latitude){
+        if (req.body.latitude) {
             address_data.latitude = req.body.latitude;
         }
-        if(req.body.longitude){
+        if (req.body.longitude) {
             address_data.longitude = req.body.longitude;
         }
 
         const addressResp = await userHelper.updateAddress(user_id, address_id, address_data);
 
-        if(addressResp.status === 'success'){
+        if (addressResp.status === 'success') {
             res.status(config.OK_STATUS).json(addressResp);
         }
-        else{
+        else {
             res.status(config.BAD_REQUEST).json(addressResp);
         }
     } else {

@@ -51,7 +51,14 @@ router.post('/list', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         const carResp = await carHelper.getAvailableCar(req.body.fromDate, req.body.days);
-        res.json(carResp);
+
+        if (carResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carResp);
+        }
+        // res.json(carResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -86,7 +93,13 @@ router.post('/details', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
-        res.json(carResp);
+        if (carResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carResp);
+        }
+        // res.json(carResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -440,7 +453,7 @@ router.post('/filter', async (req, res) => {
                     });
                 }
                 else {
-                    res.status(config.OK_STATUS).json({
+                    res.status(config.BAD_REQUEST).json({
                         status: "failed",
                         message: "No car data found"
                     });
@@ -471,7 +484,13 @@ router.post('/filter', async (req, res) => {
  */
 router.get('/brandlist', async (req, res) => {
     const Resp = await carHelper.getBrandList();
-    res.json(Resp);
+    if (Resp.status === 'success') {
+        res.status(config.OK_STATUS).json(Resp);
+    }
+    else {
+        res.status(config.BAD_REQUEST).json(Resp);
+    }
+    // res.json(Resp);
 });
 
 /**
@@ -504,7 +523,13 @@ router.post('/modelList', async (req, res) => {
             brandArray.push(myObjectId);
         });
         const Resp = await carHelper.getModelList(brandArray);
-        res.json(Resp);
+        if (Resp.status === 'success') {
+            res.status(config.OK_STATUS).json(Resp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(Resp);
+        }
+        // res.json(Resp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -627,7 +652,13 @@ router.post('/add-review', async (req, res) => {
             'review_text': req.body.review_text ? req.body.review_text : ''
         }
         const carReviewResp = await carHelper.addReview(review_data);
-        res.json(carReviewResp);
+        if (carReviewResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carReviewResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carReviewResp);
+        }
+        // res.json(carReviewResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -664,7 +695,14 @@ router.post('/review', async (req, res) => {
         data.user_id = req.body.user_id;
     }
     const carReviewResp = await carHelper.getCarReviews(data);
-    res.json(carReviewResp);
+    if (carReviewResp.status === 'success') {
+        res.status(config.OK_STATUS).json(carReviewResp);
+    }
+    else {
+        res.status(config.BAD_REQUEST).json(carReviewResp);
+    }
+    
+    // res.json(carReviewResp);
 });
 
 
@@ -696,7 +734,14 @@ router.post('/sort', async (req, res) => {
     if (!errors) {
         var sort_by = parseInt(req.body.sort_by);
         const carSortingResp = await carHelper.carSorting(sort_by);
-        res.json(carSortingResp);
+        if (carSortingResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carSortingResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carSortingResp);
+        }
+        
+        // res.json(carSortingResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -724,7 +769,13 @@ router.post('/sort', async (req, res) => {
 router.post('/booking/past-history', async (req, res) => {
     // login user id will be pass here for now i am passing it from body
     const carHistoryResp = await carHelper.carBooking_past_history(req.body.user_id);
-    res.json(carHistoryResp);
+    if (carHistoryResp.status === 'success') {
+        res.status(config.OK_STATUS).json(carHistoryResp);
+    }
+    else {
+        res.status(config.BAD_REQUEST).json(carHistoryResp);
+    }
+    // res.json(carHistoryResp);
 });
 
 /**
@@ -744,7 +795,13 @@ router.post('/booking/past-history', async (req, res) => {
  */
 router.post('/booking/upcoming-history', async (req, res) => {
     const carHistoryResp = await carHelper.carBooking_upcomming_history(req.body.user_id);
-    res.json(carHistoryResp);
+    if (carHistoryResp.status === 'success') {
+        res.status(config.OK_STATUS).json(carHistoryResp);
+    }
+    else {
+        res.status(config.BAD_REQUEST).json(carHistoryResp);
+    }
+    // res.json(carHistoryResp);
 });
 
 /**
@@ -794,7 +851,13 @@ router.post('/checkCarAvailability', async (req, res) => {
         let fromDate = req.body.fromDate;
         let days = req.body.days;
         const carResp = await carHelper.checkCarAvaibility(car_id, fromDate, days);
-        res.json(carResp);
+        if (carResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carResp);
+        }
+        // res.json(carResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -906,7 +969,13 @@ router.post('/book', async (req, res) => {
         }
         const bookingResp = await carHelper.carBook(data);
 
-        res.json(bookingResp);
+        if (bookingResp.status === 'success') {
+            res.status(config.OK_STATUS).json(bookingResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(bookingResp);
+        }
+        // res.json(bookingResp);
 
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -974,7 +1043,13 @@ router.post('/cancel-booking', async (req, res) => {
         }
         const cancelBookingResp = await carHelper.cancelBooking(data);
 
-        res.json(cancelBookingResp);
+        if (cancelBookingResp.status === 'success') {
+            res.status(config.OK_STATUS).json(cancelBookingResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(cancelBookingResp);
+        }
+        // res.json(cancelBookingResp);
 
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -1044,7 +1119,14 @@ router.post('/service-availability', async (req, res) => {
 
             const serviceResp = await carHelper.Check_Service_Availibility(data);
 
-            res.json(serviceResp);
+            if (serviceResp.status === 'success') {
+                res.status(config.OK_STATUS).json(serviceResp);
+            }
+            else {
+                res.status(config.BAD_REQUEST).json(serviceResp);
+            }
+
+            // res.json(serviceResp);
             // res.json('ok');
 
         } else {
@@ -1108,7 +1190,14 @@ router.post('/check-delivery-radius', async (req, res) => {
             longitude: req.body.longitude
         }
         let radiusResp = await carHelper.checkRadius(data);
-        res.json(radiusResp);
+        
+        if (radiusResp.status === 'success') {
+            res.status(config.OK_STATUS).json(radiusResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(radiusResp);
+        }
+        // res.json(radiusResp);
     }
     else {
         res.status(config.BAD_REQUEST).json({
@@ -1466,7 +1555,7 @@ router.post('/filter2', async (req, res) => {
                     });
                 }
                 else {
-                    res.status(config.OK_STATUS).json({
+                    res.status(config.BAD_REQUEST).json({
                         status: "failed",
                         message: "No car data found"
                     });

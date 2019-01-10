@@ -48,7 +48,14 @@ router.post('/sendOTP', async (req, res) => {
             country_code: parseInt(req.body.country_code),
         }
         const sendOtpResp = await smsHelper.sendOTP(data);
-        res.json(sendOtpResp);
+
+        if(sendOtpResp.status === 'success'){
+            res.status(config.OK_STATUS).res(sendOtpResp);
+        }
+        else{
+            res.status(config.BAD_REQUEST).res(sendOtpResp);
+        }
+        // res.json(sendOtpResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -105,7 +112,14 @@ router.post('/verifyOTP', async (req, res) => {
             otp: parseInt(req.body.otp)
         }
         const verifyOtpResp = await smsHelper.verifyOTP(data);
-        res.json(verifyOtpResp);
+
+        if(verifyOtpResp.status === 'success'){
+            res.status(config.OK_STATUS).res(verifyOtpResp);
+        }
+        else{
+            res.status(config.BAD_REQUEST).res(verifyOtpResp);
+        }
+        // res.json(verifyOtpResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',

@@ -95,15 +95,15 @@ router.post('/report_list', async (req, res, next) => {
             {
                 $unwind: '$car_brand'
             }];
-            if (req.body.date) {
-                var date = moment(req.body.date).utc();
-                defaultQuery.push({
-                    $match: {
-                        'from_time': { $lte: new Date(date) },
-                        'to_time': { $gte: new Date(date) }
-                    },
-                })
-            }
+        if (req.body.date) {
+            var date = moment(req.body.date).utc();
+            defaultQuery.push({
+                $match: {
+                    'from_time': { $lte: new Date(date) },
+                    'to_time': { $gte: new Date(date) }
+                },
+            })
+        }
         defaultQuery.push({
             $group: {
                 "_id": "$carId",
