@@ -432,7 +432,7 @@ router.post('/filter', async (req, res) => {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: "failed",
-                    message: "error in fetching data",
+                    message: "Oops, no car found. Please try again.",
                     err
                 });
             } else {
@@ -442,6 +442,9 @@ router.post('/filter', async (req, res) => {
                 if (data && data.length > 0) {
                     cars = data.map((c) => {
                         c.car["total_avg_rating"] = c.total_avg_rating;
+                        if(c.car['image_name'] === undefined){
+                            c.car['image_name'] = null
+                        }
                         delete c.car.reviews;
                         return c.car;
                     })
@@ -1534,7 +1537,7 @@ router.post('/filter2', async (req, res) => {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: "failed",
-                    message: "error in fetching data",
+                    message: "Oops, no car found. Please try again.",
                     err
                 });
             } else {

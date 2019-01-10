@@ -280,7 +280,13 @@ carHelper.getcarDetailbyId = async (car_id) => {
             var cars = carDetail.map((c) => {
                 c.car["total_avg_rating"] = c.total_avg_rating;
                 // c.car["car_rental_company_name"] = c.car_rental_company_name;
-
+                if (c.car['image_name'] === undefined) {
+                    c.car['image_name'] = null
+                }
+                if (c.car['car_gallery'] === undefined) {
+                    c.car['car_gallery'] = []
+                }
+                
                 delete c.car.reviews;
                 return c.car;
             })
@@ -480,11 +486,11 @@ carHelper.carBooking_past_history = async (user_id) => {
         ]);
         if (data && data.length > 0) {
 
-                // console.log('DATA=>',data);
+            // console.log('DATA=>',data);
 
-                // var dataa = data.map((d)=>{
-                //     return delete d['model_details'];
-                // })
+            // var dataa = data.map((d)=>{
+            //     return delete d['model_details'];
+            // })
             return { status: 'success', message: "Car booking past history", data: { past_history: data } }
         }
         else {
