@@ -1403,48 +1403,13 @@ router.post('/filter2', async (req, res) => {
         // filter using lat - long
 
         if (req.body.location) { // pass like location : [lat,long]
-            // car company agreegate
-            // $match: {
-            //     $and: [
-            //         { _id: new ObjectId(data.company_id) }, //0.621371 100 mtr 
-            //         { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 6.213712 / 3963.2] } } }
-            //     ]
-            // }
-
-            // and: [
-            //     { "$companyDetails.service_location": { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 6.213712 / 3963.2] } } }
-            // ]
-
-            // $match: {
-            //     "companyDetails.service_location": { $geoWithin: { $centerSphere: [[72.831062, 21.17024], 1 / 1] } }
-            // }
-
             var searchQuery = {
-             
                  $match: {
-
                     "companyDetails.service_location":  // 124.274 -> 200 km // 0.621371 -> 1 km
-                            { $geoWithin: { $centerSphere: [[72.831062, 21.17024], 124.274 / 3963.2] } }  
+                        { $geoWithin: { $centerSphere: [[72.831062, 21.17024], 124.274 / 3963.2] } }  
                 }
-
-
-
-                // $match: {
-
-                //     "companyDetails.service_location": {
-                //         $near: {
-                //             $geometry: {
-                //                 type: "Point",
-                //                 coordinates: [72.831062, 21.17024]
-                //             },
-                //             $maxDistance: 100,
-                //             $minDistance: 1000
-                //         }
-                //     }
-                // }
             }
             defaultQuery.splice(9, 0, searchQuery);
-
         }
 
         // sorting

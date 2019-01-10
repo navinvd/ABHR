@@ -26,7 +26,7 @@ userHelper.getAllNotifications = async function (userId) {
             return { status: 'failed', message: "No notification available" };
         }
     } catch (err) {
-        return { status: 'failed', message: "Error occured while finding car", err };
+        return { status: 'failed', message: "Error occured while finding notifications", err };
     }
 };
 

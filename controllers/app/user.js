@@ -12,12 +12,12 @@ var User = require('./../../models/users');
 var async = require("async");
 
 /**
- * @api {get} /app/user/notifications/:userId List of notifications for perticular user
+ * @api {Post} /app/user/notifications List of notifications for perticular user
  * @apiName Car Notificationlist
  * @apiDescription To Display notification list
  * @apiGroup AppUser
  *
- * @apiParam {Array}  userId userId
+ * @apiParam {String}  user_id user id
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -25,11 +25,24 @@ var async = require("async");
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.get('/notifications/:userId', async (req, res) => {
-    var userId = req.params.userId;
-    if (userId && (typeof userId != undefined && userId !=null)) {
-        const notificationResp = await userHelper.getAllNotifications(new ObjectId(req.params.userId));
-        res.json(notificationResp);
+router.post('/notifications', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const notificationResp = await userHelper.getAllNotifications(new ObjectId(req.body.user_id));
+       if(notificationResp.status === 'success'){
+            res.status(config.OK_STATUS).json(notificationResp);
+       } 
+       else{
+            res.status(config.BAD_REQUEST).json(notificationResp);
+       }
+
     } else{
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
