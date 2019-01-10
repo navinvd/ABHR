@@ -50,6 +50,11 @@ router.post('/report_list', async (req, res, next) => {
     if (!errors) {
         var defaultQuery = [
             {
+                $match: {
+                    "isDeleted": false
+                },
+            },
+            {
                 $lookup: {
                     from: 'cars',
                     localField: 'carId',
@@ -128,7 +133,7 @@ router.post('/report_list', async (req, res, next) => {
             });
         var totalrecords = await CarBooking.aggregate(defaultQuery);
 
-        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0) {
+        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
                 var regex = new RegExp(req.body.search.value);
                 var match = { $or: [] };
