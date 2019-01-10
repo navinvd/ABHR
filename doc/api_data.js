@@ -1,6 +1,90 @@
 define({ "api": [
   {
     "type": "post",
+    "url": "/admin/change_password",
+    "title": "change admin password",
+    "name": "Change_admin_password",
+    "description": "<p>Used to change admin password</p>",
+    "group": "Admin",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>user id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "old_password",
+            "description": "<p>Old Password</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "new_password",
+            "description": "<p>New Password</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/index.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "post",
     "url": "/admin/forget_password",
     "title": "Forgot Password",
     "description": "<p>Used to send email for forgot password</p>",
@@ -968,13 +1052,6 @@ define({ "api": [
             "optional": false,
             "field": "end",
             "description": "<p>pagination length no of page length</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "car_id",
-            "description": "<p>car id of perticular cars</p>"
           }
         ]
       }
@@ -2367,6 +2444,83 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/admin/users/report_list",
+    "title": "create report list for cars",
+    "name": "Listing_of_users_report",
+    "description": "<p>This is for listing user report</p>",
+    "group": "Admin___Users",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/users.js",
+    "groupTitle": "Admin___Users"
+  },
+  {
+    "type": "post",
     "url": "/admin/user/rented_list",
     "title": "List of all rented users",
     "name": "Rented_Users_List",
@@ -2703,8 +2857,8 @@ define({ "api": [
     "groupTitle": "AppUser"
   },
   {
-    "type": "get",
-    "url": "/app/user/notifications/:userId",
+    "type": "Post",
+    "url": "/app/user/notifications",
     "title": "List of notifications for perticular user",
     "name": "Car_Notificationlist",
     "description": "<p>To Display notification list</p>",
@@ -2714,10 +2868,10 @@ define({ "api": [
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "Array",
+            "type": "String",
             "optional": false,
-            "field": "userId",
-            "description": "<p>userId</p>"
+            "field": "user_id",
+            "description": "<p>user id</p>"
           }
         ]
       }

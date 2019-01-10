@@ -218,4 +218,82 @@ router.post('/reset_password', async(req, res, next) => {
     }
 });
 
+/**
+ * @api {post} /company/change_password change company-admin password
+ * @apiName Change company-admin password
+ * @apiDescription Used to change company-admin password
+ * @apiGroup Company-Admin
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} company_id company id
+ * @apiParam {String} old_password Old Password
+ * @apiParam {String} new_password New Password
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// change app user password
+router.post('/change_password', async (req, res, next) => {
+    var schema = {
+        'company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'old_password': {
+            notEmpty: true,
+            errorMessage: "Please enter your old password"
+        },
+        'new_password': {
+            notEmpty: true,
+            errorMessage: "Please enter your new password"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var userData = await Company.find({ _id: new ObjectId(req.body.company_id) });
+            if (userData && userData.length > 0) {
+                if (bcrypt.compareSync(data.old_password, userData[0].password)) {
+                    var updatedata = {"password": bcrypt.hashSync(data.new_password, SALT_WORK_FACTOR)}
+                    var datta = await Company.update({"_id": new ObjectId(req.body.company_id)}, { $set: updatedata});
+                    if (datta.n > 0) {
+                        res.status(config.BAD_REQUEST).json({
+                            status: 'success',
+                            message: 'Password has been changed successfully'
+                        });
+                    }
+                    else {
+                        res.status(config.BAD_REQUEST).json({
+                            status: 'failed',
+                            message: 'Password has not been changed successfully'
+                        });
+                    }
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({
+                        status: 'failed',
+                        message: 'Invailid old password'
+                    });
+                }
+            } else{
+                res.status(config.BAD_REQUEST).json({
+                    status: 'failed',
+                    message: 'No user found with this user id'
+                });
+            }
+        } catch(e){
+
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
 module.exports = router;

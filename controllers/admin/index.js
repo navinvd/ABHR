@@ -8,6 +8,8 @@ var config = require('./../../config');
 var mailHelper = require('./../../helper/mail');
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var auth = require('./../../middlewares/auth');
+var mongoose = require('mongoose');
+var ObjectId = mongoose.Types.ObjectId;
 var router = express.Router();
 
 //Routes
@@ -109,7 +111,7 @@ router.post('/login', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/forget_password', async(req, res, next) => {
+router.post('/forget_password', async (req, res, next) => {
     var schema = {
         'email': {
             notEmpty: true,
@@ -150,6 +152,91 @@ router.post('/forget_password', async(req, res, next) => {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
             error: errors
+        });
+    }
+});
+
+/**
+ * @api {post} /admin/change_password change admin password
+ * @apiName Change admin password
+ * @apiDescription Used to change admin password
+ * @apiGroup Admin
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user id
+ * @apiParam {String} old_password Old Password
+ * @apiParam {String} new_password New Password
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// change app user password
+router.post('/change_password', async (req, res, next) => {
+    console.log('here');
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'old_password': {
+            notEmpty: true,
+            errorMessage: "Please enter your old password"
+        },
+        'new_password': {
+            notEmpty: true,
+            errorMessage: "Please enter your new password"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var userData = await User.findOne({"_id": new ObjectId(req.body.user_id), "isDeleted": false});
+            console.log(userData);
+            if (userData && userData.length > 0) {
+                console.log(userData);
+                if (bcrypt.compareSync(data.old_password, userData[0].password)) {
+                    var updatedata = {"password": bcrypt.hashSync(data.new_password, SALT_WORK_FACTOR)}
+                    var datta = await User.update({"_id": new ObjectId(req.body.user_id)}, { $set: updatedata});
+                    if (datta.n > 0) {
+                        res.status(config.BAD_REQUEST).json({
+                            status: 'success',
+                            message: 'Password has been changed successfully'
+                        });
+                    }
+                    else {
+                        res.status(config.BAD_REQUEST).json({
+                            status: 'failed',
+                            message: 'Password has not been changed successfully'
+                        });
+                    }
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({
+                        status: 'failed',
+                        message: 'Invailid old password'
+                    });
+                }
+            } else{
+                res.status(config.BAD_REQUEST).json({
+                    status: 'failed',
+                    message: 'No user found with this user id'
+                });
+            }
+        } catch (error){
+            res.status(config.BAD_REQUEST).json({
+                status: 'failed',
+                message: 'error',
+                err: error
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
         });
     }
 });
