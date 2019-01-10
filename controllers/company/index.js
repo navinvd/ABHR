@@ -12,13 +12,13 @@ var router = express.Router();
 
 //Routes
 var cars = require('./cars');
-// var keywords = require('./keywords');
+var users = require('./users');
 // var agents = require('./agents');
 // var staff = require('./staff');
 // var company = require('./companies');
 
 router.use('/car', cars);
-// router.use('/keyword', keywords);
+router.use('/users', users);
 // router.use('/agents', agents);
 // router.use('/staff', staff);
 // router.use('/company', company);

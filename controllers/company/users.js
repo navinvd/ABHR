@@ -2,30 +2,28 @@ var express = require('express');
 var router = express.Router();
 var config = require('./../../config');
 var User = require('./../../models/users');
-var Company = require('./../../models/car_company');
 var CarBooking = require('./../../models/car_booking');
-var Car = require('./../../models/cars');
 var path = require('path');
 var async = require("async");
 var ObjectId = require('mongoose').Types.ObjectId;
+var bcrypt = require('bcrypt');
 var auth = require('./../../middlewares/auth');
 var moment = require('moment');
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var _ = require('underscore');
+var jwt = require('jsonwebtoken');
 var mailHelper = require('./../../helper/mail');
-const carHelper = require('./../../helper/car');
-var fs = require('fs');
-var path = require('path');
 
 /**
- * @api {post} /admin/cars/report_list create report list for cars
- * @apiName Listing of cars report
- * @apiDescription This is for listing car report
- * @apiGroup Admin - Cars
+ * @api {post} /company/users/report_list create report list for cars
+ * @apiName Listing of users report
+ * @apiDescription This is for listing user report
+ * @apiGroup Admin - Users
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
  * @apiParam {String} end pagination length no of page length
+ * @apiParam {String} company_id companyId 
  * 
  * @apiHeader {String}  Content-Type application/json   
  * @apiHeader {String}  x-access-token Admin unique access-key  
@@ -34,7 +32,7 @@ var path = require('path');
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/report_list', async (req, res, next) => {
-
+    console.log('here');
     var schema = {
         'start': {
             notEmpty: true,
@@ -50,6 +48,11 @@ router.post('/report_list', async (req, res, next) => {
     if (!errors) {
         var defaultQuery = [
             {
+                $match: {
+                    "isDeleted": false
+                },
+            },
+            {
                 $lookup: {
                     from: 'cars',
                     localField: 'carId',
@@ -60,6 +63,19 @@ router.post('/report_list', async (req, res, next) => {
             {
                 $unwind: {
                     "path": "$car_details"
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$user_details"
                 }
             },
             {
@@ -94,6 +110,11 @@ router.post('/report_list', async (req, res, next) => {
             },
             {
                 $unwind: '$car_brand'
+            },
+            {
+                $match: {
+                    "car_details.car_rental_company_id" : new ObjectId(req.body.company_id)
+                }
             }];
             if (req.body.date) {
                 var date = moment(req.body.date).utc();
@@ -104,17 +125,19 @@ router.post('/report_list', async (req, res, next) => {
                     },
                 })
             }
-        defaultQuery.push({
-            $group: {
-                "_id": "$carId",
-                "no_of_rented": { "$sum": 1 },
-                "company_name": { $first: "$car_compnay.name" },
-                "car_modal": { $first: "$car_model.model_name" },
-                "car_brand": { $first: "$car_brand.brand_name" },
-                "isDeleted": { $first: "$car_details.isDeleted" },
-                "totalrent": { "$sum": "$booking_rent" },
-            }
-        },
+            defaultQuery.push({
+                $group: {
+                    "_id": "$carId",
+                    "no_of_rented": { "$sum": 1 },
+                    "company_name": { $first: "$car_compnay.name" },
+                    "car_modal": { $first: "$car_model.model_name" },
+                    "car_brand": { $first: "$car_brand.brand_name" },
+                    "isDeleted": { $first: "$car_details.isDeleted" },
+                    "totalrent": { "$sum": "$booking_rent" },
+                    "first_name": { $first: "$user_details.first_name" },
+                    "last_name": { $first: "$user_details.last_name" },
+                }
+            },
             {
                 $project: {
                     _id: 1,
@@ -124,19 +147,20 @@ router.post('/report_list', async (req, res, next) => {
                     car_brand: 1,
                     isDeleted: 1,
                     totalrent: 1,
+                    first_name: 1,
+                    last_name:1
                 }
             });
-        var totalrecords = await CarBooking.aggregate(defaultQuery);
 
-        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0) {
-            if (req.body.search.value != undefined && req.body.search.value !== '') {
+        var totalrecords = await CarBooking.aggregate(defaultQuery);
+        if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+            if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
                 var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
                         if (obj.isNumber) {
-                            console.log(typeof parseInt(req.body.search.value));
                             json[obj.name] = parseInt(req.body.search.value)
                         } else {
                             json[obj.name] = {
@@ -208,7 +232,7 @@ router.post('/report_list', async (req, res, next) => {
             } else {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: { data: data, recordsTotal: totalrecords.length }
+                    result: { recordsTotal: totalrecords.length, data: data }
                 });
             }
         })
