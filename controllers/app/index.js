@@ -9,6 +9,7 @@ var jwt = require('jsonwebtoken');
 var bcrypt = require('bcrypt');
 var moment = require('moment');
 var mailHelper = require('./../../helper/mail');
+var ObjectId = require('mongoose').Types.ObjectId;
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var router = express.Router();
 
@@ -79,7 +80,6 @@ router.post('/registration', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-
         var Data = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
@@ -201,10 +201,17 @@ router.post('/login', (req, res, next) => {
                     message: "could not find user please try again!!"
                 });
             } else {
+                console.log(data);
                 if (data) {
-                    bcrypt.compare(req.body.password, data.password, function (err, result) {
+                    bcrypt.compare(req.body.password, data.password, async function (err, result) {
                         if (result) {
-                            // if (data.is_verified) {
+                                var updateArray = {
+                                    "deviceType":req.body.deviceType,
+                                    "deviceToken": req.body.deviceToken,
+                                };
+                                data.deviceToken =  req.body.deviceToken;
+                                data.deviceType = req.body.deviceType;
+                                var updaterecord = await User.update({"_id": data._id}, { $set: updateArray});
                                 var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                                     expiresIn: 60 * 60 * 24 // expires in 24 hours
                                 });
@@ -216,30 +223,12 @@ router.post('/login', (req, res, next) => {
                                 delete data.isDeleted;
 
                                 const u = data;
-                                // const u = {
-                                //     _id:data._id,
-                                //     first_name:data.first_name,
-                                //     last_name:data.last_name,
-                                //     email:data.email
-                                // }
-
                                 res.status(config.OK_STATUS).json({
                                     status: 'success',
                                     message: "User authenticated successfully",
                                     data: {user : data},
                                     token: token
                                 });
-                            // } else {
-                            //     res.status(config.BAD_REQUEST).json({
-                            //         status: 'success',
-                            //         message: "Please verify your email for successfull login",
-                            //         data: { user :{
-                            //             '_id': data._id,
-                            //             'email': data.email
-                            //             }
-                            //         }
-                            //     });
-                            // }
                         } else {
                             res.status(config.OK_STATUS).json({
                                 status: "failed",
@@ -298,6 +287,14 @@ router.post('/social_login', async (req, res, next) => {
         'user_type': {
             notEmpty: true,
             errorMessage: "user_type is required"
+        },
+        'deviceType': {
+            notEmpty: true,
+            errorMessage: "deviceType is required"
+        },
+        'deviceToken': {
+            notEmpty: true,
+            errorMessage: "deviceToken is required"
         }
     };
     
@@ -307,6 +304,13 @@ router.post('/social_login', async (req, res, next) => {
         var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, type: req.body.user_type, email:req.body.email}).exec();
         console.log('user=====>',user);
         if (user) {
+            var updateArray = {
+                "deviceType":req.body.deviceType,
+                "deviceToken": req.body.deviceToken,
+            };
+            user.deviceToken =  req.body.deviceToken;
+            user.deviceType = req.body.deviceType;
+            var updaterecord = await User.update({"_id": user._id}, { $set: updateArray});
             var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                 expiresIn: 60 * 60 * 24 // expires in 24 hours
             });
@@ -342,7 +346,7 @@ router.post('/social_login', async (req, res, next) => {
                     var result = {
                         status: 'failed',
                         message: err
-                    };
+                    };   
                 } else {
                     var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                         expiresIn: 60 * 60 * 24 // expires in 24 hours
