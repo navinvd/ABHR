@@ -94,8 +94,18 @@ router.post('/report_list', async (req, res, next) => {
             },
             {
                 $unwind: '$car_brand'
-            },
-            {
+            }];
+            if (req.body.date) {
+                var date = moment(req.body.date).utc();
+                console.log('date===>',new Date(date));
+                defaultQuery.push({
+                    $match: {
+                        'from_time': { $lte: new Date(date) },
+                        'to_time': { $gte: new Date(date) }
+                    },
+                })
+            }
+            defaultQuery.push({
                 $group: {
                     "_id": "$carId",
                     "no_of_rented": { "$sum": 1 },
@@ -116,24 +126,12 @@ router.post('/report_list', async (req, res, next) => {
                     isDeleted: 1,
                     totalrent: 1,
                 }
-            }];
+            });
         var totalrecords = await CarBooking.aggregate(defaultQuery);
-        console.log('req.body.search==>', req.body.search.value);
-
-        if (req.body.date) {
-            var date = moment(req.body.date).utc();
-            defaultQuery.push({
-                $match: {
-                    'from_time': { $lte: date },
-                    'to_time': { $gte: date }
-                },
-            })
-
-        }
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0) {
-            if (req.body.search.value != undefined) {
-                var regex = new RegExp(req.body.search.value && req.body.search.value !== '');
+            if (req.body.search.value != undefined && req.body.search.value !== '') {
+                var regex = new RegExp(req.body.search.value);
                 var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
