@@ -701,11 +701,11 @@ router.post('/addresses', async (req, res) => {
         var user_id = req.body.user_id;
         var data = await User.find({_id : ObjectId(user_id)});
         if(data && data.length > 0 && data[0].address.length > 0){
-            return res.status(200).json({ status: 'success', message: "Address has been found", data: { addresses : data[0].address} });
+            return res.status(config.OK_STATUS).json({ status: 'success', message: "Address has been found", data: { addresses : data[0].address} });
         }
         else
         {
-            return res.status(200).json({ status: 'failed', message: "No Address for this user"});
+            return res.status(config.BAD_REQUEST).json({ status: 'failed', message: "No Address for this user"});
         }
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -716,6 +716,142 @@ router.post('/addresses', async (req, res) => {
     }
 });
 
+/**
+ * @api {post} /app/user/addresses/delete Delete user addresses
+ * @apiName Delete user addresses
+ * @apiDescription Used to delete user signle or multiple addresses at a time
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id User Id
+ * @apiParam {Array} address_id array of address ids (eg. ["5c31cc44ee8cb81ef4d66b87","5c3469462d159a027718aea9"])
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// Delete address of users multiple
+router.post('/addresses/delete', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'address_id': {
+            notEmpty: true,
+            errorMessage: "Please enter address ids"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+    
+        var user_id = req.body.user_id;
+        var address_ids = req.body.address_id;
+        const addressResp = await userHelper.deleteAddress(user_id,address_ids);
+
+        if(addressResp.status === 'success'){
+            res.status(config.OK_STATUS).json(addressResp);
+        }
+        else{
+            res.status(config.BAD_REQUEST).json(addressResp);
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+/**
+ * @api {post} /app/user/addresses/update Update user address 
+ * @apiName  Update user address
+ * @apiDescription Used to Update user address one at a time
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id User Id
+ * @apiParam {Number} address_id address id of user
+ * @apiParam {String} [country] country
+ * @apiParam {String} [state] state
+ * @apiParam {String} [city] city
+ * @apiParam {String} [street] street
+ * @apiParam {String} [building] building
+ * @apiParam {String} [landmark] landmark
+ * @apiParam {Number} [latitude] latitude
+ * @apiParam {Number} [longitude] longitude
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// update user Address one at time
+router.post('/addresses/update', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'address_id':{
+            notEmpty : true,
+            errorMessage : "Please enter address id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user_id = req.body.user_id;
+        var address_id = req.body.address_id;
+        var address_data = {};
+
+        if(req.body.country){
+            address_data.country = req.body.country;
+        }
+        if(req.body.state){
+            address_data.state = req.body.state;
+        }
+        if(req.body.city){
+            address_data.city = req.body.city;
+        }
+        if(req.body.street){
+            address_data.street = req.body.street;
+        }
+        if(req.body.building){
+            address_data.building = req.body.building;
+        }
+        if(req.body.landmark){
+            address_data.landmark = req.body.landmark;
+        }
+        if(req.body.latitude){
+            address_data.latitude = req.body.latitude;
+        }
+        if(req.body.longitude){
+            address_data.longitude = req.body.longitude;
+        }
+
+        const addressResp = await userHelper.updateAddress(user_id, address_id, address_data);
+
+        if(addressResp.status === 'success'){
+            res.status(config.OK_STATUS).json(addressResp);
+        }
+        else{
+            res.status(config.BAD_REQUEST).json(addressResp);
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
 
 
 module.exports = router;
