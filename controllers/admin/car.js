@@ -50,11 +50,6 @@ router.post('/report_list', async (req, res, next) => {
     if(!errors){
         var defaultQuery = [
             {
-                $match:{
-                    "isDeleted":false
-                },
-            },
-            {
                 $lookup: {
                     from: 'cars',
                     localField: 'carId',
@@ -101,28 +96,30 @@ router.post('/report_list', async (req, res, next) => {
                 $unwind:'$car_brand'
             },
             {
-            $group : {
-               _id : '$carId',
-               no_of_rented: { $sum: 1},
-               data:{$push:'$$ROOT'},
-               totalrent: {"$sum": "$booking_rent"},
-            }
-          },
-          {
-            $unwind:'$data'
-          },
+                $group: {
+                  "_id": "$carId",
+                  "no_of_rented": {"$sum": 1},
+                  "company_name":{$first:"$car_compnay.name"},
+                  "car_modal" : {$first:"$car_model.model_name"},
+                  "car_brand": {$first:"$car_brand.brand_name"},
+                  "isDeleted" : {$first:"$car_details.isDeleted"},
+                  "totalrent": {"$sum": "$booking_rent"},
+                }
+            },
           {
               $project:{
+                  _id:1,
                   no_of_rented:1,
-                  car_details:'$data.car_details.car_color',
-                  car_model: '$data.car_model.model_name',
-                  car_brand: '$data.car_brand.brand_name',
-                  company_name: '$data.car_compnay.name',
-                  totalrent:1
+                  company_name:1,
+                  car_modal : 1,
+                  car_brand: 1,
+                  isDeleted : 1,
+                  totalrent: 1,
                   }
           }];
           var totalrecords = await CarBooking.aggregate(defaultQuery);
-            if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
+          console.log('req.body.search==>', req.body.search.value);
+            if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length >0 && req.body.search.value !== '') {
                 if(req.body.search.value != undefined){
                     var regex = new RegExp(req.body.search.value);
                     var match = {$or: []};
@@ -130,6 +127,7 @@ router.post('/report_list', async (req, res, next) => {
                         if (obj.name) {
                             var json = {};
                             if (obj.isNumber) {
+                                console.log(typeof parseInt(req.body.search.value));
                                 json[obj.name] = parseInt(req.body.search.value)
                             } else {
                                 json[obj.name] = {
@@ -145,7 +143,7 @@ router.post('/report_list', async (req, res, next) => {
                 var searchQuery = {
                     $match: match
                 }
-                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                defaultQuery.push(searchQuery);
                 console.log("==>", JSON.stringify(defaultQuery));
             }
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
