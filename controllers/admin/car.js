@@ -95,27 +95,26 @@ router.post('/report_list', async (req, res, next) => {
             {
                 $unwind: '$car_brand'
             }];
-            if (req.body.date) {
-                var date = moment(req.body.date).utc();
-                console.log('date===>',new Date(date));
-                defaultQuery.push({
-                    $match: {
-                        'from_time': { $lte: new Date(date) },
-                        'to_time': { $gte: new Date(date) }
-                    },
-                })
-            }
+        if (req.body.date) {
+            var date = moment(req.body.date).utc();
             defaultQuery.push({
-                $group: {
-                    "_id": "$carId",
-                    "no_of_rented": { "$sum": 1 },
-                    "company_name": { $first: "$car_compnay.name" },
-                    "car_modal": { $first: "$car_model.model_name" },
-                    "car_brand": { $first: "$car_brand.brand_name" },
-                    "isDeleted": { $first: "$car_details.isDeleted" },
-                    "totalrent": { "$sum": "$booking_rent" },
-                }
-            },
+                $match: {
+                    'from_time': { $lte: new Date(date) },
+                    'to_time': { $gte: new Date(date) }
+                },
+            })
+        }
+        defaultQuery.push({
+            $group: {
+                "_id": "$carId",
+                "no_of_rented": { "$sum": 1 },
+                "company_name": { $first: "$car_compnay.name" },
+                "car_modal": { $first: "$car_model.model_name" },
+                "car_brand": { $first: "$car_brand.brand_name" },
+                "isDeleted": { $first: "$car_details.isDeleted" },
+                "totalrent": { "$sum": "$booking_rent" },
+            }
+        },
             {
                 $project: {
                     _id: 1,
