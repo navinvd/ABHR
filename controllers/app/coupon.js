@@ -40,7 +40,13 @@ router.post('/add', async (req, res) => {
             discount_rate : parseInt(req.body.discount_rate)
         }
         const couponResp = await couponHelper.addCoupon(data);
-        res.json(couponResp);
+
+        if(couponResp.status === 'success'){
+            res.status(config.OK_STATUS).json(couponResp);
+        } else{
+            res.status(config.BAD_REQUEST).json(couponResp);
+        }
+        
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -82,9 +88,12 @@ router.post('/apply', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        
         const couponResp = await couponHelper.applyCoupon(req.body.user_id, req.body.coupon_code);
-        res.json(couponResp);
+        if(couponResp.status === 'success'){
+            res.status(config.OK_STATUS).json(couponResp);
+        } else{
+            res.status(config.BAD_REQUEST).json(couponResp);
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
