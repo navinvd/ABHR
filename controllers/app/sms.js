@@ -50,10 +50,10 @@ router.post('/sendOTP', async (req, res) => {
         const sendOtpResp = await smsHelper.sendOTP(data);
 
         if(sendOtpResp.status === 'success'){
-            res.status(config.OK_STATUS).res(sendOtpResp);
+            res.status(config.OK_STATUS).json(sendOtpResp);
         }
         else{
-            res.status(config.BAD_REQUEST).res(sendOtpResp);
+            res.status(config.BAD_REQUEST).json(sendOtpResp);
         }
         // res.json(sendOtpResp);
     } else {
@@ -114,10 +114,10 @@ router.post('/verifyOTP', async (req, res) => {
         const verifyOtpResp = await smsHelper.verifyOTP(data);
 
         if(verifyOtpResp.status === 'success'){
-            res.status(config.OK_STATUS).res(verifyOtpResp);
+            res.status(config.OK_STATUS).json(verifyOtpResp);
         }
         else{
-            res.status(config.BAD_REQUEST).res(verifyOtpResp);
+            res.status(config.BAD_REQUEST).json(verifyOtpResp);
         }
         // res.json(verifyOtpResp);
     } else {
