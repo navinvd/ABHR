@@ -270,14 +270,14 @@ router.get('/details/:id', (req, res, next) => {
 
         ];
         User.aggregate(defaultQuery, function (err, data) {
+            console.log(data);
             if (err) {
                 return next(err);
             } else {
-                var count = data[0].count;
-                data[0].data.count = count;
                 res.status(config.OK_STATUS).json({
-                    message: "Success",
-                    result: data[0].data
+                    status: "success",
+                    message: "Data found",
+                    result: { data : data[0]}
                 });
             }
         });
@@ -301,7 +301,6 @@ router.get('/details/:id', (req, res, next) => {
  * @apiParam {String} user_id User Id
  * @apiParam {String} first_name FirstName
  * @apiParam {String} last_name LastName
- * @apiParam {String} username Unique Username
  * @apiParam {String} phone_number User User Phone Number 
  * @apiParam {String} email User email address 
  * 
@@ -311,7 +310,7 @@ router.get('/details/:id', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/update', (req, res, next) => {
+router.put('/update', async (req, res, next) => {
     try {
         var schema = {
             'user_id': {
@@ -322,24 +321,30 @@ router.put('/update', (req, res, next) => {
         req.checkBody(schema);
         var errors = req.validationErrors();
         if (!errors) {
-            var userData = {
-                first_name: req.body.first_name,
-                last_name: req.body.last_name,
-                phone_number: req.body.phone_number,
-                email: req.body.email
-            };
-            User.update({ _id: { $eq: req.body.user_id }, "type": "admin" }, { $set: userData }, function (err, data) {
-                if (err) {
-                    return next(err);
-                } else {
-                    var count = data[0].count;
-                    data[0].data.count = count;
-                    res.status(config.OK_STATUS).json({
-                        message: "Success",
-                        result: data[0].data
-                    });
-                }
-            });
+            var userId = await User.findOne({ "_id" : req.body.user_id, "isDeleted" : false, "type": "admin"});
+            if(userId){
+                var userData = {
+                    first_name: req.body.first_name,
+                    last_name: req.body.last_name,
+                    phone_number: req.body.phone_number,
+                    email: req.body.email
+                };
+                User.update({ _id: { $eq: req.body.user_id }, "type": "admin" }, { $set: userData }, function (err, data) {
+                    if (err) {
+                        return next(err);
+                    } else {
+                        res.status(config.OK_STATUS).json({
+                            message: "Success",
+                            result: {data : userId}
+                        });
+                    }
+                });
+            } else {
+                res.status(config.OK_STATUS).json({
+                    status: "failed",
+                    message: "record not found"
+                });
+            }
         }
     } catch (e) {
         res.status(config.BAD_REQUEST).json({
