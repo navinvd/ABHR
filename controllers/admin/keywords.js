@@ -6,7 +6,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 
 /**
- * @api {post} /list
+ * @api {post} /admin/keywords/list
  * @apiName Keyword List
  * @apiDescription Get Keyword Listing with Pagination
  * @apiGroup Keyword
@@ -59,25 +59,46 @@ router.post('/list', function (req, res, next) {
                 }
             }
         ];
-        console.log("req.body['columns']", req.body['columns'])
-        if (req.body['search']['value']) {
-            var regex = new RegExp(req.body['search']['value'])
-            var match = {$or: []};
-            req.body['columns'].forEach(function (obj) {
-                if (obj.name) {
-                    var json = {};
-                    json[obj.name] = {
-                        "$regex": regex,
-                        "$options": "i"
-                    }
-                    match['$or'].push(json)
+        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if(order == "asc"){
+                var sortableQuery = {
+                    $sort: { [colname]: 1 }
                 }
-            })
-
-            var searchQuery = {
-                $match: match
+            } else {
+                var sortableQuery = {
+                    $sort: { [colname]: -1 }
+                } 
+            } 
+            console.log('sort===>',sortableQuery);
+            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
+        }
+        if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
+            if (req.body.search.value) {
+                var regex = new RegExp(req.body.search.value);
+                var match = { $or: [] };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+                var searchQuery = {
+                    $match: match
+                }
+                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                console.log("==>", JSON.stringify(searchQuery));
             }
-            defaultQuery.splice(0, 0, searchQuery);
         }
         console.log("defaultQuery:", JSON.stringify(defaultQuery))
         Keyword.aggregate(defaultQuery, function (err, result) {
@@ -86,7 +107,7 @@ router.post('/list', function (req, res, next) {
             } else {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: result ? result[0] : [],
+                    result: result,
                 });
             }
         })
@@ -108,7 +129,8 @@ router.post('/list', function (req, res, next) {
  * @apiGroup Keyword
  * @apiVersion 0.0.0
  * 
- * @apiParam {String} english Unique English 
+ * @apiParam {String} keyword Unique keyword 
+ * @apiParam {String} english English 
  * @apiParam {String} arabic Arabic
  * 
  * @apiHeader {String}  Content-Type application/json    
@@ -118,6 +140,10 @@ router.post('/list', function (req, res, next) {
  */
 router.post('/save', (req, res, next) => {
     var schema = {
+        'keyword': {
+            notEmpty: true,
+            errorMessage: "English is required"
+        },
         'english': {
             notEmpty: true,
             errorMessage: "English is required"
@@ -135,9 +161,9 @@ router.post('/save', (req, res, next) => {
             console.log("data:", keywordData);
             if (err) {
                 if (err.code == '11000') {
-                    if (err.message.indexOf('english') != -1) {
+                    if (err.message.indexOf('keyword') != -1) {
                         res.status(config.BAD_REQUEST).json({
-                            message: "English Keyqword already exist",
+                            message: "keyword already exist",
                             error: err
                         });
                     } else {
@@ -226,7 +252,7 @@ router.get('/:id', function (req, res, next) {
         } else {
             res.status(config.OK_STATUS).json({
                 message: "Success",
-                user: data,
+                data: {data : data},
             });
         }
     });
