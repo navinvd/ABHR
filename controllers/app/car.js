@@ -1214,7 +1214,7 @@ router.post('/check-delivery-radius', async (req, res) => {
 
 // Test v2 of car filter
 
-router.post('/filter2', async (req, res) => {
+router.post('/location-filter', async (req, res) => {
     var schema = {
         'fromDate': {
             notEmpty: true,
@@ -1334,7 +1334,7 @@ router.post('/filter2', async (req, res) => {
                             format: "%Y-%m-%d"
                         }
                     },
-                    companyDetails: "$companyDetails"
+                    service_location: "$companyDetails.service_location" //companyDetails
                 }
             },
             {
@@ -1494,11 +1494,15 @@ router.post('/filter2', async (req, res) => {
 
         // filter using lat - long
 
-        if (req.body.location) { // pass like location : [lat,long]
+        if (req.body.location) { // pass like location : [long,lat]
+            console.log('DATATATAT==>',req.body.location)
+            var location = req.body.location;
+            console.log('DATATATAT TYPE ==>', typeof req.body.location)
             var searchQuery = {
                  $match: {
                     "companyDetails.service_location":  // 124.274 -> 200 km // 0.621371 -> 1 km
-                        { $geoWithin: { $centerSphere: [[72.831062, 21.17024], 124.274 / 3963.2] } }  
+                        // { $geoWithin: { $centerSphere: [[72.831062, 21.17024], 124.274 / 3963.2] } }  
+                        { $geoWithin: { $centerSphere: [location, 124.274 / 3963.2] } }  
                 }
             }
             defaultQuery.splice(9, 0, searchQuery);
