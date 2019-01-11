@@ -334,7 +334,8 @@ router.put('/update', async (req, res, next) => {
                         return next(err);
                     } else {
                         res.status(config.OK_STATUS).json({
-                            message: "Success",
+                            status: "success",
+                            message: "Profile updated successfully..",
                             result: {data : userId}
                         });
                     }

@@ -22,6 +22,7 @@ var auth = require('./../../middlewares/auth');
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/list', function (req, res, next) {
+    console.log(decodeURI("http://dev.myabhr.com/#/reset-password?detials=eyJleHBpcmVfdGltZSI6MTU0NzIwNDE0MjMyNywiYXBwX3VzZXJfaWQiOiI1YzI0NjFlZWEzZTRjMDE0YmFhZmIwMWYifQ%3D%3D"));
     var schema = {
         'start': {
             notEmpty: true,

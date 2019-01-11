@@ -402,7 +402,7 @@ router.post('/forget_password', async(req, res, next) => {
         if (user) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
-                user_id: user._id
+                app_user_id: user._id
             };
             var option = {
                 to: user.email,
