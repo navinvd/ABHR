@@ -374,7 +374,8 @@ router.put('/update', async (req, res, next) => {
                     } else {
                         var userId = await Company.findOne({ "_id": req.body.company_id, "isDeleted": false });
                         res.status(config.OK_STATUS).json({
-                            message: "Success",
+                            status: "success",
+                            message: "Profile updated successfully..",
                             result: { data: userId }
                         });
                     }
