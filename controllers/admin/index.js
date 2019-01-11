@@ -60,22 +60,22 @@ router.post('/login', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        User.findOne({email: req.body.email, type: 'admin'}, function (err, data) {
+        User.findOne({ email: req.body.email, type: 'admin' }, function (err, data) {
             if (err) {
                 return next(err);
             } else {
                 if (data) {
                     bcrypt.compare(req.body.password, data.password, function (err, result) {
                         if (result) {
-                                var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-                                    expiresIn: 60 * 60 * 24 // expires in 24 hours
-                                });
+                            var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
+                                expiresIn: 60 * 60 * 24 // expires in 24 hours
+                            });
 
-                                res.status(config.OK_STATUS).json({
-                                    message: "User authenticated successfully",
-                                    result: data,
-                                    token: token
-                                });
+                            res.status(config.OK_STATUS).json({
+                                message: "User authenticated successfully",
+                                result: data,
+                                token: token
+                            });
                         } else {
                             res.status(config.BAD_REQUEST).json({
                                 message: "Password is wrong",
@@ -121,7 +121,7 @@ router.post('/forget_password', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({email: req.body.email, type: 'admin'}).exec();
+        var user = await User.findOne({ email: req.body.email, type: 'admin' }).exec();
         if (user) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
@@ -132,7 +132,7 @@ router.post('/forget_password', async (req, res, next) => {
                 subject: 'ABHR - Request for reset password'
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
-            var data = {link: config.FRONT_END_URL + '/reset-password?detials=' + buffer};
+            var data = { link: config.FRONT_END_URL + '/reset-password?detials=' + buffer };
             mailHelper.send('forget_password', option, data, function (err, res) {
                 if (err) {
                     console.log("Mail Error:", err);
@@ -193,14 +193,14 @@ router.post('/change_password', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        try{
-            var userData = await User.findOne({"_id": new ObjectId(req.body.user_id), "isDeleted": false});
+        try {
+            var userData = await User.findOne({ "_id": new ObjectId(req.body.user_id), "isDeleted": false });
             console.log(userData);
             if (userData && userData.length > 0) {
                 console.log(userData);
                 if (bcrypt.compareSync(data.old_password, userData[0].password)) {
-                    var updatedata = {"password": bcrypt.hashSync(data.new_password, SALT_WORK_FACTOR)}
-                    var datta = await User.update({"_id": new ObjectId(req.body.user_id)}, { $set: updatedata});
+                    var updatedata = { "password": bcrypt.hashSync(data.new_password, SALT_WORK_FACTOR) }
+                    var datta = await User.update({ "_id": new ObjectId(req.body.user_id) }, { $set: updatedata });
                     if (datta.n > 0) {
                         res.status(config.BAD_REQUEST).json({
                             status: 'success',
@@ -220,13 +220,13 @@ router.post('/change_password', async (req, res, next) => {
                         message: 'Invailid old password'
                     });
                 }
-            } else{
+            } else {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',
                     message: 'No user found with this user id'
                 });
             }
-        } catch (error){
+        } catch (error) {
             res.status(config.BAD_REQUEST).json({
                 status: 'failed',
                 message: 'error',
@@ -240,5 +240,114 @@ router.post('/change_password', async (req, res, next) => {
         });
     }
 });
+
+
+/**
+* @api {get} /admin/details/:id Details of perticular user
+ * @apiName User Details 
+ * @apiDescription To display Details of users
+ * @apiGroup Admin - Users
+ * @apiVersion 0.0.0
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.get('/details/:id', (req, res, next) => {
+    try {
+        var userId = new ObjectId(req.params.id);
+        var defaultQuery = [
+            {
+                $match: {
+                    "isDeleted": false,
+                    "_id": userId,
+                    "type": "admin"
+                }
+            },
+
+        ];
+        User.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                return next(err);
+            } else {
+                var count = data[0].count;
+                data[0].data.count = count;
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: data[0].data
+                });
+            }
+        });
+    } catch (e) {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: e
+        });
+    }
+});
+
+
+
+/**
+ * @api {put} /admin/update update Admin details
+ * @apiName Update Admin
+ * @apiDescription Used to update admin information
+ * @apiGroup Admin - Admin
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} user_id User Id
+ * @apiParam {String} first_name FirstName
+ * @apiParam {String} last_name LastName
+ * @apiParam {String} username Unique Username
+ * @apiParam {String} phone_number User User Phone Number 
+ * @apiParam {String} email User email address 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.put('/update', (req, res, next) => {
+    try {
+        var schema = {
+            'user_id': {
+                notEmpty: true,
+                errorMessage: "user_id is required"
+            }
+        };
+        req.checkBody(schema);
+        var errors = req.validationErrors();
+        if (!errors) {
+            var userData = {
+                first_name: req.body.first_name,
+                last_name: req.body.last_name,
+                phone_number: req.body.phone_number,
+                email: req.body.email
+            };
+            User.update({ _id: { $eq: req.body.user_id }, "type": "admin" }, { $set: userData }, function (err, data) {
+                if (err) {
+                    return next(err);
+                } else {
+                    var count = data[0].count;
+                    data[0].data.count = count;
+                    res.status(config.OK_STATUS).json({
+                        message: "Success",
+                        result: data[0].data
+                    });
+                }
+            });
+        }
+    } catch (e) {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: e
+        });
+    }
+});
+
 
 module.exports = router;
