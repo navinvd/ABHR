@@ -320,12 +320,11 @@ router.get('/details/:id', (req, res, next) => {
         } else {
             res.status(config.OK_STATUS).json({
                 status: "Success",
-                data: data,
+                data: {data : data},
             });
         }
     });
 });
-
 
 
 /**
@@ -335,7 +334,7 @@ router.get('/details/:id', (req, res, next) => {
  * @apiGroup Company - Company
  * @apiVersion 0.0.0
  * 
- * @apiParam {String} user_id User Id
+ * @apiParam {String} company_id User Id
  * @apiParam {String} name FirstName
  * @apiParam {String} description Description
  * @apiParam {String} phone_number User User Phone Number 
@@ -351,15 +350,15 @@ router.get('/details/:id', (req, res, next) => {
 router.put('/update', async (req, res, next) => {
     try {
         var schema = {
-            'user_id': {
+            'company_id': {
                 notEmpty: true,
-                errorMessage: "user_id is required"
+                errorMessage: "company_id is required"
             }
         };
         req.checkBody(schema);
         var errors = req.validationErrors();
         if (!errors) {
-            var userId = await User.findOne({ "_id": req.body.user_id, "isDeleted": false, "type": "admin" });
+            var userId = await Company.findOne({ "_id": req.body.company_id, "isDeleted": false });
             if (userId) {
                 var userData = {
                     name: req.body.name,
@@ -368,10 +367,11 @@ router.put('/update', async (req, res, next) => {
                     site_url: req.body.site_url,
                     email: req.body.email
                 };
-                Company.update({ _id: { $eq: req.body.user_id } }, { $set: userData }, function (err, data) {
+                Company.update({ _id: { $eq: req.body.company_id } }, { $set: req.body }, async function (err, data) {
                     if (err) {
                         return next(err);
                     } else {
+                        var userId = await Company.findOne({ "_id": req.body.company_id, "isDeleted": false });
                         res.status(config.OK_STATUS).json({
                             message: "Success",
                             result: { data: userId }

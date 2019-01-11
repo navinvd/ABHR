@@ -11,7 +11,6 @@ var KeywordSchema = new Schema({
     },
     english:{
         type: String,
-        unique: true,
         required: true
     },
     arabic: {

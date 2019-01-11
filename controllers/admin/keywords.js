@@ -6,7 +6,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 
 /**
- * @api {post} /list
+ * @api {post} /admin/keywords/list
  * @apiName Keyword List
  * @apiDescription Get Keyword Listing with Pagination
  * @apiGroup Keyword
@@ -59,25 +59,46 @@ router.post('/list', function (req, res, next) {
                 }
             }
         ];
-        console.log("req.body['columns']", req.body['columns'])
-        if (req.body['search']['value']) {
-            var regex = new RegExp(req.body['search']['value'])
-            var match = {$or: []};
-            req.body['columns'].forEach(function (obj) {
-                if (obj.name) {
-                    var json = {};
-                    json[obj.name] = {
-                        "$regex": regex,
-                        "$options": "i"
-                    }
-                    match['$or'].push(json)
+        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if(order == "asc"){
+                var sortableQuery = {
+                    $sort: { [colname]: 1 }
                 }
-            })
-
-            var searchQuery = {
-                $match: match
+            } else {
+                var sortableQuery = {
+                    $sort: { [colname]: -1 }
+                } 
+            } 
+            console.log('sort===>',sortableQuery);
+            defaultQuery.concat(sortableQuery); 
+        }
+        if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
+            if (req.body.search.value) {
+                var regex = new RegExp(req.body.search.value);
+                var match = { $or: [] };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+                var searchQuery = {
+                    $match: match
+                }
+                defaultQuery.concat(searchQuery);
+                console.log("==>", JSON.stringify(searchQuery));
             }
-            defaultQuery.splice(0, 0, searchQuery);
         }
         console.log("defaultQuery:", JSON.stringify(defaultQuery))
         Keyword.aggregate(defaultQuery, function (err, result) {
@@ -86,7 +107,7 @@ router.post('/list', function (req, res, next) {
             } else {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: result ? result[0] : [],
+                    result: result.length != 0 ? result[0] : { recordsTotal: 0, data: [] },
                 });
             }
         })
@@ -102,13 +123,14 @@ router.post('/list', function (req, res, next) {
 });
 
 
-/* @api {post} /save Save Keyword
+/* @api {post} /admin/keyword/save Save Keyword
  * @apiName Save Keyword
  * @apiDescription Used for Add Keyword 
  * @apiGroup Keyword
  * @apiVersion 0.0.0
  * 
- * @apiParam {String} english Unique English 
+ * @apiParam {String} keyword Unique keyword 
+ * @apiParam {String} english English 
  * @apiParam {String} arabic Arabic
  * 
  * @apiHeader {String}  Content-Type application/json    
@@ -118,6 +140,10 @@ router.post('/list', function (req, res, next) {
  */
 router.post('/save', (req, res, next) => {
     var schema = {
+        'keyword': {
+            notEmpty: true,
+            errorMessage: "English is required"
+        },
         'english': {
             notEmpty: true,
             errorMessage: "English is required"
@@ -135,9 +161,10 @@ router.post('/save', (req, res, next) => {
             console.log("data:", keywordData);
             if (err) {
                 if (err.code == '11000') {
-                    if (err.message.indexOf('english') != -1) {
+                    if (err.message.indexOf('keyword') != -1) {
                         res.status(config.BAD_REQUEST).json({
-                            message: "English Keyqword already exist",
+                            status: "falied",
+                            message: "keyword already exist",
                             error: err
                         });
                     } else {
@@ -148,6 +175,7 @@ router.post('/save', (req, res, next) => {
                 }
             } else {
                 var result = {
+                    status:"success",
                     message: "Keyword added successfully..",
                     data: keywordData
                 };
@@ -163,7 +191,7 @@ router.post('/save', (req, res, next) => {
   });
 
 /**
- * @api {put} /keyword Update keyword Details
+ * @api {put} /admin/keyword/edit Update keyword Details
  * @apiName Update Keyword
  * @apiDescription Used to update keyword information
  * @apiGroup Keyword
@@ -179,7 +207,7 @@ router.post('/save', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/', auth, function (req, res, next) {
+router.put('/edit', async function (req, res, next) {
     var schema = {
         'keyword_id': {
             notEmpty: true,
@@ -189,13 +217,77 @@ router.put('/', auth, function (req, res, next) {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Keyword.update({_id: {$eq: req.body.keyword_id}}, {$set: req.body}, function (err, response) {
-            if (err) {
-                return next(err);
-            } else {
-                res.status(config.OK_STATUS).json({message: "Keyword updated successfully"});
-            }
+        var check = await Keyword.findOne({"_id":req.body.keyword_id, "isDeleted":false}).exec();
+        if(check){
+            Keyword.update({"_id": req.body.keyword_id}, {$set: req.body}, function (err, response) {
+                if (err) {
+                    if (err.code == '11000') {
+                        if (err.message.indexOf('keyword') != -1) {
+                            res.status(config.BAD_REQUEST).json({
+                                status: "falied",
+                                message: "keyword already exist",
+                                error: err
+                            });
+                        } else {
+                            return next(err);
+                        }
+                    } else {
+                        return next(err);
+                    }
+                } else {
+                    res.status(config.OK_STATUS).json({status: "success",message: "Keyword updated successfully"});
+                }
+            });
+        }else{
+            res.status(config.OK_STATUS).json({ status:"failed",message: "Record not found"});
+        }      
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
         });
+    }
+});
+
+/**
+ * @api {put} /admin/keyword/edit Update keyword Details
+ * @apiName Update Keyword
+ * @apiDescription Used to update keyword information
+ * @apiGroup Keyword
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} keyword_id Keyword Id
+ * @apiParam {String} english English Of Keyword 
+ * @apiParam {String} arabic Arabic Of Keyword
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.put('/delete', async function (req, res, next) {
+    var schema = {
+        'keyword_id': {
+            notEmpty: true,
+            errorMessage: "keyword_id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var check = await Keyword.findOne({"_id":req.body.keyword_id, "isDeleted":false}).exec();
+        if(check){
+            Keyword.update({"_id": req.body.keyword_id}, {$set: {"isDeleted": true}}, function (err, response) {
+                if (err) {
+                        return next(err);
+                } else {
+                    res.status(config.OK_STATUS).json({status: "success",message: "Keyword Deleted successfully"});
+                }
+            });
+        }else{
+            res.status(config.OK_STATUS).json({ status:"failed",message: "Record not found"});
+        }      
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
@@ -226,7 +318,7 @@ router.get('/:id', function (req, res, next) {
         } else {
             res.status(config.OK_STATUS).json({
                 message: "Success",
-                user: data,
+                data: {data : data},
             });
         }
     });
