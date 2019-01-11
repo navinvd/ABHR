@@ -246,7 +246,7 @@ router.post('/change_password', async (req, res, next) => {
 * @api {get} /admin/details/:id Details of perticular user
  * @apiName User Details 
  * @apiDescription To display Details of users
- * @apiGroup Admin - Users
+ * @apiGroup Admin - Admin
  * @apiVersion 0.0.0
  * 
  * 

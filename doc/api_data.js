@@ -386,6 +386,63 @@ define({ "api": [
   },
   {
     "type": "get",
+    "url": "/admin/details/:id",
+    "title": "Details of perticular user",
+    "name": "User_Details",
+    "description": "<p>To display Details of users</p>",
+    "group": "Admin___Admin",
+    "version": "0.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/index.js",
+    "groupTitle": "Admin___Admin"
+  },
+  {
+    "type": "get",
     "url": "/admin/agents/details/:id?",
     "title": "Agent Details By Id",
     "name": "Agent_Details_By_Id",
@@ -553,7 +610,7 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "end",
+            "field": "length",
             "description": "<p>pagination length no of page length</p>"
           }
         ]
@@ -2097,6 +2154,76 @@ define({ "api": [
       }
     },
     "filename": "controllers/admin/companies.js",
+    "groupTitle": "Admin___Companies"
+  },
+  {
+    "type": "get",
+    "url": "/company/details/:id?",
+    "title": "Company Details By Id",
+    "name": "company_Details_By_Id",
+    "description": "<p>Get Company details By company id</p>",
+    "group": "Admin___Companies",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>company Id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/index.js",
     "groupTitle": "Admin___Companies"
   },
   {
@@ -6695,7 +6822,7 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "user_id",
+            "field": "company_id",
             "description": "<p>User Id</p>"
           },
           {
@@ -6857,7 +6984,7 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/list",
+    "url": "/admin/keywords/list",
     "title": "",
     "name": "Keyword_List",
     "description": "<p>Get Keyword Listing with Pagination</p>",
@@ -6934,7 +7061,91 @@ define({ "api": [
   },
   {
     "type": "put",
-    "url": "/keyword",
+    "url": "/admin/keyword/edit",
+    "title": "Update keyword Details",
+    "name": "Update_Keyword",
+    "description": "<p>Used to update keyword information</p>",
+    "group": "Keyword",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "keyword_id",
+            "description": "<p>Keyword Id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "english",
+            "description": "<p>English Of Keyword</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "arabic",
+            "description": "<p>Arabic Of Keyword</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/keywords.js",
+    "groupTitle": "Keyword"
+  },
+  {
+    "type": "put",
+    "url": "/admin/keyword/edit",
     "title": "Update keyword Details",
     "name": "Update_Keyword",
     "description": "<p>Used to update keyword information</p>",
