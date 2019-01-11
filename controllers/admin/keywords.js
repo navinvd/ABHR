@@ -107,7 +107,7 @@ router.post('/list', function (req, res, next) {
             } else {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: result,
+                    result: result.length != 0 ? result[0] : { recordsTotal: 0, result: [] },
                 });
             }
         })
@@ -163,6 +163,7 @@ router.post('/save', (req, res, next) => {
                 if (err.code == '11000') {
                     if (err.message.indexOf('keyword') != -1) {
                         res.status(config.BAD_REQUEST).json({
+                            status: "falied",
                             message: "keyword already exist",
                             error: err
                         });
@@ -174,6 +175,7 @@ router.post('/save', (req, res, next) => {
                 }
             } else {
                 var result = {
+                    status:"success",
                     message: "Keyword added successfully..",
                     data: keywordData
                 };
