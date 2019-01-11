@@ -301,7 +301,6 @@ router.get('/details/:id', (req, res, next) => {
  * @apiParam {String} user_id User Id
  * @apiParam {String} first_name FirstName
  * @apiParam {String} last_name LastName
- * @apiParam {String} username Unique Username
  * @apiParam {String} phone_number User User Phone Number 
  * @apiParam {String} email User email address 
  * 
