@@ -353,7 +353,7 @@ router.get('/details/:id', (req, res, next) => {
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
- * @apiParam {String} end pagination length no of page length
+ * @apiParam {String} length pagination length no of page length
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -375,89 +375,96 @@ router.post('/list', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var defaultQuery = [
-            {
-                $match: {
-                    "isDeleted": false,
-                    "type": "agent"
-                }
-            },
-            {
-                $sort: { 'createdAt': -1 }
-            },
-            {
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
+        try{
+            var defaultQuery = [
+                {
+                    $match: {
+                        "isDeleted": false,
+                        "type": "agent"
                     }
-                }
-            },
-            {
-                $project: {
-                    "recordsTotal": 1,
-                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
-                }
-            }
-        ];
-        console.log('order========================>',req.body.order.length);
-        if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
-            var colIndex = req.body.order[0].column;
-            var colname = req.body.columns[colIndex].name;
-            var order = req.body.order[0].dir;
-            if(order == "asc"){
-                var sortableQuery = {
-                    $sort: { [colname]: 1 }
-                }
-            } else {
-                var sortableQuery = {
-                    $sort: { [colname]: -1 }
-                } 
-            } 
-            console.log('sort===>',sortableQuery);
-            defaultQuery.concat(sortableQuery); 
-        }
-        if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
-            if (req.body.search.value) {
-                var regex = new RegExp(req.body.search.value);
-                var match = { $or: [] };
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
-                            }
+                },
+                {
+                    $sort: { 'createdAt': -1 }
+                },
+                {
+                    $group: {
+                        "_id": "",
+                        "recordsTotal": {
+                            "$sum": 1
+                        },
+                        "data": {
+                            "$push": "$$ROOT"
                         }
-                        match['$or'].push(json)
                     }
-                });
-                var searchQuery = {
-                    $match: match
+                },
+                {
+                    $project: {
+                        "recordsTotal": 1,
+                        "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                    }
                 }
-                defaultQuery.concat(searchQuery);
-                console.log("==>", JSON.stringify(searchQuery));
+            ];
+            console.log('order========================>',req.body.order.length);
+            if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+                var colIndex = req.body.order[0].column;
+                var colname = req.body.columns[colIndex].name;
+                var order = req.body.order[0].dir;
+                if(order == "asc"){
+                    var sortableQuery = {
+                        $sort: { [colname]: 1 }
+                    }
+                } else {
+                    var sortableQuery = {
+                        $sort: { [colname]: -1 }
+                    } 
+                } 
+                console.log('sort===>',sortableQuery);
+                defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
             }
-        }
-        console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
-        User.aggregate(defaultQuery, function (err, data) {
-            if (err) {
-                console.log('err===>', err);
-                return next(err);
-            } else {
-                console.log('result===>', data);
-                res.status(config.OK_STATUS).json({
-                    message: "Success",
-                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
-                });
+            if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
+                if (req.body.search.value) {
+                    var regex = new RegExp(req.body.search.value);
+                    var match = { $or: [] };
+                    req.body['columns'].forEach(function (obj) {
+                        if (obj.name) {
+                            var json = {};
+                            if (obj.isNumber) {
+                                json[obj.name] = parseInt(req.body.search.value)
+                            } else {
+                                json[obj.name] = {
+                                    "$regex": regex,
+                                    "$options": "i"
+                                }
+                            }
+                            match['$or'].push(json)
+                        }
+                    });
+                    var searchQuery = {
+                        $match: match
+                    }
+                    defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                    console.log("==>", JSON.stringify(searchQuery));
+                }
             }
-        })
+            console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
+            User.aggregate(defaultQuery, function (err, data) {
+                if (err) {
+                    console.log('err===>', err);
+                    return next(err);
+                } else {
+                    console.log('result===>', data);
+                    res.status(config.OK_STATUS).json({
+                        message: "Success",
+                        result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
+                    });
+                }
+            })
+        } catch (err){
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                error: err
+            });
+        }     
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
