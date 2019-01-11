@@ -10,6 +10,7 @@ const Country = require('./../models/country');
 const State = require('./../models/state');
 const City = require('./../models/city');
 const CarHandOver = require('./../models/car_hand_over');
+const CarReceive = require('./../models/car_receive');
 const moment = require('moment');
 const _ = require('underscore');
 var config = require('./../config');
@@ -286,7 +287,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 if (c.car['car_gallery'] === undefined) {
                     c.car['car_gallery'] = []
                 }
-                
+
                 delete c.car.reviews;
                 return c.car;
             })
@@ -820,6 +821,7 @@ carHelper.car_handover = async (req, car_handover_data) => {
         let car_hand_over_data = {
             'user_id': car_handover_data.user_id,
             'car_id': car_handover_data.car_id,
+            'car_rental_company_id': car_handover_data.car_rental_company_id,//
             'agent_id': car_handover_data.agent_id,
             'defected_points': car_handover_data.defected_points,
             'milage': car_handover_data.milage,
@@ -920,6 +922,81 @@ carHelper.car_handover = async (req, car_handover_data) => {
     }
     catch (err) {
         return { status: 'failed', message: "Error accured while hand over car", err }
+    }
+};
+
+
+// car_receive for agent app
+carHelper.car_receive = async (req, car_handover_data) => {
+    try {
+
+        let car_hand_over_data = {
+            'user_id': car_handover_data.user_id,
+            'car_id': car_handover_data.car_id,
+            'car_rental_company_id': car_handover_data.car_rental_company_id,//
+            'agent_id': car_handover_data.agent_id,
+            'defected_points': car_handover_data.defected_points,
+            'milage': car_handover_data.milage,
+            'petrol_tank': car_handover_data.petrol_tank,
+            'notes': car_handover_data.notes ? car_handover_data.notes : null,
+            'booking_number': car_handover_data.booking_number
+        }
+        // console.log('HElper =>', req.files)
+
+        if (req.files) {
+            if (req.files.car_defects_gallery) {
+                // console.log('Gallary=>',req.files)
+                var gallary = [];
+                var gallaryArray = [];
+                var gallary = req.files.car_defects_gallery;
+                if (!Array.isArray(gallary)) {
+                    gallary = [gallary];
+                    console.log('DATATAT=>', gallary);
+                }
+                console.log('DATATAT=>', gallary);
+                var dir = "./upload/car_defect";
+                async.each(gallary, function (gal) {
+                    var extention = paths.extname(gal.name);
+                    var filename = "car_defect" + Date.now() + extention;
+                    var filepath = dir + '/' + filename;
+
+                    if (fs.existsSync(filepath)) {
+                        filename = "car_defect" + Date.now() + 1 + extention;
+                        filepath = dir + '/' + filename;
+                    }
+                    var json_gal = { name: filename, type: gal['mimetype'] }
+                    gallaryArray.push(json_gal);
+
+                    gal.mv(filepath, function (err) {
+                        if (err) {
+                            return { status: "failed", message: "Error accured while uplaod car defected images" };
+                        }
+                    });
+
+                })
+
+                console.log('Should come after==>');
+
+                car_hand_over_data.car_defects_gallery = gallaryArray;
+            }
+        }
+
+
+        // car_hand_over_data.car_defects_gallery = gallaryArray;
+
+        let car_receive_data = new CarReceive(car_hand_over_data);
+        let data = await car_receive_data.save();
+
+        // after car handnover we need to change car booking status to -> in-progress
+        let booking_number = { booking_number: car_hand_over_data.booking_number };
+        let trip_status = { $set: { trip_status: 'finished' } };
+
+        await CarBooking.updateOne(booking_number, trip_status);
+
+        return { status: "success", message: "Car has been receive successfully" };
+    }
+    catch (err) {
+        return { status: 'failed', message: "Error accured while receive car", err }
     }
 };
 

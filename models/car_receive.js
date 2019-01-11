@@ -3,7 +3,7 @@ var mongoose = require('mongoose');
 
 //Define a schema
 var Schema = mongoose.Schema;
-var CarHandOverSChema = new Schema({
+var CarReceiveSChema = new Schema({
     // car_rental_company_id: mongoose.Schema.Types.ObjectId,
     user_id : mongoose.Schema.Types.ObjectId,
     car_id : mongoose.Schema.Types.ObjectId,
@@ -29,11 +29,6 @@ var CarHandOverSChema = new Schema({
         type: String,
         default : null
     },
-    signature: {
-        type: String,
-        default : null,
-        required : true
-    },
     isDeleted: {
         type: Boolean,
         default: false
@@ -46,5 +41,5 @@ var CarHandOverSChema = new Schema({
 }, {versionKey: false});
 
 // Compile model from schema
-var CarHandOver = mongoose.model('car_handover', CarHandOverSChema, 'car_handover');
-module.exports = CarHandOver;
+var CarReceive = mongoose.model('car_receive', CarReceiveSChema, 'car_receive');
+module.exports = CarReceive;
