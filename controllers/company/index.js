@@ -218,6 +218,7 @@ router.post('/reset_password', async (req, res, next) => {
     }
 });
 
+
 /**
  * @api {post} /company/change_password change company-admin password
  * @apiName Change company-admin password

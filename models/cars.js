@@ -37,6 +37,11 @@ var CarSchema = new Schema({
         type: Number,
         enum: [2, 4, 5, 6, 8, 12]
     },
+    resident_criteria: {
+        type: Number,
+        enum: [0, 1, 2],
+        default: 0
+    },
     transmission: {
         type: String,
         enum: ["manual", "automatic"],
