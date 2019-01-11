@@ -890,4 +890,113 @@ router.post('/addresses/update', async (req, res) => {
 });
 
 
+
+/**
+ * @api {post} /app/user/logout Logout user 
+ * @apiName Logout user
+ * @apiDescription Used to Logout user from login device
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id User Id
+ * @apiParam {Number} deviceToken deviceToken
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// logout user
+router.post('/logout', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'deviceToken': {
+            notEmpty: true,
+            errorMessage: "Please enter your device token"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user_id = req.body.user_id;
+        var deviceToken = req.body.deviceToken;
+
+        const logoutResp = await userHelper.logOut(user_id, deviceToken);
+
+        if (logoutResp.status === 'success') {
+            res.status(config.OK_STATUS).json(logoutResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(logoutResp);
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+/**
+ * @api {post} /app/user/new-password set new password
+ * @apiName new password
+ * @apiDescription Used to set new password in user account
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id User Id
+ * @apiParam {Number} password new password
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// New password only for agent app we have change password api for user app
+router.post('/new-password', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'password': {
+            notEmpty: true,
+            errorMessage: "Please enter your new password"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user_id = req.body.user_id;
+        var password = req.body.password;
+        
+        const passwordResp = await userHelper.newPassword(user_id, password);
+
+        if (passwordResp.status === 'success') {
+            res.status(config.OK_STATUS).json(passwordResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(passwordResp);
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+
 module.exports = router;

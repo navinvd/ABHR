@@ -173,6 +173,7 @@ userHelper.deleteAddress = async function (user_id, address_ids) {
     }
 };
 
+
 // update user address
 userHelper.updateAddress = async function (user_id, address_id, new_address) {
     try {
@@ -221,6 +222,40 @@ userHelper.updateAddress = async function (user_id, address_id, new_address) {
         }
     } catch (err) {
         return { status: 'failed', message: "Error occured while updated address" };
+    }
+};
+
+
+// Logout user
+userHelper.logOut = async function (user_id, deviceToken) {
+    try {
+        
+        var data = await User.updateOne({ _id : new ObjectId(user_id), "deviceToken" : deviceToken }, { $set : { deviceToken : null } } );
+
+        if(data && data.n > 0){
+            return { status: 'success', message: "You have been logout successfully" }
+        }
+        else{
+            return { status: 'failed', message: "You have not been logout" }
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while logout user", err };
+    }
+};
+
+// newPassword
+userHelper.newPassword = async function (user_id, password) {
+    try {
+        var data = await User.updateOne({ _id : new ObjectId(user_id)}, { $set : { password : bcrypt.hashSync(password, SALT_WORK_FACTOR)  } } );
+
+        if(data && data.n > 0){
+            return { status: 'success', message: "Password has been change successfully" }
+        }
+        else{
+            return { status: 'failed', message: "Password has not been change" }
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while change password", err };
     }
 };
 
