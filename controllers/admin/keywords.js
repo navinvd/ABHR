@@ -123,7 +123,7 @@ router.post('/list', function (req, res, next) {
 });
 
 
-/* @api {post} /save Save Keyword
+/* @api {post} /admin/keyword/save Save Keyword
  * @apiName Save Keyword
  * @apiDescription Used for Add Keyword 
  * @apiGroup Keyword
@@ -191,7 +191,7 @@ router.post('/save', (req, res, next) => {
   });
 
 /**
- * @api {put} /keyword Update keyword Details
+ * @api {put} /admin/keyword/edit Update keyword Details
  * @apiName Update Keyword
  * @apiDescription Used to update keyword information
  * @apiGroup Keyword
@@ -207,7 +207,7 @@ router.post('/save', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/', auth, function (req, res, next) {
+router.put('/edit', async function (req, res, next) {
     var schema = {
         'keyword_id': {
             notEmpty: true,
@@ -217,13 +217,77 @@ router.put('/', auth, function (req, res, next) {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Keyword.update({_id: {$eq: req.body.keyword_id}}, {$set: req.body}, function (err, response) {
-            if (err) {
-                return next(err);
-            } else {
-                res.status(config.OK_STATUS).json({message: "Keyword updated successfully"});
-            }
+        var check = await Keyword.findOne({"_id":req.body.keyword_id, "isDeleted":false}).exec();
+        if(check){
+            Keyword.update({"_id": req.body.keyword_id}, {$set: req.body}, function (err, response) {
+                if (err) {
+                    if (err.code == '11000') {
+                        if (err.message.indexOf('keyword') != -1) {
+                            res.status(config.BAD_REQUEST).json({
+                                status: "falied",
+                                message: "keyword already exist",
+                                error: err
+                            });
+                        } else {
+                            return next(err);
+                        }
+                    } else {
+                        return next(err);
+                    }
+                } else {
+                    res.status(config.OK_STATUS).json({status: "success",message: "Keyword updated successfully"});
+                }
+            });
+        }else{
+            res.status(config.OK_STATUS).json({ status:"failed",message: "Record not found"});
+        }      
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
         });
+    }
+});
+
+/**
+ * @api {put} /admin/keyword/edit Update keyword Details
+ * @apiName Update Keyword
+ * @apiDescription Used to update keyword information
+ * @apiGroup Keyword
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} keyword_id Keyword Id
+ * @apiParam {String} english English Of Keyword 
+ * @apiParam {String} arabic Arabic Of Keyword
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.put('/delete', async function (req, res, next) {
+    var schema = {
+        'keyword_id': {
+            notEmpty: true,
+            errorMessage: "keyword_id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var check = await Keyword.findOne({"_id":req.body.keyword_id, "isDeleted":false}).exec();
+        if(check){
+            Keyword.update({"_id": req.body.keyword_id}, {$set: {"isDeleted": true}}, function (err, response) {
+                if (err) {
+                        return next(err);
+                } else {
+                    res.status(config.OK_STATUS).json({status: "success",message: "Keyword Deleted successfully"});
+                }
+            });
+        }else{
+            res.status(config.OK_STATUS).json({ status:"failed",message: "Record not found"});
+        }      
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
