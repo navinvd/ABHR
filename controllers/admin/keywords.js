@@ -107,7 +107,7 @@ router.post('/list', function (req, res, next) {
             } else {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: result.length != 0 ? result[0] : { recordsTotal: 0, result: [] },
+                    result: result.length != 0 ? result[0] : { recordsTotal: 0, data: [] },
                 });
             }
         })
