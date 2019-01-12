@@ -215,7 +215,7 @@ userHelper.updateAddress = async function (user_id, address_id, new_address) {
 
         var data = await User.update({ _id: new ObjectId(user_id), "address._id" : address_id}, { $set : { "address.$" : default_address } } );
         if(data && data.n > 0){
-            return { status: 'success', message: "Address has been updated" }
+            return { status: 'success', message: "Address has been updated", data : {address : default_address} }
         }
         else{
             return { status: 'failed', message: "Address Not updated" }
