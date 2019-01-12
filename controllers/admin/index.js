@@ -321,15 +321,16 @@ router.put('/update', async (req, res, next) => {
         req.checkBody(schema);
         var errors = req.validationErrors();
         if (!errors) {
-            var userId = await User.findOne({ "_id" : req.body.user_id, "isDeleted" : false, "type": "admin"});
-            if(userId){``````````  
+            var userId = await User.findOne({"_id" : new ObjectId(req.body.user_id), "isDeleted" : false, "type": "admin"});
+            if(userId){ 
                 var userData = {
                     first_name: req.body.first_name,
                     last_name: req.body.last_name,
                     phone_number: req.body.phone_number,
                     email: req.body.email
                 };
-                User.update({ _id: { $eq: req.body.user_id }, "type": "admin" }, { $set: userData }, function (err, data) {
+                User.update({ "_id": new ObjectId(req.body.user_id), "type": "admin" }, { $set: userData }, async function (err, data) {
+                    var userId = await User.findOne({ "_id": new ObjectId(req.body.user_id), "isDeleted": false });
                     if (err) {
                         return next(err);
                     } else {
