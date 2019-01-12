@@ -245,6 +245,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 car_brand_id: 1,
                 isDeleted: 1,
                 car_gallery: 1,
+                resident_criteria: 1,
                 image_name: { $arrayElemAt: ["$car_gallery.name", 0] },
             }
         },
