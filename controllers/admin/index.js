@@ -322,7 +322,7 @@ router.put('/update', async (req, res, next) => {
         var errors = req.validationErrors();
         if (!errors) {
             var userId = await User.findOne({ "_id" : req.body.user_id, "isDeleted" : false, "type": "admin"});
-            if(userId){
+            if(userId){``````````  
                 var userData = {
                     first_name: req.body.first_name,
                     last_name: req.body.last_name,
