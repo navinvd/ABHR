@@ -430,6 +430,10 @@ router.post('/handover', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter agent id"
         },
+        'car_rental_company_id':{
+            notEmpty: true,
+            errorMessage: "Please enter rental company id"
+        },
         'defected_points': {
             notEmpty: true,
             errorMessage: "Please enter car defecets points"
@@ -457,6 +461,7 @@ router.post('/handover', async (req, res) => {
             'user_id' : req.body.user_id,
             'car_id' : req.body.car_id,
             'agent_id' : req.body.agent_id,
+            'car_rental_company_id' : req.body.car_rental_company_id,
             'defected_points' : req.body.defected_points,
             'milage' : req.body.milage, 
             'petrol_tank' : req.body.petrol_tank,
@@ -487,6 +492,81 @@ router.post('/handover', async (req, res) => {
 });
 
 
+// car receive 
+router.post('/receive', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
+        },
+        'agent_id': {
+            notEmpty: true,
+            errorMessage: "Please enter agent id"
+        },
+        'car_rental_company_id':{
+            notEmpty: true,
+            errorMessage: "Please enter rental company id"
+        },
+        'defected_points': {
+            notEmpty: true,
+            errorMessage: "Please enter car defecets points"
+        },
+        'milage': {
+            notEmpty: true,
+            errorMessage: "Please enter car milage"
+        },
+        'petrol_tank': {
+            notEmpty: true,
+            errorMessage: "Please enter car petrol tank fuel"
+        },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number"
+        }
+    };
+    req.checkBody(schema);
+    // car_defects_gallery
+    // notes
+    var errors = req.validationErrors();
+    if (!errors) {
+    
+        var hand_over_data = {
+            'user_id' : req.body.user_id,
+            'car_id' : req.body.car_id,
+            'agent_id' : req.body.agent_id,
+            'car_rental_company_id' : req.body.car_rental_company_id,
+            'defected_points' : req.body.defected_points,
+            'milage' : req.body.milage, 
+            'petrol_tank' : req.body.petrol_tank,
+            'notes' : req.body.notes ? req.body.notes : null,
+            'booking_number' : req.body.booking_number
+            // 'signature' : req.body.signature ?  req.body.signature : null,
+            // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
+        }
+
+        const carReceiveResp = await CarHelper.car_receive(req, hand_over_data);
+        console.log('RESP=>',carReceiveResp);
+
+
+        if(carReceiveResp.status === 'success'){
+            res.status(config.OK_STATUS).json(carReceiveResp)
+        }
+        else{
+            res.status(config.BAD_REQUEST).json(carReceiveResp)
+        }
+        // res.json(carReceiveResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
 
 
 

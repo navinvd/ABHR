@@ -432,7 +432,7 @@ router.post('/filter', async (req, res) => {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: "failed",
-                    message: "Oops, no car found. Please try again.",
+                    message: "No Cars Available.",
                     err
                 });
             } else {
@@ -458,7 +458,7 @@ router.post('/filter', async (req, res) => {
                 else {
                     res.status(config.BAD_REQUEST).json({
                         status: "failed",
-                        message: "No car data found"
+                        message: "No Cars Available"
                     });
                 }
             }
@@ -1541,7 +1541,7 @@ router.post('/location-filter', async (req, res) => {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: "failed",
-                    message: "Oops, no car found. Please try again.",
+                    message: "No Cars Available",
                     err
                 });
             } else {
@@ -1564,7 +1564,7 @@ router.post('/location-filter', async (req, res) => {
                 else {
                     res.status(config.BAD_REQUEST).json({
                         status: "failed",
-                        message: "No car data found"
+                        message: "No Cars Available"
                     });
                 }
             }
