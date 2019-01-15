@@ -234,7 +234,25 @@ router.put('/update', (req, res, next) => {
                     $set: userData
                 }, function (err, response) {
                     if (err) {
-                        callback(err);
+                        if (err.code == '11000') {
+                            if (err.message.indexOf('name') != -1) {
+                                errData = {
+                                    message: "Company Name already exist",
+                                    error: err
+                                };
+                                callback(errData);
+                            } else if (err.message.indexOf('email') != -1) {
+                                errData = {
+                                    message: "Email already exist",
+                                    error: err
+                                };
+                                callback(errData);
+                            } else {
+                                callback(err);
+                            }
+                        } else {
+                            callback(err);
+                        }
                     } else {
                         var result = {
                             message: "Company updated successfully..",

@@ -243,8 +243,25 @@ router.put('/update', (req, res, next) => {
                     callback(null, userData);
                 }
             },
+            function (callback) {
+                var email = 0;
+                User.find({ "email": req.body.email, "_id": { $ne: new ObjectId(req.body.user_id)} }, function (err, data) {
+                    if (data && data.length > 0) {
+                        email = 1;
+                        callback({message:"Email is already exist", email :email});
+                    }
+                    else {
+                        // callback(null);
+                        callback(null,{"email":email});
+                    }
+                    if (err) {
+                        console.log('Error====>', err);
+                        callback(err);
+                    }
+                });
+            },
             function (userData, callback) {
-                User.update({ _id: { $eq: req.body.user_id } }, { $set: userData }, function (err, response) {
+                User.update({ _id: { $eq: req.body.user_id }}, { $set: userData }, function (err, response) {
                     if (err) {
                         callback(err);
                     } else {
