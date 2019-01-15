@@ -290,7 +290,6 @@ router.get('/details/:id', (req, res, next) => {
 });
 
 
-
 /**
  * @api {put} /admin/update update Admin details
  * @apiName Update Admin
@@ -355,6 +354,67 @@ router.put('/update', async (req, res, next) => {
         });
     }
 });
+
+
+/**
+ * @api {post} /admin/checkemail userList for email already exist check
+ * @apiName User List 
+ * @apiDescription Used to get user list
+ * @apiGroup Admin - Admin
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} [user_id] User Id
+ * @apiParam {String} email Email
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/checkemail', async (req, res, next) => {
+    var schema = {
+        'email': {
+            notEmpty: true,
+            errorMessage: "email is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var obj = { "email" : req.body.email, "isDeleted" : false};
+            if(req.body.user_id){
+                var obj = { "email" : req.body.email,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.user_id) }};
+            }
+            var userId = await User.findOne(obj); 
+            if(userId !== null && userId!== ''){
+                res.status(config.OK_STATUS).json({
+                    status: "success",
+                    message: "Record found"
+                });
+            }else{
+                res.status(config.OK_STATUS).json({
+                    status: "failed",
+                    message: "record not found"
+                });
+            }
+        } catch (e) {
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "something went wrong",
+                error: e
+            });
+        }   
+    } else{
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message:"Validation error",
+            error: e
+        });
+    }
+});
+
 
 
 module.exports = router;
