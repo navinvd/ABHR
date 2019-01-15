@@ -7,7 +7,7 @@ var CompanyTermsAndConditionSchema = new Schema({
     CompanyId: {
         type: mongoose.Schema.Types.ObjectId
     },
-    terms_and_conditons: {
+    terms_and_conditions: {
         type: String,
         required: true
     },

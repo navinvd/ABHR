@@ -5993,21 +5993,21 @@ define({ "api": [
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "Number",
+            "type": "String",
             "optional": false,
             "field": "user_id",
             "description": "<p>user Id</p>"
           },
           {
             "group": "Parameter",
-            "type": "Number",
+            "type": "String",
             "optional": false,
             "field": "car_id",
             "description": "<p>car Id</p>"
           },
           {
             "group": "Parameter",
-            "type": "Number",
+            "type": "String",
             "optional": false,
             "field": "car_rental_company_id",
             "description": "<p>company Id</p>"

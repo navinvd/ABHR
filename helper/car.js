@@ -206,6 +206,20 @@ carHelper.getcarDetailbyId = async (car_id) => {
 
         {
             $lookup: {
+                from: 'car_company_terms_and_condition',
+                foreignField: 'companyId',
+                localField: 'car_rental_company_id',
+                as: "termandconditionDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$termandconditionDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+         {
+            $lookup: {
                 from: 'car_company',
                 foreignField: '_id',
                 localField: 'car_rental_company_id',
@@ -224,7 +238,8 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 _id: 1,
                 car_rental_company_id: 1,
                 car_rental_company_name: "$carCompanyDetails.name",
-                // car_rental_company_country : "$carCompanyDetails.name",
+                car_rental_company_country : "$carCompanyDetails.company_address.country",
+                terms_and_conditions : "$termandconditionDetails.terms_and_conditions",
                 car_brand: "$brandDetails.brand_name",
                 car_model: "$modelDetails.model_name",
                 car_model_number: "$modelDetails.model_number",
@@ -290,7 +305,12 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 if (c.car['car_gallery'] === undefined) {
                     c.car['car_gallery'] = []
                 }
-
+                if(c.car['terms_and_conditions'] === undefined){
+                    c.car['terms_and_conditions'] = null
+                }
+                if(c.car['car_rental_company_country'] === undefined){
+                    c.car['car_rental_company_country'] = null
+                }
                 delete c.car.reviews;
                 return c.car;
             })
