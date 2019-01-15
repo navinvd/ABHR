@@ -9,6 +9,7 @@ var mailHelper = require('./../../helper/mail');
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var auth = require('./../../middlewares/auth');
 var router = express.Router();
+var ObjectId = require('mongoose').Types.ObjectId;
 
 //Routes
 var cars = require('./cars');
@@ -349,7 +350,6 @@ router.get('/details/:id', (req, res, next) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.put('/update', async (req, res, next) => {
-    try {
         var schema = {
             'company_id': {
                 notEmpty: true,
@@ -359,16 +359,17 @@ router.put('/update', async (req, res, next) => {
         req.checkBody(schema);
         var errors = req.validationErrors();
         if (!errors) {
+            try{
+                var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
+            } catch (error) {
+                res.status(config.BAD_REQUEST).json({
+                    message: "Validation Error",
+                    error: error
+                });
+            }
             var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
             if (userId) {
-                var userData = {
-                    name: req.body.name,
-                    description: req.body.description,
-                    phone_number: req.body.phone_number,
-                    site_url: req.body.site_url,
-                    email: req.body.email
-                };
-                Company.update({"_id": new ObjectId(req.body.company_id) }, { $set: req.body }, async function (err, data) {
+                Company.update({"_id": new ObjectId(req.body.company_id) }, { $set: req.body },{ upsert: true }, async function (err, data) {
                     var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
                     if (err) {
                         return next(err);
@@ -386,12 +387,6 @@ router.put('/update', async (req, res, next) => {
                     message: "record not found"
                 });
             }
-        }
-    } catch (e) {
-        res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: e
-        });
     }
 });
 

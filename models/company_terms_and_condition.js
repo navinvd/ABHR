@@ -4,6 +4,9 @@ var mongoose = require('mongoose');
 //Define a schema
 var Schema = mongoose.Schema;
 var CompanyTermsAndConditionSchema = new Schema({
+    CompanyId: {
+        type: mongoose.Schema.Types.ObjectId
+    },
     terms_and_conditons: {
         type: String,
         required: true
