@@ -174,7 +174,60 @@ userHelper.deleteAddress = async function (user_id, address_ids) {
 };
 
 
-// update user address
+// update user address V1
+// userHelper.updateAddress = async function (user_id, address_id, new_address) {
+//     try {
+        
+//         console.log('New Address : ',new_address);
+//         var user = await User.findOne({_id : new ObjectId(user_id), "address._id" : address_id}).lean().exec();
+
+//         if(user !== null){
+//             var default_address = _.find(user.address, function(o){ return o._id == address_id })
+//             console.log('Old ADDRESS=>',default_address);
+
+//             if(new_address.hasOwnProperty("country")){
+//                 default_address.country = new_address.country
+//             }
+//             if(new_address.hasOwnProperty("state")){
+//                 default_address.state = new_address.state
+//             }
+//             if(new_address.hasOwnProperty("city")){
+//                 default_address.city = new_address.city
+//             }
+//             if(new_address.hasOwnProperty("street")){
+//                 default_address.street = new_address.street
+//             }
+//             if(new_address.hasOwnProperty("building")){
+//                 default_address.building = new_address.building
+//             }
+//             if(new_address.hasOwnProperty("landmark")){
+//                 default_address.landmark = new_address.landmark
+//             }
+//             if(new_address.hasOwnProperty("latitude")){
+//                 default_address.latitude = new_address.latitude
+//             }
+//             if(new_address.hasOwnProperty("longitude")){
+//                 default_address.longitude = new_address.longitude
+//             }
+            
+//             console.log('New ADDRESS=>',default_address);
+//         }
+
+//         var data = await User.update({ _id: new ObjectId(user_id), "address._id" : address_id}, { $set : { "address.$" : default_address } } );
+        
+//         if(data && data.n > 0){
+//             return { status: 'success', message: "Address has been updated", data : {address : default_address} }
+//         }
+//         else{
+//             return { status: 'failed', message: "Address Not updated" }
+//         }
+//     } catch (err) {
+//         return { status: 'failed', message: "Error occured while updated address" };
+//     }
+// };
+
+
+// update user address V2
 userHelper.updateAddress = async function (user_id, address_id, new_address) {
     try {
         
@@ -183,39 +236,42 @@ userHelper.updateAddress = async function (user_id, address_id, new_address) {
 
         if(user !== null){
             var default_address = _.find(user.address, function(o){ return o._id == address_id })
-            console.log('Old ADDRESS=>',default_address);
-
-            if(new_address.hasOwnProperty("country")){
-                default_address.country = new_address.country
-            }
-            if(new_address.hasOwnProperty("state")){
-                default_address.state = new_address.state
-            }
-            if(new_address.hasOwnProperty("city")){
-                default_address.city = new_address.city
-            }
-            if(new_address.hasOwnProperty("street")){
-                default_address.street = new_address.street
-            }
-            if(new_address.hasOwnProperty("building")){
-                default_address.building = new_address.building
-            }
-            if(new_address.hasOwnProperty("landmark")){
-                default_address.landmark = new_address.landmark
-            }
-            if(new_address.hasOwnProperty("latitude")){
-                default_address.latitude = new_address.latitude
-            }
-            if(new_address.hasOwnProperty("longitude")){
-                default_address.longitude = new_address.longitude
-            }
-            
-            console.log('New ADDRESS=>',default_address);
         }
 
-        var data = await User.update({ _id: new ObjectId(user_id), "address._id" : address_id}, { $set : { "address.$" : default_address } } );
+        new_address._id = default_address._id;
+
+        // var data = await User.update({ _id: new ObjectId(user_id), "address._id" : address_id}, { $set : { "address.$" : default_address } } );
+        var data = await User.update({ _id: new ObjectId(user_id), "address._id" : address_id}, { $set : { "address.$" : new_address } } );
+
+        // other tech
+            if( ! new_address.hasOwnProperty("country")){
+                 new_address.country = null
+            }
+            if( ! new_address.hasOwnProperty("state")){
+                new_address.state = null
+            }
+            if( ! new_address.hasOwnProperty("city")){
+                new_address.city = null
+            }
+            if( ! new_address.hasOwnProperty("street")){
+                new_address.street = null
+            }
+            if( ! new_address.hasOwnProperty("building")){
+                new_address.building = null
+            }
+            if( ! new_address.hasOwnProperty("landmark")){
+                new_address.landmark = null
+            }
+            if( ! new_address.hasOwnProperty("latitude")){
+                new_address.latitude = null
+            }
+            if( ! new_address.hasOwnProperty("longitude")){
+                new_address.longitude = null
+            }
+  
         if(data && data.n > 0){
-            return { status: 'success', message: "Address has been updated", data : {address : default_address} }
+            // return { status: 'success', message: "Address has been updated", data : {address : default_address} }
+            return { status: 'success', message: "Address has been updated", data : {address : new_address} }
         }
         else{
             return { status: 'failed', message: "Address Not updated" }
@@ -224,6 +280,9 @@ userHelper.updateAddress = async function (user_id, address_id, new_address) {
         return { status: 'failed', message: "Error occured while updated address" };
     }
 };
+
+
+
 
 
 // Logout user

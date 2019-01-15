@@ -25,13 +25,7 @@ var CarCompanySchema = new Schema({
     refreshToken: String,
     place_id : mongoose.Schema.Types.ObjectId,
     agent_ids : [mongoose.Schema.Types.ObjectId],
-    service_location: {
-        coordinates: [Number], // [<longitude>, <latitude>]
-        type: {
-            type: String,
-            default: 'Point'
-        }
-    },
+    service_location: [Number], // [<longitude>, <latitude>] 
     is_Active:{
         type: Boolean,
         default: true
@@ -73,3 +67,12 @@ CarCompanySchema.pre('save', function (next) {
 // Compile model from schema
 var CarCompany = mongoose.model('car_company', CarCompanySchema, 'car_company');
 module.exports = CarCompany;
+
+
+// service_location:  {
+//     coordinates: [Number], // [<longitude>, <latitude>]
+//     type: {
+//         type: String,
+//         default: 'Point'
+//     }
+// },
