@@ -361,30 +361,47 @@ router.put('/update', async (req, res, next) => {
         if (!errors) {
             try{
                 var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
+                if (userId) {
+                    Company.update({"_id": new ObjectId(req.body.company_id) }, { $set: req.body },{ upsert: true }, async function (err, data) {
+                        var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
+                        if (err) {
+                            if (err.code == '11000') {
+                                if (err.message.indexOf('name') != -1) {
+                                    errData = {
+                                        message: "Company Name already exist",
+                                        error: err
+                                    };
+                                    return next(errData);
+                                } else if (err.message.indexOf('email') != -1) {
+                                    errData = {
+                                        message: "Email already exist",
+                                        error: err
+                                    };
+                                    return next(errData);
+                                } else {
+                                    return next(err);
+                                }
+                            } else {
+                                return next(err);
+                            }
+                        } else {
+                            res.status(config.OK_STATUS).json({
+                                status: "success",
+                                message: "Profile updated successfully..",
+                                result: { data: userId }
+                            });
+                        }
+                    });
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        status: "failed",
+                        message: "record not found"
+                    });
+                }
             } catch (error) {
                 res.status(config.BAD_REQUEST).json({
-                    message: "Validation Error",
+                    message: "Something Went wrong",
                     error: error
-                });
-            }
-            var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
-            if (userId) {
-                Company.update({"_id": new ObjectId(req.body.company_id) }, { $set: req.body },{ upsert: true }, async function (err, data) {
-                    var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
-                    if (err) {
-                        return next(err);
-                    } else {
-                        res.status(config.OK_STATUS).json({
-                            status: "success",
-                            message: "Profile updated successfully..",
-                            result: { data: userId }
-                        });
-                    }
-                });
-            } else {
-                res.status(config.OK_STATUS).json({
-                    status: "failed",
-                    message: "record not found"
                 });
             }
     }
