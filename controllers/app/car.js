@@ -442,7 +442,7 @@ router.post('/filter', async (req, res) => {
                 if (data && data.length > 0) {
                     cars = data.map((c) => {
                         c.car["total_avg_rating"] = c.total_avg_rating;
-                        if(c.car['image_name'] === undefined){
+                        if (c.car['image_name'] === undefined) {
                             c.car['image_name'] = null
                         }
                         delete c.car.reviews;
@@ -704,7 +704,7 @@ router.post('/review', async (req, res) => {
     else {
         res.status(config.BAD_REQUEST).json(carReviewResp);
     }
-    
+
     // res.json(carReviewResp);
 });
 
@@ -743,7 +743,7 @@ router.post('/sort', async (req, res) => {
         else {
             res.status(config.BAD_REQUEST).json(carSortingResp);
         }
-        
+
         // res.json(carSortingResp);
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -1193,7 +1193,7 @@ router.post('/check-delivery-radius', async (req, res) => {
             longitude: req.body.longitude
         }
         let radiusResp = await carHelper.checkRadius(data);
-        
+
         if (radiusResp.status === 'success') {
             res.status(config.OK_STATUS).json(radiusResp);
         }
@@ -1495,14 +1495,14 @@ router.post('/location-filter', async (req, res) => {
         // filter using lat - long
 
         if (req.body.location) { // pass like location : [long,lat]
-            console.log('DATATATAT==>',req.body.location)
+            console.log('DATATATAT==>', req.body.location)
             var location = req.body.location;
             console.log('DATATATAT TYPE ==>', typeof req.body.location)
             var searchQuery = {
-                 $match: {
+                $match: {
                     "companyDetails.service_location":  // 124.274 -> 200 km // 0.621371 -> 1 km
                         // { $geoWithin: { $centerSphere: [[72.831062, 21.17024], 124.274 / 3963.2] } }  
-                        { $geoWithin: { $centerSphere: [location, 124.274 / 3963.2] } }  
+                        { $geoWithin: { $centerSphere: [location, 124.274 / 3963.2] } }
                 }
             }
             defaultQuery.splice(9, 0, searchQuery);
@@ -1580,6 +1580,52 @@ router.post('/location-filter', async (req, res) => {
 
 
 
+// car report list
+
+
+/**
+ * @api {post} /app/car/report-list Car report list
+ * @apiName Car report list
+ * @apiDescription Used to get Car report list
+ * @apiGroup App - Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/report-list', async (req, res) => {
+
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id",  
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const carReportResp = await carHelper.car_report_list(req.body.user_id);
+        if (carReportResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carReportResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carReportResp);
+        }
+    }
+    else{
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+    // res.json(carHistoryResp);
+});
 
 
 module.exports = router;

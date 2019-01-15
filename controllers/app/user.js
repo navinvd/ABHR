@@ -122,6 +122,64 @@ router.post('/remove-notification', async (req, res) => {
 });
 
 
+/**
+ * @api {post} /app/user/change_notification_setting change notification setting for perticular user
+ * @apiName Change Notificationsetting Data
+ * @apiDescription To change Notificationsetting Data for perticular user
+ * @apiGroup AppUser
+ *
+ * @apiParam {String}  user_id userId
+ * @apiParam {Boolean}  account_updates_status account_updates_status (eg 0 - false , 1 - true )
+ * @apiParam {Boolean}  accoundiscount_new_status accoundiscount_new_status (eg 0 - false , 1 - true )
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/change_notification_setting', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'account_updates_status': {
+            notEmpty: true,
+            errorMessage: "Please enter account_updates_status"
+        },
+        'accoundiscount_new_status': {
+            notEmpty: true,
+            errorMessage: "Please enter accoundiscount_new_status"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var  user_id =  req.body.user_id;
+        var new_setting = {
+            account_updates_status : req.body.account_updates_status,
+            accoundiscount_new_status : req.body.accoundiscount_new_status
+        }
+        const notificationResp = await userHelper.change_notification_setting(user_id,new_setting);
+
+        if(notificationResp.status === 'success'){
+            res.status(config.OK_STATUS).json(notificationResp);
+        }
+        else{
+            res.status(config.BAD_REQUEST).json(notificationResp);
+        }
+
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
 
 /**
  * @api {post} /app/user/changeProfile change user profile

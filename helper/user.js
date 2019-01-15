@@ -45,6 +45,20 @@ userHelper.getUsernotificationSettingData = async function (userId) {
 };
 
 
+userHelper.change_notification_setting = async function (user_id,new_setting) {
+    try {
+        const notification_settingData = await CarNotificationSetting.update({ "isDeleted": false, "userId": user_id },{$set : new_setting });
+        if (notification_settingData && notification_settingData.n > 0) {
+            return { status: 'success', message: "notification setting has been changed", data: { notificationData: new_setting } }
+        } else {
+            return { status: 'failed', message: "notification setting has not been changed" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while changing notification setting", err };
+    }
+};
+
+
 userHelper.removeNotification = async function (notification_id) {
     try {
         var data = await CarNotification.update({ _id: new ObjectId(notification_id) }, { $set: { isDeleted: true } })
@@ -152,7 +166,7 @@ userHelper.addAddress = async function (user_id, address_data) {
         var data = await User.update({ _id: new ObjectId(user_id) }, { $push: { address: address_data } });
 
             var user = await User.find({ _id: new ObjectId(user_id)}).lean().exec();
-            
+
             var last_inserted_address = user[0].address.pop();
 
         // return { status: 'success', message: "Address has been added", data: { address: address_data } }
