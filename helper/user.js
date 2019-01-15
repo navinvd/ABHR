@@ -150,7 +150,13 @@ userHelper.changePassword = async (data) => {
 userHelper.addAddress = async function (user_id, address_data) {
     try {
         var data = await User.update({ _id: new ObjectId(user_id) }, { $push: { address: address_data } });
-        return { status: 'success', message: "Address has been added", data: { address: address_data } }
+
+            var user = await User.find({ _id: new ObjectId(user_id)}).lean().exec();
+            
+            var last_inserted_address = user[0].address.pop();
+
+        // return { status: 'success', message: "Address has been added", data: { address: address_data } }
+        return { status: 'success', message: "Address has been added", data: { address: last_inserted_address } }
     } catch (err) {
         return { status: 'failed', message: "Error occured while adding address" };
     }
