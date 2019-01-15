@@ -128,7 +128,9 @@ router.post('/remove-notification', async (req, res) => {
  * @apiDescription To change Notificationsetting Data for perticular user
  * @apiGroup AppUser
  *
- * @apiParam {String}  userId userId
+ * @apiParam {String}  user_id userId
+ * @apiParam {Boolean}  account_updates_status account_updates_status (eg 0 - false , 1 - true )
+ * @apiParam {Boolean}  accoundiscount_new_status accoundiscount_new_status (eg 0 - false , 1 - true )
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -137,9 +139,6 @@ router.post('/remove-notification', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/change_notification_setting', async (req, res) => {
-
-    // var userId = req.params.userId;
-
     var schema = {
         'user_id': {
             notEmpty: true,
@@ -175,13 +174,11 @@ router.post('/change_notification_setting', async (req, res) => {
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
-            message: errors,
+            message: "Validation Error",
+            errors
         });
     }
 });
-
-
-
 
 
 /**

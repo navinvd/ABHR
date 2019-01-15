@@ -1003,4 +1003,87 @@ carHelper.car_receive = async (req, car_handover_data) => {
 };
 
 
+
+// Car report list user wise
+carHelper.car_report_list = async (user_id) => {
+    try {
+        let data = await CarBooking.aggregate([
+            {
+                $lookup: {
+                    from: 'cars',
+                    localField: 'carId',
+                    foreignField: '_id',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_details.car_model_id',
+                    as: 'model_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$model_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_details.car_brand_id',
+                    as: 'brand_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brand_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $addFields: {
+                    "car_details.car_brand": "$brand_details.brand_name",
+                    "car_details.car_model": "$model_details.model_name",
+                    "car_details.car_model_number": "$model_details.model_number",
+                    "car_details.car_model_release_year": "$model_details.release_year"
+                }
+            },
+            {
+                // $match: {
+                //     'isDeleted': false,
+                //     'userId': new ObjectId(user_id),
+                //     'from_time': {
+                //         $gte: new Date(),
+                //     }
+                // }
+                $match: {
+                    'isDeleted': false,
+                    'userId': new ObjectId(user_id),
+                    'trip_status': { $in :  ["inprogress", "finished", "upcoming"] }
+                }
+            }
+
+        ]);
+        if (data && data.length > 0) {
+            return { status: 'success', message: "Car Reported list", data: { car_report_list: data } }
+        }
+        else {
+            return { status: 'failed', message: "No car reported yet", data: data }
+        }
+
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car report list" };
+    }
+};
+
 module.exports = carHelper;
