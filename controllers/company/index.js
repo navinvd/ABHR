@@ -359,7 +359,7 @@ router.put('/update', async (req, res, next) => {
         req.checkBody(schema);
         var errors = req.validationErrors();
         if (!errors) {
-            var userId = await Company.findOne({ "_id": new ObjectId(req.body.company_id), "isDeleted": false });
+            var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
             if (userId) {
                 var userData = {
                     name: req.body.name,
@@ -368,11 +368,11 @@ router.put('/update', async (req, res, next) => {
                     site_url: req.body.site_url,
                     email: req.body.email
                 };
-                Company.update({ "_id": new ObjectId(req.body.company_id) }, { $set: req.body }, async function (err, data) {
+                Company.update({"_id": new ObjectId(req.body.company_id) }, { $set: req.body }, async function (err, data) {
+                    var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
                     if (err) {
                         return next(err);
                     } else {
-                        var userId = await Company.findOne({ "_id": new ObjectId(req.body.company_id), "isDeleted": false });
                         res.status(config.OK_STATUS).json({
                             status: "success",
                             message: "Profile updated successfully..",
