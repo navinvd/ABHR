@@ -95,6 +95,10 @@ var BookingSchema = new Schema({
     rating: {
         type: Number,
     },
+    is_car_reported : {
+        type : Boolean,
+        default : false
+    },
     isDeleted: {
         type: Boolean,
         default: false

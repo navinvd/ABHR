@@ -1582,7 +1582,6 @@ router.post('/location-filter', async (req, res) => {
 
 // car report list
 
-
 /**
  * @api {post} /app/car/report-list Car report list
  * @apiName Car report list
@@ -1626,6 +1625,92 @@ router.post('/report-list', async (req, res) => {
     }
     // res.json(carHistoryResp);
 });
+
+
+
+
+// Report a car
+/**
+ * @api {post} /app/car/report Report a car
+ * @apiName Report a car
+ * @apiDescription Used to Report a car
+ * @apiGroup App - Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user Id
+ * @apiParam {Number} car_id car Id
+ * @apiParam {Number} car_rental_company_id company Id
+ * @apiParam {Number} booking_number car booking number
+ * @apiParam {Boolean} report_type (eg. 0 - Lost/Stolen  &  1 - Problem in car)
+ * @apiParam {String} report_message Car reporting message
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/report', async (req, res) => {
+
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id",  
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id",  
+        },
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter company id",  
+        },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number",  
+        },
+        'report_type': {
+            notEmpty: true,
+            errorMessage: "Please enter car report type",  
+        },
+        'report_message': {
+            notEmpty: true,
+            errorMessage: "Please enter car report message",  
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var data = {
+            user_id : req.body.user_id,
+            car_id : req.body.car_id,
+            car_rental_company_id : req.body.car_rental_company_id,
+            booking_number : req.body.booking_number,
+            report_type : req.body.report_type,
+            report_message : req.body.report_message
+        }
+
+        const carReportResp = await carHelper.car_report(data);
+        if (carReportResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carReportResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carReportResp);
+        }
+    }
+    else{
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+    // res.json(carHistoryResp);
+});
+
+
+
 
 
 module.exports = router;

@@ -11,6 +11,7 @@ const State = require('./../models/state');
 const City = require('./../models/city');
 const CarHandOver = require('./../models/car_hand_over');
 const CarReceive = require('./../models/car_receive');
+const CarReport = require('./../models/car_report');
 const moment = require('moment');
 const _ = require('underscore');
 var config = require('./../config');
@@ -1085,5 +1086,22 @@ carHelper.car_report_list = async (user_id) => {
         return { status: 'failed', message: "Error occured while fetching car report list" };
     }
 };
+
+
+// Report a car save into car_report collection
+carHelper.car_report = async (report_data) => {
+    try{
+        let car_report_data = new CarReport(report_data);
+        
+        let data = await car_report_data.save();
+        var car_report_status = await CarBooking.updateOne({"booking_number" : report_data.booking_number},{ $set : { "is_car_reported" : true} })
+
+        return { status: "success", message: "Car has been reported" };
+    }
+    catch (err) {
+        return { status: 'failed', message: "Error accured while reporting car", err }
+    }
+};
+
 
 module.exports = carHelper;
