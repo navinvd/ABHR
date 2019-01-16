@@ -1307,7 +1307,7 @@ router.post('/checkemail', async (req, res, next) => {
         try{
             var obj = { "email" : req.body.email, "isDeleted" : false};
             if(req.body.company_id){
-                var obj = { "email" : req.body.email,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.company_id) }};
+                var obj = { "email" : req.body.email, "isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.company_id) }};
             }
             var userId = await Company.findOne(obj); 
             if(userId !== null && userId!== ''){
@@ -1315,11 +1315,19 @@ router.post('/checkemail', async (req, res, next) => {
                     status: "success",
                     message: "Record found"
                 });
-            }else{
-                res.status(config.OK_STATUS).json({
-                    status: "failed",
-                    message: "record not found"
-                });
+            } else {
+                var userdata = await User.findOne({ "email": req.body.email, "isDeleted" : false});
+                if(userdata !== null && userdata!== ''){
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message: "Record found"
+                    });
+                } else{
+                    res.status(config.OK_STATUS).json({
+                        status: "failed",
+                        message: "record not found"
+                    });
+                }
             }
         } catch (error) {
             res.status(config.BAD_REQUEST).json({
