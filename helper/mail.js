@@ -9,6 +9,7 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var mail_helper = {}
 
+
 var transporter = nodemailer.createTransport(smtpTransport({
     service: config.SMTP_SERVICE, // hostname
     tls: {rejectUnauthorized: false},
@@ -34,7 +35,7 @@ mail_helper.send = (template_name, options, data, callback) => {
 
 
 
-// sendEmail
+// sendEmail for email verification
 mail_helper.sendEmail = async (template_name, options, data, user_id) => {
 
     var template_sender = transporter.templateSender(new EmailTemplate('emails/' + template_name), {
@@ -75,5 +76,22 @@ mail_helper.sendEmail = async (template_name, options, data, user_id) => {
         return { status: 'failed', message: "Error occured while sending otp to your email address" }
     }
 };
+
+
+// Send email when car will book or send email for re-sending invoice to customer
+mail_helper.sendEmail_carBook = async (template_name, options, data) => {
+
+    var template_sender = transporter.templateSender(new EmailTemplate('emails/' + template_name), {
+        from: "ABHR <noreply@gmail.com>"
+    });
+    try {
+        var email_data = await template_sender({ to: options.to, subject: options.subject }, data[0]);
+            return { status: 'success', message: "Email has been sent", data : data  }      
+    }
+    catch (err) {
+        return { status: 'failed', message: "Error occured while sending email to your email address", error : err }
+    }
+};
+
 
 module.exports = mail_helper
