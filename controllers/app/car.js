@@ -1711,6 +1711,63 @@ router.post('/report', async (req, res) => {
 
 
 
+// Re - send invoice via email to customer
+/**
+ * @api {post} /app/car/resend-invoice Sending invoice to customer via email
+ * @apiName Send Invoice
+ * @apiDescription Used to send invoice to customer via email
+ * @apiGroup App - Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} booking_number car booking number
+ * @apiParam {String} email user / customer Email
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/resend-invoice',async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number",  
+        },
+        'email': {
+            notEmpty: true,
+            errorMessage: "Please enter email", 
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var booking_number = req.body.booking_number;
+        var email = req.body.email;
+
+        const resendInvoiceResp = await carHelper.resend_invoice(booking_number, email);
+        if (resendInvoiceResp.status === 'success') {
+            res.status(config.OK_STATUS).json(resendInvoiceResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(resendInvoiceResp);
+        }
+    }
+    else{
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+
+
+});
+
+
+
+
 
 
 module.exports = router;

@@ -20,6 +20,8 @@ var paths = require('path');
 var async = require("async");
 
 let carHelper = {};
+let mail_helper = require('./mail');
+
 
 carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 10) {
 
@@ -218,7 +220,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 "preserveNullAndEmptyArrays": true
             }
         },
-         {
+        {
             $lookup: {
                 from: 'car_company',
                 foreignField: '_id',
@@ -238,8 +240,8 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 _id: 1,
                 car_rental_company_id: 1,
                 car_rental_company_name: "$carCompanyDetails.name",
-                car_rental_company_country : "$carCompanyDetails.company_address.country",
-                terms_and_conditions : "$termandconditionDetails.terms_and_conditions",
+                car_rental_company_country: "$carCompanyDetails.company_address.country",
+                terms_and_conditions: "$termandconditionDetails.terms_and_conditions",
                 car_brand: "$brandDetails.brand_name",
                 car_model: "$modelDetails.model_name",
                 car_model_number: "$modelDetails.model_number",
@@ -305,10 +307,10 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 if (c.car['car_gallery'] === undefined) {
                     c.car['car_gallery'] = []
                 }
-                if(c.car['terms_and_conditions'] === undefined){
+                if (c.car['terms_and_conditions'] === undefined) {
                     c.car['terms_and_conditions'] = null
                 }
-                if(c.car['car_rental_company_country'] === undefined){
+                if (c.car['car_rental_company_country'] === undefined) {
                     c.car['car_rental_company_country'] = null
                 }
                 delete c.car.reviews;
@@ -518,7 +520,7 @@ carHelper.carBooking_past_history = async (user_id) => {
             return { status: 'success', message: "Car booking past history", data: { past_history: data } }
         }
         else {
-            return { status: 'failed', message: "No car book yet", data: data }
+            return { status: 'failed', message: "No car book yet" }
         }
 
     } catch (err) {
@@ -600,7 +602,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
             return { status: 'success', message: "Car booking upcomming history", data: { upcoming_history: data } }
         }
         else {
-            return { status: 'failed', message: "No car book yet", data: data }
+            return { status: 'failed', message: "No car book yet" }
         }
 
     } catch (err) {
@@ -1090,7 +1092,7 @@ carHelper.car_report_list = async (user_id) => {
                 $match: {
                     'isDeleted': false,
                     'userId': new ObjectId(user_id),
-                    'trip_status': { $in :  ["inprogress", "finished", "upcoming"] }
+                    'trip_status': { $in: ["inprogress", "finished", "upcoming"] }
                 }
             }
 
@@ -1110,11 +1112,11 @@ carHelper.car_report_list = async (user_id) => {
 
 // Report a car save into car_report collection
 carHelper.car_report = async (report_data) => {
-    try{
+    try {
         let car_report_data = new CarReport(report_data);
-        
+
         let data = await car_report_data.save();
-        var car_report_status = await CarBooking.updateOne({"booking_number" : report_data.booking_number},{ $set : { "is_car_reported" : true} })
+        var car_report_status = await CarBooking.updateOne({ "booking_number": report_data.booking_number }, { $set: { "is_car_reported": true } })
 
         return { status: "success", message: "Car has been reported" };
     }
@@ -1122,6 +1124,117 @@ carHelper.car_report = async (report_data) => {
         return { status: 'failed', message: "Error accured while reporting car", err }
     }
 };
+
+
+// Resend invoice to customer via email
+carHelper.resend_invoice = async (booking_number, email) => {
+    try {
+        let data = await CarBooking.aggregate([
+            {
+                $match: {
+                    'isDeleted': false,
+                    'booking_number': booking_number
+                }
+            },
+            {
+                $lookup: {
+                    from: 'cars',
+                    localField: 'carId',
+                    foreignField: '_id',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_details.car_model_id',
+                    as: 'model_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$model_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_details.car_brand_id',
+                    as: 'brand_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brand_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: "car_company",
+                    foreignField: "_id",
+                    localField: "car_details.car_rental_company_id",
+                    as: 'carCompany_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$carCompany_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $addFields: {
+                    "car_details.car_brand": "$brand_details.brand_name",
+                    "car_details.car_model": "$model_details.model_name",
+                    "car_details.car_model_number": "$model_details.model_number",
+                    "car_details.car_model_release_year": "$model_details.release_year",
+                    "car_details.car_company_name": "$carCompany_details.name"
+                }
+            }
+        ]);
+        if (data && data.length > 0) {
+
+            console.log('DATA==>', data);
+
+
+            // send email to customer's email
+            var options = {
+                to: email,
+                subject: 'ABHR - Resend Invoice'
+            }
+            let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data);
+
+            console.log('Mail Response ===>', mail_resp);
+
+            if (mail_resp.status === 'success') {
+                return { status: 'success', message: "Email has been sent to your email address", data: { emailData: mail_resp.data } }
+            }
+            else {
+                return { status: 'failed', message: "Error accures while sending email to you" }
+            }
+        }
+        else {
+            return { status: 'failed', message: "No car book yet" }
+        }
+
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car booking history", err };
+    }
+};
+
+
+
+
 
 
 module.exports = carHelper;
