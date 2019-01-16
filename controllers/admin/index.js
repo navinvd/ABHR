@@ -399,11 +399,11 @@ router.post('/checkemail', async (req, res, next) => {
                     message: "record not found"
                 });
             }
-        } catch (e) {
+        } catch (error) {
             res.status(config.BAD_REQUEST).json({
                 status: "failed",
                 message: "something went wrong",
-                error: e
+                error: error
             });
         }   
     } else{

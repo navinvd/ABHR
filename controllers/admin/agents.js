@@ -68,6 +68,7 @@ router.post('/add', (req, res, next) => {
             deviceType: 'android',
             password: generatepassword
         };
+        try{
         async.waterfall([
             function (callback) {
                 // Finding place and insert if not found
@@ -119,7 +120,6 @@ router.post('/add', (req, res, next) => {
                 if (err.email === 0) {
                     var userModel = new User(userData);
                     userModel.save(function (err, data) {
-                        console.log("user data===>", data);
                         if (err) {
                             callback(err);
                         } else {
@@ -141,31 +141,31 @@ router.post('/add', (req, res, next) => {
                             }
                             mailHelper.send('/agents/add_agent', option, data, function (err, res) {
                                 if (err) {
-                                    console.log("Mail Error:", err);
                                     callback(err);
                                 } else {
                                     // callback(null, null);
                                     callback(null, result);
-                                    console.log("Mail Success:", res);
                                 }
                             })
                         }
                     });
                 }
                 else{
-                    callback(err.message);
+                    callback(err);
                     }
-
-
             }], function (err, result) {
-                console.log("err",err)
                 if (err) {
-                    console.log("Here");
-                    return next(err.message);
+                    return next(err);
                 } else {
                     res.status(config.OK_STATUS).json(result);
                 }
             });
+        } catch (e){
+            res.status(config.BAD_REQUEST).json({
+                message: "Something Went wrong",
+                error: e
+            });
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
@@ -197,7 +197,7 @@ router.post('/add', (req, res, next) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.put('/update', (req, res, next) => {
-    console.log('here');
+    console.log(req.body);
     var schema = {
         'user_id': {
             notEmpty: true,
@@ -214,6 +214,7 @@ router.put('/update', (req, res, next) => {
             email: req.body.email,
             deviceType: req.body.deviceType
         };
+        try{
         async.waterfall([
             function (callback) {
                 if (req.body.address) {
@@ -223,7 +224,7 @@ router.put('/update', (req, res, next) => {
                         } else {
                             if (data.length != 0) {
                                 userData.place_id = data.google_place_id
-                                callback(null, userData);
+                                callback(null);
                             }
                             else {
                                 var addressData = req.body.address;
@@ -233,19 +234,19 @@ router.put('/update', (req, res, next) => {
                                         callback(err);
                                     } else {
                                         userData.place_id = placeData._id;
-                                        callback(null, userData);
+                                        callback(null);
                                     }
                                 });
                             }
                         }
                     });
                 } else {
-                    callback(null, userData);
+                    callback(null);
                 }
             },
             function (callback) {
                 var email = 0;
-                User.find({ "email": req.body.email, "_id": { $ne: new ObjectId(req.body.user_id)} }, function (err, data) {
+                User.find({ "email": req.body.email, "isDeleted":false, "_id": { $ne: new ObjectId(req.body.user_id)} }, function (err, data) {
                     if (data && data.length > 0) {
                         email = 1;
                         callback({message:"Email is already exist", email :email});
@@ -260,8 +261,9 @@ router.put('/update', (req, res, next) => {
                     }
                 });
             },
-            function (userData, callback) {
-                User.update({ _id: { $eq: req.body.user_id }}, { $set: userData }, function (err, response) {
+            function (userdata, callback) {
+                console.log('userdata===>',userdata, "userData===>", userData);
+                User.update({ "_id": new ObjectId(req.body.user_id)}, { $set: userData }, function (err, response) {
                     if (err) {
                         callback(err);
                     } else {
@@ -275,12 +277,15 @@ router.put('/update', (req, res, next) => {
                 });
             }], function (err, result) {
                 if (err) {
-                    console.log("Here");
+                    console.log("Here", err);
                     return next(err);
                 } else {
                     res.status(config.OK_STATUS).json(result);
                 }
             });
+        } catch(e){
+            console.log('here in catch',e);
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
