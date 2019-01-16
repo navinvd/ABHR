@@ -1637,9 +1637,9 @@ router.post('/report-list', async (req, res) => {
  * @apiGroup App - Car
  * @apiVersion 0.0.0
  * 
- * @apiParam {Number} user_id user Id
- * @apiParam {Number} car_id car Id
- * @apiParam {Number} car_rental_company_id company Id
+ * @apiParam {String} user_id user Id
+ * @apiParam {String} car_id car Id
+ * @apiParam {String} car_rental_company_id company Id
  * @apiParam {Number} booking_number car booking number
  * @apiParam {Boolean} report_type (eg. 0 - Lost/Stolen  &  1 - Problem in car)
  * @apiParam {String} report_message Car reporting message
