@@ -1306,7 +1306,7 @@ router.post('/checkemail', async (req, res, next) => {
     if (!errors) {
         try{
             var obj = { "email" : req.body.email, "isDeleted" : false};
-            if(req.body.user_id){
+            if(req.body.company_id){
                 var obj = { "email" : req.body.email,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.company_id) }};
             }
             var userId = await Company.findOne(obj); 
@@ -1365,7 +1365,7 @@ router.post('/checkname', async (req, res, next) => {
     if (!errors) {
         try{
             var obj = { "name" : req.body.name, "isDeleted" : false};
-            if(req.body.user_id){
+            if(req.body.company_id){
                 var obj = { "name" : req.body.name,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.company_id) }};
             }
             var userId = await Company.findOne(obj); 
