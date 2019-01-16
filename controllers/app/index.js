@@ -9,6 +9,7 @@ var jwt = require('jsonwebtoken');
 var bcrypt = require('bcrypt');
 var moment = require('moment');
 var mailHelper = require('./../../helper/mail');
+var commonHelper = require('./../../helper/common');
 var ObjectId = require('mongoose').Types.ObjectId;
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var router = express.Router();
@@ -435,6 +436,53 @@ router.post('/forget_password', async(req, res, next) => {
         });
     }
 });
+
+
+// help api
+/**
+ * @api {post} /app/help Company help
+ * @apiName Company help
+ * @apiDescription Get company help
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} help_type [0,1,2,3]
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+router.post('/help', async (req, res) => {
+    var schema = {
+        'help_type': {
+            notEmpty: true,
+            errorMessage: "Enter type from one of this (0, 1, 2, 3)"
+        }
+    };
+    
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var helpResp = await commonHelper.getHelp(req.body.help_type);
+        if(helpResp.status === 'success'){
+            res.status(config.OK_STATUS).json(helpResp)
+        }
+        else{
+            res.status(config.BAD_REQUEST).json(helpResp)
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
 
 
 module.exports = router;
