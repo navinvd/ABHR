@@ -27,9 +27,9 @@ var CarCompanySchema = new Schema({
     agent_ids : [mongoose.Schema.Types.ObjectId],
     service_location: [Number], // [<longitude>, <latitude>] 
     company_address : { 
-        country: {type: String, required : true, default: null},
-        state :{type: String, required : true, default: null},
-        city :{type: String, required : true, default: null},
+        country: {type: String, default: null},
+        state :{type: String, default: null},
+        city :{type: String, default: null},
         address : {type: String, default: null}
     },
     is_Active:{

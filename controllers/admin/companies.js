@@ -1278,7 +1278,121 @@ router.put('/car/delete', (req, res, next) => {
     }
 });
 
+/**
+ * @api {post} /admin/company/checkemail CompanyList for email already exist check
+ * @apiName Company Check Email 
+ * @apiDescription Used to get company check email
+ * @apiGroup Admin - Companies
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} [company_id] Company Id
+ * @apiParam {String} email Email
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/checkemail', async (req, res, next) => {
+    var schema = {
+        'email': {
+            notEmpty: true,
+            errorMessage: "email is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var obj = { "email" : req.body.email, "isDeleted" : false};
+            if(req.body.user_id){
+                var obj = { "email" : req.body.email,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.company_id) }};
+            }
+            var userId = await Company.findOne(obj); 
+            if(userId !== null && userId!== ''){
+                res.status(config.OK_STATUS).json({
+                    status: "success",
+                    message: "Record found"
+                });
+            }else{
+                res.status(config.OK_STATUS).json({
+                    status: "failed",
+                    message: "record not found"
+                });
+            }
+        } catch (error) {
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "something went wrong",
+                error: error
+            });
+        }   
+    } else{
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message:"Validation error",
+            error: e
+        });
+    }
+});
 
-
-
+/**
+ * @api {post} /admin/company/checkname CompanyList for name already exist check
+ * @apiName Company Check Name 
+ * @apiDescription Used to get company check name
+ * @apiGroup Admin - Companies
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} [company_id] Company Id
+ * @apiParam {String} name Name
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/checkname', async (req, res, next) => {
+    var schema = {
+        'name': {
+            notEmpty: true,
+            errorMessage: "name is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var obj = { "name" : req.body.name, "isDeleted" : false};
+            if(req.body.user_id){
+                var obj = { "name" : req.body.name,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.company_id) }};
+            }
+            var userId = await Company.findOne(obj); 
+            if(userId !== null && userId!== ''){
+                res.status(config.OK_STATUS).json({
+                    status: "success",
+                    message: "Record found"
+                });
+            }else{
+                res.status(config.OK_STATUS).json({
+                    status: "failed",
+                    message: "record not found"
+                });
+            }
+        } catch (error) {
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "something went wrong",
+                error: error
+            });
+        }   
+    } else{
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message:"Validation error",
+            error: e
+        });
+    }
+});
 module.exports = router;
