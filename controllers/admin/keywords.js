@@ -74,8 +74,9 @@ router.post('/list', function (req, res, next) {
                 } 
             } 
             console.log('sort===>',sortableQuery);
-            defaultQuery.concat(sortableQuery); 
+            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
         }
+        console.log('search======================>', typeof req.body.search);
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
             if (req.body.search.value) {
                 var regex = new RegExp(req.body.search.value);
@@ -97,7 +98,7 @@ router.post('/list', function (req, res, next) {
                 var searchQuery = {
                     $match: match
                 }
-                defaultQuery.concat(searchQuery);
+                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
                 console.log("==>", JSON.stringify(searchQuery));
             }
         }
