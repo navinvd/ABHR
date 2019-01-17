@@ -440,9 +440,9 @@ router.post('/forget_password', async(req, res, next) => {
 
 // help api
 /**
- * @api {post} /app/help Company help
- * @apiName Company help
- * @apiDescription Get company help
+ * @api {post} /app/help Help
+ * @apiName help
+ * @apiDescription Get help like trips & fare away, account & payment options, guide to abhr, accessibility
  * @apiGroup AppUser
  * @apiVersion 0.0.0
  * 
@@ -481,6 +481,48 @@ router.post('/help', async (req, res) => {
     }
 });
 
+// term & conditions, about us , privacy policy, copyright all in one api
+/**
+ * @api {post} /app/aboutus About us
+ * @apiName About us
+ * @apiDescription term & conditions, about us , privacy policy, copyright all in one api
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} help_type [0,1,2,3]
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+router.post('/aboutus', async (req, res) => {
+    var schema = {
+        'help_type': {
+            notEmpty: true,
+            errorMessage: "Enter type from one of this (0, 1, 2, 3)"
+        }
+    };
+    
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var helpResp = await commonHelper.aboutus(req.body.help_type);
+        if(helpResp.status === 'success'){
+            res.status(config.OK_STATUS).json(helpResp)
+        }
+        else{
+            res.status(config.BAD_REQUEST).json(helpResp)
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
 
 
 
