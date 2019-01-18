@@ -1581,7 +1581,7 @@ router.post('/location-filter', async (req, res) => {
 });
 
 
-// Car filter v3
+// Car filter v3 lat & long is required
 router.post('/filter123', async (req, res) => {
     var schema = {
         'fromDate': {
@@ -1600,9 +1600,17 @@ router.post('/filter123', async (req, res) => {
                 errorMessage: "Please enter days in number only"
             }
         },
-        'location':{
+        // 'location':{
+        //     notEmpty: true,
+        //     errorMessage: "Specify your location please"
+        // },
+        'latitude':{
             notEmpty: true,
-            errorMessage: "Specify your location please"
+            errorMessage: "Specify your latitude"
+        },
+        'longitude':{
+            notEmpty: true,
+            errorMessage: "Specify your longitude"
         },
         'resident_type':{
             notEmpty: true,
@@ -1739,7 +1747,8 @@ router.post('/filter123', async (req, res) => {
                             ]
                         },
                         {
-                            "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }
+                            // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }
+                            "service_location": { $geoWithin: { $centerSphere:  [ [req.body.longitude, req.body.latitude], 124.274 / 3963.2] } }
                         },
                         {
                             $or : [
