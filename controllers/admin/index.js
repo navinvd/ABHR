@@ -27,7 +27,7 @@ router.use('/agents', agents);
 router.use('/staff', staff);
 router.use('/company', company);
 router.use('/cars', car);
-router.use('/terms_and_conditions', terms_and_conditions);
+router.use('/legal_settings', terms_and_conditions);
 
 //models
 var User = require('./../../models/users');

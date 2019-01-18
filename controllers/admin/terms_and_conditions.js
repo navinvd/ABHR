@@ -10,7 +10,7 @@ var _ = require('underscore');
 const TermsAndConditionHelper = require('./../../helper/terms_and_condition');
 
 /**
- * @api {get} /admin/terms_and_conditions/ Details of admin terms and conditions
+ * @api {get} /admin/legal_settings/ Details of admin terms and conditions
  * @apiName Terms And Condition Details
  * @apiDescription To display Terms And Condition Details 
  * @apiGroup Admin - Terms And Condition
