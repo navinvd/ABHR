@@ -48,4 +48,20 @@ termsandconditionHelper.UpdateAdminData = async function (updateData) {
         return { status: 'failed', message: "Error occured while updating data", err };
     }
 };
+
+// get company legal setting data
+termsandconditionHelper.getCompanyData = async function (companyId) {
+    try {
+        let companyadmin = await CompanyTemrsAndCondition.find({"_id": new ObjectId(companyId), "isDeleted":false});
+        console.log(companyadmin);
+        if (typeof companyadmin !== 'undefined' && companyadmin !== null) {
+            return { status: 'success', message: "Terms & Comdition data found", data: companyadmin }
+        } else {
+            return { status: 'failed', message: "No Terms & Comdition data found" }
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while finding data", err };
+    }
+};
+
 module.exports = termsandconditionHelper;

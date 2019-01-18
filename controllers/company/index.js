@@ -14,15 +14,11 @@ var ObjectId = require('mongoose').Types.ObjectId;
 //Routes
 var cars = require('./cars');
 var users = require('./users');
-// var agents = require('./agents');
-// var staff = require('./staff');
-// var company = require('./companies');
+var TNC = require('./terms_and_conditions');
 
 router.use('/car', cars);
 router.use('/users', users);
-// router.use('/agents', agents);
-// router.use('/staff', staff);
-// router.use('/company', company);
+router.use('/terms_and_condition', TNC);
 
 //models
 var Company = require('./../../models/car_company');
