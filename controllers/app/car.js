@@ -223,6 +223,7 @@ router.post('/filter', async (req, res) => {
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
+                    resident_criteria : 1,
                     image_name: "$car_gallery.name" ? { $arrayElemAt: ["$car_gallery.name", 0] } : null,
                     // trip_status: "$carBookingDetails.trip_status", now
                     car_book_from_date: {
@@ -440,6 +441,7 @@ router.post('/filter', async (req, res) => {
                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
 
                 if (data && data.length > 0) {
+                    console.log('DATAAT==>',data);
                     cars = data.map((c) => {
                         c.car["total_avg_rating"] = c.total_avg_rating;
                         if (c.car['image_name'] === undefined) {
@@ -980,6 +982,66 @@ router.post('/book', async (req, res) => {
         }
         // res.json(bookingResp);
 
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+// Change Car Booking  Details
+/**
+ * @api {post} /app/car/change-booking Change Car booking details
+ * @apiName Change Car Booking Details
+ * @apiDescription change car booking details like delivery address & delivery time
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Number} booking_number Car booking id
+ * @apiParam {String} delivery_address Car Delivery Address (eg. 320, regent square surat india)
+ * @apiParam {String} delivery_time Car Delivery Time (eg. 7am - 9am)
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+router.post('/change-booking', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter your car booking number",
+        },
+        'delivery_address': {
+            notEmpty: true,
+            errorMessage: "Please enter your car delivery address",
+        },
+        'delivery_time': {
+            notEmpty: true,
+            errorMessage: "Please enter your car delivery time",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var booking_number = req.body.booking_number;
+        var data = {
+            "delivery_address": req.body.delivery_address, 
+            "delivery_time": req.body.delivery_time 
+        }
+        const bookingResp = await carHelper.change_carBook(booking_number,data);
+
+        if (bookingResp.status === 'success') {
+            res.status(config.OK_STATUS).json(bookingResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(bookingResp);
+        }
+        // res.json(bookingResp);
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -1579,6 +1641,436 @@ router.post('/location-filter', async (req, res) => {
 });
 
 
+// Car filter v3 lat & long is required
+router.post('/filter123', async (req, res) => {
+    var schema = {
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you needed car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        },
+        // 'location':{
+        //     notEmpty: true,
+        //     errorMessage: "Specify your location please"
+        // },
+        'latitude':{
+            notEmpty: true,
+            errorMessage: "Specify your latitude"
+        },
+        'longitude':{
+            notEmpty: true,
+            errorMessage: "Specify your longitude"
+        },
+        'resident_type':{
+            notEmpty: true,
+            errorMessage: "Are you resident ..? (eg 0 or 1)"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var fromDate = req.body.fromDate
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
+        console.log(toDate);
+        var defaultQuery = [
+            {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_model_id',
+                    as: "modelDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$modelDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_brand_id',
+                    as: "brandDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brandDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_booking',
+                    foreignField: 'carId',
+                    localField: '_id',
+                    as: "carBookingDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$carBookingDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_company',
+                    foreignField: '_id',
+                    localField: 'car_rental_company_id',
+                    as: "companyDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$companyDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    car_rental_company_id: 1,
+                    car_brand: "$brandDetails.brand_name",
+                    car_model: "$modelDetails.model_name",
+                    car_model_number: "$modelDetails.model_number",
+                    car_model_release_year: "$modelDetails.release_year",
+                    car_color: 1,
+                    rent_price: 1,
+                    is_AC: 1,
+                    is_luggage_carrier: 1,
+                    licence_plate: 1,
+                    no_of_person: 1,
+                    transmission: 1,
+                    is_delieverd: 1,
+                    milage: 1,
+                    is_navigation: 1,
+                    driving_eligibility_criteria: 1,
+                    car_class: 1,
+                    is_avialable: 1,
+                    car_model_id: 1,
+                    car_brand_id: 1,
+                    isDeleted: 1,
+                    resident_criteria  :1,
+                    image_name: "$car_gallery.name" ? { $arrayElemAt: ["$car_gallery.name", 0] } : null,
+                    // trip_status: "$carBookingDetails.trip_status", //now
+                    car_book_from_date: {
+                        $dateToString: {
+                            date: "$carBookingDetails.from_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    car_book_to_date: {
+                        $dateToString: {
+                            date: "$carBookingDetails.to_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    service_location: "$companyDetails.service_location" //companyDetails
+                }
+            },
+            // {
+            //     $match: {
+            //         $and: [
+            //             {
+            //                 $or: [
+            //                     { car_book_from_date: { $gt: toDate } },
+            //                     { car_book_to_date: { $lt: fromDate } },
+            //                     { car_book_from_date: { $eq: null } }
+            //                 ]
+            //             },
+            //             { isDeleted: false }
+            //         ]
+            //     }
+            // },
+            {
+                $match: {
+                    $and: [
+                        {
+                            $or: [
+                                { car_book_from_date: { $gt: toDate } },
+                                { car_book_to_date: { $lt: fromDate } },
+                                { car_book_from_date: { $eq: null } }
+                            ]
+                        },
+                        {
+                            // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }
+                            "service_location": { $geoWithin: { $centerSphere:  [ [req.body.longitude, req.body.latitude], 124.274 / 3963.2] } }
+                        },
+                        {
+                            $or : [
+                                {"resident_criteria" : { $eq : req.body.resident_type } },
+                                {"resident_criteria" : { $eq : 2 } }
+                            ]
+                        },
+                        { isDeleted: false }
+                    ]
+                }
+
+            },
+
+            {
+                $lookup: {
+                    from: 'car_reviews',
+                    localField: '_id',
+                    foreignField: 'car_id',
+                    as: 'reviews'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$reviews",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    total_avg_rating: { $avg: "$reviews.stars" },
+                    car: { "$first": "$$ROOT" }
+                }
+            }
+
+        ];
+        var paginationArray = [
+            {
+                $group: {
+                    "_id": "",
+                    "total": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "_id": "",
+                    "total": 1,
+                    "data": { "$slice": ["$data", parseInt(req.body.itemPerpage) * (parseInt(req.body.currentPage) - 1), parseInt(req.body.itemPerpage)] }
+                }
+            }];
+        if (req.body.brand) {
+            let brandOject = req.body.brand;
+            if (brandOject.length > 0) {
+                brandOject = brandOject.map((b) => { return ObjectId(b) });
+                var searchQuery = {
+                    "$match": {
+                        "car_brand_id": { "$in": brandOject }
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
+            }
+
+        }
+        if (req.body.model) {
+            let modelOject = req.body.model;
+            if (modelOject.length > 0) {
+                modelOject = modelOject.map((b) => { return ObjectId(b) });
+                var searchQuery = {
+                    "$match": {
+                        "car_model_id": { "$in": modelOject },
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
+            }
+        }
+        if (typeof req.body.navigation !== 'undefined') {
+            if (req.body.navigation === false) {
+                let navigationOject = req.body.navigation;
+                console.log('NAVIGATION 1======>', navigationOject);
+                var searchQuery = {
+                    "$match": {
+                        "is_navigation": navigationOject,
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
+            } else {
+                console.log('NAVIGATION 2======>', req.body.navigation);
+                var searchQuery = {
+                    "$match": {
+                        "is_navigation": true,
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
+            }
+        }
+        else {
+            var searchQuery = {
+                "$match": {
+                    "is_navigation": true,
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+
+        if (req.body.transmission) {
+           
+            let transmissionObject = req.body.transmission;
+            console.log('Transmission => ', transmissionObject)
+            var searchQuery = {
+                "$match": {
+                    "transmission": { "$in": transmissionObject },
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.car_class) {
+            let classObject = req.body.car_class;
+            var searchQuery = {
+                "$match": {
+                    "car_class": { "$in": classObject },
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.capacity_of_people) {
+            let copObject = req.body.capacity_of_people;
+            var searchQuery = {
+                "$match": {
+                    "no_of_person": { "$in": copObject },
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.milage) {
+            let milageObject = req.body.milage;
+            var searchQuery = {
+                "$match": {
+                    "milage": { "$in": milageObject },
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        } else {
+            var searchQuery = {
+                "$match": {
+                    "milage": "open",
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+
+        // filter using lat - long
+
+
+        /*
+        if (req.body.location !== undefined) { // pass location like : [long,lat] & distance must be in (miles / 3963.2)
+            console.log('DATATATAT==>', req.body.location)
+            var location = req.body.location;
+            var searchQuery = {
+                $match: {
+                    "car.service_location":  // 124.274 -> 200 km // 0.621371 -> 1 km
+                // { $geoWithin: { $centerSphere: [[72.831062, 21.17024], 124.274 / 3963.2] } }  
+                    { $geoWithin: { $centerSphere: [location, 124.274 / 3963.2] } }
+                }
+            }
+            defaultQuery.splice(9, 0, searchQuery);
+        }
+        if(req.body.resident_type !== undefined){
+            console.log('RESident ->', req.body.resident_type);
+            var searchQuery = {
+                $match: {
+                  $or : [
+                      {"resident_criteria" : { $eq : req.body.resident_type } },
+                      {"resident_criteria" : { $eq : 2 } }
+                  ]
+                }
+            }
+            defaultQuery.splice(9, 0, searchQuery);
+        }
+        */
+
+        
+        // sorting
+        if (typeof req.body.sort_by !== 'undefined') {
+            let sort_by = parseInt(req.body.sort_by);
+            if (sort_by === 0) {
+                var searchQuery = {
+                    $sort: {
+                        'total_avg_rating': -1
+                    }
+                }
+            }
+            if (sort_by === 1) {
+                var searchQuery = {
+                    $sort: {
+                        'car.rent_price': -1
+                    }
+                }
+            }
+            if (sort_by === 2) {
+                var searchQuery = {
+                    $sort: {
+                        'car.rent_price': 1
+                    }
+                }
+            }
+            defaultQuery.push(searchQuery);
+        }
+
+        console.log('Default Query========>', JSON.stringify(defaultQuery));
+
+        Car.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "No Cars Available",
+                    err
+                });
+            } else {
+                // console.log(data);
+                // var data = data.length != 0 ? data[0] : {total: 0, data: []}
+
+                if (data && data.length > 0) {                    
+                    cars = data.map((c) => {
+                        c.car["total_avg_rating"] = c.total_avg_rating;
+                        if(c.car["service_location"] === undefined){
+                            c.car["service_location"] = null
+                        }
+                        delete c.car.reviews;
+                        return c.car;
+                    })
+
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message: "car data found",
+                        data: { cars: cars },
+                    });
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({
+                        status: "failed",
+                        message: "No Cars Available"
+                    });
+                }
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+
 
 // car report list
 
@@ -1764,10 +2256,6 @@ router.post('/resend-invoice',async (req, res) => {
 
 
 });
-
-
-
-
 
 
 module.exports = router;

@@ -20,8 +20,8 @@ var CompanyTermsAndConditionSchema = new Schema({
         type: Date,
         default: Date.now
     },
-    modifiedAt: {type: Date, default: Date.now}
-}, {versionKey: false});
+    modifiedAt: { type: Date, default: Date.now }
+}, { versionKey: false });
 
 // Compile model from schema
 var CompanyTermsAndConditionModel = mongoose.model('car_company_terms_and_condition', CompanyTermsAndConditionSchema, 'car_company_terms_and_condition');

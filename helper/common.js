@@ -3,6 +3,8 @@ const CarBooking = require('./../models/car_booking');
 const CarBrand = require('./../models/car_brand');
 const CarCompany = require('./../models/car_company');
 const CarModel = require('./../models/car_model');
+const Help = require('./../models/help')
+const Term_Condition = require('./../models/terms_conditions')
 const CarNotification = require('./../models/car_notification');
 const CarNotificationSetting = require('./../models/car_notification_settings');
 const Keywords = require('./../models/keyword');
@@ -64,4 +66,79 @@ commonHelper.getDatabyId = async function (model, id) {
     }
 };
 
-module.exports = carHelper;
+commonHelper.getHelp = async function (help_type) {
+    try {
+        // Help
+        var setKey = '';
+        if(help_type === 0){
+            setKey = 'trips_and_fare_away'
+        }
+        else if(help_type === 1){
+            setKey = 'account_and_payment_options'
+        }   
+        else if(help_type === 2){
+            setKey = 'guide_to_abhr'
+        }   
+        else if(help_type === 3){
+            setKey = 'accessibility'
+        }
+        else{
+            setKey = 'trips_and_fare_away'
+        }   
+        
+        let obj = {};
+        // obj[`help.${setKey}`] = 1;
+        obj[`${setKey}`] = 1;
+        obj[`_id`] = 0;
+
+        const helpDetail = await Help.findOne({},obj);
+        
+        if (helpDetail) {
+            return { status: 'success', message: "Help has been found", data: { help : helpDetail } }
+        } else {
+            return { status: 'failed', message: "Sorry, currently there is no help" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while get help" };
+    }
+};
+
+
+commonHelper.aboutus = async function (help_type) {
+    try {
+        // Help
+        var setKey = '';
+        if(help_type === 0){
+            setKey = 'about_us'
+        }
+        else if(help_type === 1){
+            setKey = 'copyright'
+        }   
+        else if(help_type === 2){
+            setKey = 'term_condition'
+        }   
+        else if(help_type === 3){
+            setKey = 'privacy_policy'
+        }
+        else{
+            setKey = 'about_us'
+        }   
+        
+        let obj = {};
+        // obj[`help.${setKey}`] = 1;
+        obj[`${setKey}`] = 1;
+        obj[`_id`] = 0;
+
+        const data = await Term_Condition.findOne({},obj);
+        
+        if (data) {
+            return { status: 'success', message: "Help has been found", data: { data : data } }
+        } else {
+            return { status: 'failed', message: "Sorry, currently there is no help" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while get terms and conditions" };
+    }
+};
+
+module.exports = commonHelper;
