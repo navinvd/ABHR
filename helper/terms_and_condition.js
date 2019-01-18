@@ -50,7 +50,7 @@ termsandconditionHelper.UpdateAdminData = async function (updateData) {
 };
 
 // get company legal setting data
-termsandconditionHelper.getCompanyData = async function (companyId, updateData) {
+termsandconditionHelper.getCompanyData = async function (companyId) {
     try {
         let companyadmin = await CompanyTemrsAndCondition.findOne({"companyId": new ObjectId(companyId), "isDeleted":false});
         console.log(companyadmin);
@@ -65,9 +65,10 @@ termsandconditionHelper.getCompanyData = async function (companyId, updateData) 
 };
 
 // update company terms and condition data
-termsandconditionHelper.updateCompanyData = async function (companyId) {
+termsandconditionHelper.updateCompanyData = async function (companyId, updateData) {
+    console.log('companyId======.',companyId, 'updateData=======>',updateData);
     try {
-        let companyadmin = await CompanyTemrsAndCondition.find({"companyId": new ObjectId(companyId), "isDeleted":false}, );
+        let companyadmin = await CompanyTemrsAndCondition.update({"companyId": new ObjectId(companyId), "isDeleted":false},{ $set: updateData});
         console.log(companyadmin);
         if (typeof companyadmin !== 'undefined' && companyadmin !== null) {
             return { status: 'success', message: "Terms & Condition data found", data: companyadmin }

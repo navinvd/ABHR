@@ -23,7 +23,6 @@ const TermsAndConditionHelper = require('./../../helper/terms_and_condition');
  */
 router.get('/:id', async (req, res) => {
     var companyId = req.params.id;
-    console.log(companyId);
     const termsAndconditionResp = await TermsAndConditionHelper.getCompanyData(companyId);
     if (termsAndconditionResp.status === 'success') {
         res.status(config.OK_STATUS).json(termsAndconditionResp);
@@ -34,10 +33,10 @@ router.get('/:id', async (req, res) => {
 });
 
 /**
- * @api {put} /admin/legal_settings/update update Details of admin terms and conditions
+ * @api {put} /company/terms_and_condition/update update Details of company terms and conditions
  * @apiName Terms And Condition update details
  * @apiDescription To update Terms And Condition Details 
- * @apiGroup Admin - Terms And Condition
+ * @apiGroup Company - Terms And Condition
  * 
  * @apiParam {String} about_us about_us
  * @apiParam {String} copyright copyright 
@@ -51,7 +50,11 @@ router.get('/:id', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.put('/update', async (req, res) => {
-    const termsAndconditionResp = await TermsAndConditionHelper.UpdateAdminData(req.body);
+    var companyId = req.body.company_id;
+    delete req.body.company_id;
+    var updateData = req.body
+    console.log('after deleting companyid=====>',updateData);
+    const termsAndconditionResp = await TermsAndConditionHelper.updateCompanyData(companyId, updateData);
     if (termsAndconditionResp.status === 'success') {
         res.status(config.OK_STATUS).json(termsAndconditionResp);
     }
