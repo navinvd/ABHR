@@ -3,15 +3,14 @@ var mongoose = require('mongoose');
 
 //Define a schema
 var Schema = mongoose.Schema;
-var CompanyTermsAndConditionSchema = new Schema({
-    CompanyId: {
+var TermsAndConditionSchema = new Schema({
+    userId: {
         type: mongoose.Schema.Types.ObjectId
     },
     terms_and_conditions: {
         type: String,
         required: true
     },
-    cancellation_policy_criteria: [{ hours: {type: Number}, rate: {type: Number}}],
     isDeleted: {
         type: Boolean,
         default: false
@@ -24,5 +23,5 @@ var CompanyTermsAndConditionSchema = new Schema({
 }, {versionKey: false});
 
 // Compile model from schema
-var CompanyTermsAndConditionModel = mongoose.model('car_company_terms_and_condition', CompanyTermsAndConditionSchema, 'car_company_terms_and_condition');
-module.exports = CompanyTermsAndConditionModel;
+var TermsAndConditionModel = mongoose.model('terms_and_condition', TermsAndConditionSchema, 'terms_and_condition');
+module.exports = TermsAndConditionModel;

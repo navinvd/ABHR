@@ -15,6 +15,12 @@ var User = require('./../models/users');
 var config = require('./../config');
 var bcrypt = require('bcrypt');
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
+
+router.get('/testSocket',(req,res) => {
+    res.render('index', { title: 'Express' });
+});
+
+
 /**
  * @api {put} /user/profile_image Update Profile Image
  * @apiName Update Profile Image By User Id and type
