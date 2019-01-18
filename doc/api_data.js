@@ -2959,8 +2959,8 @@ define({ "api": [
     "type": "put",
     "url": "/admin/legal_settings/update",
     "title": "update Details of admin terms and conditions",
-    "name": "Terms_And_Condition_Details",
-    "description": "<p>To display Terms And Condition Details</p>",
+    "name": "Terms_And_Condition_update_details",
+    "description": "<p>To update Terms And Condition Details</p>",
     "group": "Admin___Terms_And_Condition",
     "parameter": {
       "fields": {

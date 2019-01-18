@@ -34,8 +34,8 @@ router.get('/', async (req, res) => {
 
 /**
  * @api {put} /admin/legal_settings/update update Details of admin terms and conditions
- * @apiName Terms And Condition Details
- * @apiDescription To display Terms And Condition Details 
+ * @apiName Terms And Condition update details
+ * @apiDescription To update Terms And Condition Details 
  * @apiGroup Admin - Terms And Condition
  * 
  * @apiParam {String} about_us about_us
