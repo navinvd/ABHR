@@ -992,6 +992,66 @@ router.post('/book', async (req, res) => {
 });
 
 
+// Change Car Booking  Details
+/**
+ * @api {post} /app/car/change-booking Change Car booking details
+ * @apiName Change Car Booking Details
+ * @apiDescription change car booking details like delivery address & delivery time
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Number} booking_number Car booking id
+ * @apiParam {String} delivery_address Car Delivery Address (eg. 320, regent square surat india)
+ * @apiParam {String} delivery_time Car Delivery Time (eg. 7am - 9am)
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+router.post('/change-booking', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter your car booking number",
+        },
+        'delivery_address': {
+            notEmpty: true,
+            errorMessage: "Please enter your car delivery address",
+        },
+        'delivery_time': {
+            notEmpty: true,
+            errorMessage: "Please enter your car delivery time",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var booking_number = req.body.booking_number;
+        var data = {
+            "delivery_address": req.body.delivery_address, 
+            "delivery_time": req.body.delivery_time 
+        }
+        const bookingResp = await carHelper.change_carBook(booking_number,data);
+
+        if (bookingResp.status === 'success') {
+            res.status(config.OK_STATUS).json(bookingResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(bookingResp);
+        }
+        // res.json(bookingResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
 
 /**
  * @api {post} /app/car/cancel-booking Cancel Car Booking
@@ -2196,10 +2256,6 @@ router.post('/resend-invoice',async (req, res) => {
 
 
 });
-
-
-
-
 
 
 module.exports = router;

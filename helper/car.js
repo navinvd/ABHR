@@ -1233,6 +1233,20 @@ carHelper.resend_invoice = async (booking_number, email) => {
 };
 
 
+// change car booking details
+carHelper.change_carBook = async (booking_number,data) => {
+    try {
+        var data = await CarBooking.updateOne({"booking_number" : booking_number},{$set : data});
+        if (data && data.n > 0) {
+            return { status: 'success', message: "Car booking details has been changed"}
+        }
+        else {
+            return { status: 'failed', message: "Car booking details has not been changed"}
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while change car booking details" };
+    }
+};
 
 
 

@@ -39,7 +39,7 @@ var CarSchema = new Schema({
     },
     resident_criteria: {
         type: Number,
-        enum: [0, 1, 2],
+        enum: [0, 1, 2], // 0 - resident yes , 1- no resident , 2 - both
         default: 0
     },
     transmission: {
