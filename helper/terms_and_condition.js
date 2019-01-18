@@ -40,7 +40,7 @@ termsandconditionHelper.UpdateAdminData = async function (updateData) {
     try {
         let admin = await TemrsAndCondition.update({}, { $set: updateData});
         if (typeof admin !== 'undefined' && admin !== null) {
-            return { status: 'success', message: "Legal data updated", data: admin }
+            return { status: 'success', message: "Legal data updated successfully", data: admin }
         } else {
             return { status: 'failed', message: "No Legal data not updated" }
         }
@@ -71,7 +71,7 @@ termsandconditionHelper.updateCompanyData = async function (companyId, updateDat
         let companyadmin = await CompanyTemrsAndCondition.update({"companyId": new ObjectId(companyId), "isDeleted":false},{ $set: updateData});
         console.log(companyadmin);
         if (typeof companyadmin !== 'undefined' && companyadmin !== null) {
-            return { status: 'success', message: "Terms & Condition data found", data: companyadmin }
+            return { status: 'success', message: "Terms & Condition data updated successfully", data: companyadmin }
         } else {
             return { status: 'failed', message: "No Terms & Condition data found" }
         }
