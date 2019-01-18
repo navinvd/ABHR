@@ -21,8 +21,8 @@ var async = require("async");
 
 let termsandconditionHelper = {};
 
-
-termsandconditionHelper.getDataByuserId = async function () {
+// get admin legal setting data
+termsandconditionHelper.getAdminData = async function () {
     try {
         let admin = await TemrsAndCondition.findOne({});
         if (typeof admin !== 'undefined' && admin !== null) {
@@ -32,6 +32,20 @@ termsandconditionHelper.getDataByuserId = async function () {
         }
     } catch (err) {
         return { status: 'failed', message: "Error occured while finding data", err };
+    }
+};
+
+// update admin legal setting data
+termsandconditionHelper.UpdateAdminData = async function (updateData) {
+    try {
+        let admin = await TemrsAndCondition.update({}, { $set: updateData});
+        if (typeof admin !== 'undefined' && admin !== null) {
+            return { status: 'success', message: "Legal data updated", data: admin }
+        } else {
+            return { status: 'failed', message: "No Legal data not updated" }
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while updating data", err };
     }
 };
 module.exports = termsandconditionHelper;
