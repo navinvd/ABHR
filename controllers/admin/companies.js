@@ -454,13 +454,13 @@ router.post('/list', (req, res, next) => {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if (order == "asc") {
+            if (order === "asc") {
                 if (typeof req.body.columns[colIndex].isBoolean !== 'undefined' && req.body.columns[colIndex].isBoolean) {
                     defaultQuery = defaultQuery.concat({
                         $sort: {
                             [colname]: 1
                         }
-                    })
+                    });
                 } else {
                     colname = '$' + colname;
                     defaultQuery = defaultQuery.concat({
@@ -469,16 +469,17 @@ router.post('/list', (req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                        {
-                            $sort: {
-                                "sort_index": 1
-                            }
-                        },
-                        {
-                            $replaceRoot: { newRoot: "$records" }
-                        })
+                    {
+                        $sort: {
+                            "sort_index": 1
+                        }
+                    },
+                    {
+                        $replaceRoot: { newRoot: "$records" }
+                    });
                 }
             } else {
+                console.log('desc====================');
                 if (typeof req.body.columns[colIndex].isBoolean !== 'undefined' && req.body.columns[colIndex].isBoolean) {
                     defaultQuery = defaultQuery.concat({
                         $sort: {
@@ -495,7 +496,7 @@ router.post('/list', (req, res, next) => {
                     },
                     {
                         $sort: {
-                            "sort_index": 1
+                            "sort_index": -1
                         }
                     },
                     {
