@@ -99,6 +99,10 @@ var BookingSchema = new Schema({
         type : Boolean,
         default : false
     },
+    car_handover_by_agent_id : mongoose.Schema.Types.ObjectId,
+    car_receive_by_agent_id : mongoose.Schema.Types.ObjectId,
+    agent_assign_for_handover : { type : Boolean , default : false},
+    agent_assign_for_receive : { type : Boolean , default : false},
     isDeleted: {
         type: Boolean,
         default: false
