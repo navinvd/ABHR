@@ -50,6 +50,10 @@ router.post('/add', (req, res, next) => {
         'email': {
             notEmpty: true,
             errorMessage: "Email is required"
+        },
+        'company_address':{
+            notEmpty: true,
+            errorMessage: "Company Address is required"
         }
     };
     req.checkBody(schema);
