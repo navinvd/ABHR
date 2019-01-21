@@ -240,7 +240,7 @@ router.post('/login', (req, res, next) => {
                 } else {
                     res.status(config.BAD_REQUEST).json({
                         status: 'failed',
-                        message: "Email is wrong",
+                        message: "This email is not registered",
                     });
                 }
             }

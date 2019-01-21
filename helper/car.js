@@ -3,6 +3,7 @@ var CarReview = require('./../models/car_review');
 var ObjectId = mongoose.Types.ObjectId;
 const Car = require('./../models/cars');
 const CarBooking = require('./../models/car_booking');
+const CarAssign = require('./../models/car_assign_agent');
 const CarBrand = require('./../models/car_brand');
 const CarCompany = require('./../models/car_company');
 const CarModel = require('./../models/car_model');
@@ -1234,14 +1235,14 @@ carHelper.resend_invoice = async (booking_number, email) => {
 
 
 // change car booking details
-carHelper.change_carBook = async (booking_number,data) => {
+carHelper.change_carBook = async (booking_number, data) => {
     try {
-        var data = await CarBooking.updateOne({"booking_number" : booking_number},{$set : data});
+        var data = await CarBooking.updateOne({ "booking_number": booking_number }, { $set: data });
         if (data && data.n > 0) {
-            return { status: 'success', message: "Car booking details has been changed"}
+            return { status: 'success', message: "Car booking details has been changed" }
         }
         else {
-            return { status: 'failed', message: "Car booking details has not been changed"}
+            return { status: 'failed', message: "Car booking details has not been changed" }
         }
     } catch (err) {
         return { status: 'failed', message: "Error occured while change car booking details" };
@@ -1249,6 +1250,16 @@ carHelper.change_carBook = async (booking_number,data) => {
 };
 
 
+// Assign car to agent for delivery
+carHelper.assign_car_to_agent = async (data) => {
+    let car_assign = new CarAssign(data);
+    try {
+       var save_data = await car_assign.save()
+        return { status: 'success', message: "Car has been assign to you" }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while assign car to agent" };
+    }
+};
 
 
 module.exports = carHelper;

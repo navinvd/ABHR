@@ -5,7 +5,7 @@ var config = require('./../../config');
 
 const Car = require('./../../models/cars');
 const CarBooking = require('./../../models/car_booking');
-const CarBrand = require('./../../models/car_brand');
+const CarAssign = require('./../../models/car_assign_agent');
 const CarModel = require('./../../models/car_model');
 const CarHelper = require('./../../helper/car');
 
@@ -112,6 +112,8 @@ router.post('/car-list', async (req, res) => {
                 latitude: 1,
                 longitude: 1,
                 coupon_code: 1,
+                agent_assign_for_handover : 1,
+                agent_assign_for_receive : 1,
                 isDeleted: 1,
                 image_name: "$carDetails.car_gallery",
                 is_navigation: "$carDetails.is_navigation",
@@ -153,12 +155,12 @@ router.post('/car-list', async (req, res) => {
         match_object.push({ 'trip_status': req.body.cancellation })
     }
 
-    if(req.body.deliverd_rental){ // car which is deliver to customer now come in in-progress status in db
+    if (req.body.deliverd_rental) { // car which is deliver to customer now come in in-progress status in db
         apply_filter = 1
         match_object.push({ 'trip_status': req.body.deliverd_rental })
     }
 
-    if(req.body.return){ // when customer finish their trip then he return car
+    if (req.body.return) { // when customer finish their trip then he return car
         apply_filter = 1
         match_object.push({ 'trip_status': req.body.return })
     }
@@ -233,8 +235,8 @@ router.post('/booking-details', async (req, res) => {
 
         var defaultQuery = [
             {
-                $match : {
-                    "booking_number" : { $eq : req.body.booking_number}
+                $match: {
+                    "booking_number": { $eq: req.body.booking_number }
                 }
             },
             {
@@ -296,7 +298,7 @@ router.post('/booking-details', async (req, res) => {
             {
                 $project: {
                     _id: 1,
-                    total_avg_rating : 1,
+                    total_avg_rating: 1,
                     booking_number: 1,
                     userId: 1,
                     carId: 1,
@@ -322,6 +324,10 @@ router.post('/booking-details', async (req, res) => {
                     longitude: 1,
                     coupon_code: 1,
                     isDeleted: 1,
+                    agent_assign_for_handover : 1,
+                    agent_assign_for_receive : 1,
+                    car_handover_by_agent_id : 1,
+                    car_receive_by_agent_id : 1,
                     image_name: "$carDetails.car_gallery",
                     is_navigation: "$carDetails.is_navigation",
                     is_AC: "$carDetails.is_AC",
@@ -368,7 +374,7 @@ router.post('/booking-details', async (req, res) => {
                     car: { "$first": "$$ROOT" }
                 }
             },
-            
+
         ];
         console.log('Default Query========>', JSON.stringify(defaultQuery));
 
@@ -385,11 +391,17 @@ router.post('/booking-details', async (req, res) => {
                         if (c.car['image_name'] === undefined) {
                             c.car['image_name'] = null
                         }
+                        if(c.car['car_handover_by_agent_id'] === undefined){
+                            c.car['car_handover_by_agent_id'] = null;
+                        }
+                        if(c.car['car_receive_by_agent_id'] === undefined ){
+                            c.car['car_receive_by_agent_id'] = null;
+                        }
                         c.car['total_avg_rating'] = c.total_avg_rating;
                         delete c.car.reviews;
                         return c.car;
                     })
-              
+
                     res.status(config.OK_STATUS).json({
                         status: "success",
                         message: "Car booking details has been found",
@@ -430,7 +442,7 @@ router.post('/handover', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter agent id"
         },
-        'car_rental_company_id':{
+        'car_rental_company_id': {
             notEmpty: true,
             errorMessage: "Please enter rental company id"
         },
@@ -456,29 +468,29 @@ router.post('/handover', async (req, res) => {
     // notes
     var errors = req.validationErrors();
     if (!errors) {
-    
+
         var hand_over_data = {
-            'user_id' : req.body.user_id,
-            'car_id' : req.body.car_id,
-            'agent_id' : req.body.agent_id,
-            'car_rental_company_id' : req.body.car_rental_company_id,
-            'defected_points' : req.body.defected_points,
-            'milage' : req.body.milage, 
-            'petrol_tank' : req.body.petrol_tank,
-            'notes' : req.body.notes ? req.body.notes : null,
-            'booking_number' : req.body.booking_number
+            'user_id': req.body.user_id,
+            'car_id': req.body.car_id,
+            'agent_id': req.body.agent_id,
+            'car_rental_company_id': req.body.car_rental_company_id,
+            'defected_points': req.body.defected_points,
+            'milage': req.body.milage,
+            'petrol_tank': req.body.petrol_tank,
+            'notes': req.body.notes ? req.body.notes : null,
+            'booking_number': req.body.booking_number
             // 'signature' : req.body.signature ?  req.body.signature : null,
             // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
         }
 
         const carHandOverResp = await CarHelper.car_handover(req, hand_over_data);
-        console.log('RESP=>',carHandOverResp);
+        console.log('RESP=>', carHandOverResp);
 
 
-        if(carHandOverResp.status === 'success'){
+        if (carHandOverResp.status === 'success') {
             res.status(config.OK_STATUS).json(carHandOverResp)
         }
-        else{
+        else {
             res.status(config.BAD_REQUEST).json(carHandOverResp)
         }
         // res.json(carHandOverResp);
@@ -507,7 +519,7 @@ router.post('/receive', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter agent id"
         },
-        'car_rental_company_id':{
+        'car_rental_company_id': {
             notEmpty: true,
             errorMessage: "Please enter rental company id"
         },
@@ -533,29 +545,29 @@ router.post('/receive', async (req, res) => {
     // notes
     var errors = req.validationErrors();
     if (!errors) {
-    
+
         var hand_over_data = {
-            'user_id' : req.body.user_id,
-            'car_id' : req.body.car_id,
-            'agent_id' : req.body.agent_id,
-            'car_rental_company_id' : req.body.car_rental_company_id,
-            'defected_points' : req.body.defected_points,
-            'milage' : req.body.milage, 
-            'petrol_tank' : req.body.petrol_tank,
-            'notes' : req.body.notes ? req.body.notes : null,
-            'booking_number' : req.body.booking_number
+            'user_id': req.body.user_id,
+            'car_id': req.body.car_id,
+            'agent_id': req.body.agent_id,
+            'car_rental_company_id': req.body.car_rental_company_id,
+            'defected_points': req.body.defected_points,
+            'milage': req.body.milage,
+            'petrol_tank': req.body.petrol_tank,
+            'notes': req.body.notes ? req.body.notes : null,
+            'booking_number': req.body.booking_number
             // 'signature' : req.body.signature ?  req.body.signature : null,
             // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
         }
 
         const carReceiveResp = await CarHelper.car_receive(req, hand_over_data);
-        console.log('RESP=>',carReceiveResp);
+        console.log('RESP=>', carReceiveResp);
 
 
-        if(carReceiveResp.status === 'success'){
+        if (carReceiveResp.status === 'success') {
             res.status(config.OK_STATUS).json(carReceiveResp)
         }
-        else{
+        else {
             res.status(config.BAD_REQUEST).json(carReceiveResp)
         }
         // res.json(carReceiveResp);
@@ -567,6 +579,123 @@ router.post('/receive', async (req, res) => {
         });
     }
 });
+
+
+// check car assign or not to agent for delivery procuder
+
+router.post('/assign_or_not', async (req, res) => {
+    var schema = {
+        // 'agent_assign_for_handover' : {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter status of agent assign for car handover"
+        // },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking id to assign for you"
+        },
+        'agent_id': {
+            notEmpty: true,
+            errorMessage: "Please enter agent id"
+        },
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car company id"
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
+        },
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        // req.body.booking_number
+        try {
+            
+            var booking_details = await CarBooking.find({booking_number : req.body.booking_number});
+
+            if(booking_details && booking_details.length > 0 ){
+
+                if(booking_details[0].agent_assign_for_handover === false){
+
+                    var agent_data = {
+                        'agent_id' : req.body.agent_id,
+                        'car_rental_company_id' : req.body.car_rental_company_id,
+                        'car_id' : req.body.car_id,
+                        'user_id' : req.body.user_id,
+                        'booking_number' : req.body.booking_number,
+                        'assign_for': 'handover',
+                        'status' : 'assign'
+                    }
+    
+                    var carAssignResp = await CarHelper.assign_car_to_agent(agent_data);
+    
+                    if (carAssignResp.status === 'success') {
+                        // update car_booking table
+    
+                        var newdata = {
+                            'car_handover_by_agent_id' : new ObjectId(req.body.agent_id),
+                            'agent_assign_for_handover' : true
+                        }
+    
+                        var bookingUpdate = await CarBooking.updateOne({'booking_number' : req.body.booking_number }, { $set : newdata } )
+    
+                        if(bookingUpdate && bookingUpdate.n > 0){
+                            // boking update
+                            res.status(config.OK_STATUS).json(carAssignResp)
+                        }
+                        else{
+                            // not update
+                            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while update car booking collection"})
+                        }
+                        
+                    }
+                    else {
+                        res.status(config.BAD_REQUEST).json(carAssignResp)
+                    } 
+
+                }
+                else{
+                    var searchData = {
+                        "agent_id" : req.body.agent_id,
+                        "booking_number" : req.body.booking_number
+                    }        
+                    var data = await CarAssign.find(searchData);
+            
+                    if(data && data.length > 0){
+                        // allow agent to move ahead 
+                        res.status(config.OK_STATUS).json({ status: 'success', message: "Car has been assigned to you"})
+                    }
+                    else
+                    {
+                        // car assign already
+                        res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car has been al-ready assigned to other agent"})
+                    }
+                }
+            }
+
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while cheking car has been assign or not to agent", err })
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+
+});
+
+
+
+
 
 
 
