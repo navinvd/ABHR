@@ -32,4 +32,7 @@ module.exports = {
     //Sms service
     "NEXMO_API_KEY" : process.env.NEXMO_APIKEY,
     "NEXMO_API_SECRET" : process.env.NEXMO_APISECRET,
+
+    // Notification
+    "ANDROID_SERVER_KEY":"AAAA3x6VQ8k:APA91bELqqBa19SaLkuwX3eQgVZLBRMMPpppV3cVL6i5pJ_k8XVEkdgdrMel59qOEXCuZeBCgGn1SMHubvVksBAa6DPJhcYVGWGaHU5VOCxc-uu2t_Ax2L7sET-Lia150JZ0KR23YW-T"
 };

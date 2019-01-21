@@ -160,7 +160,7 @@ router.post('/car-list', async (req, res) => {
         match_object.push({ 'trip_status': req.body.deliverd_rental })
     }
 
-    if (req.body.return) { // when customer finish their trip then he return car
+    if (req.body.return) { // when customer apply for return car 
         apply_filter = 1
         match_object.push({ 'trip_status': req.body.return })
     }
@@ -692,10 +692,6 @@ router.post('/assign_or_not', async (req, res) => {
     }
 
 });
-
-
-
-
 
 
 

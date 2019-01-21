@@ -3,6 +3,7 @@ var router = express.Router();
 
 var config = require('./../../config');
 const carHelper = require('./../../helper/car');
+const pushNotificationHelper = require('./../../helper/push_notification');
 const Car = require('./../../models/cars');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
@@ -223,7 +224,7 @@ router.post('/filter', async (req, res) => {
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
-                    resident_criteria : 1,
+                    resident_criteria: 1,
                     image_name: "$car_gallery.name" ? { $arrayElemAt: ["$car_gallery.name", 0] } : null,
                     // trip_status: "$carBookingDetails.trip_status", now
                     car_book_from_date: {
@@ -441,7 +442,7 @@ router.post('/filter', async (req, res) => {
                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
 
                 if (data && data.length > 0) {
-                    console.log('DATAAT==>',data);
+                    console.log('DATAAT==>', data);
                     cars = data.map((c) => {
                         c.car["total_avg_rating"] = c.total_avg_rating;
                         if (c.car['image_name'] === undefined) {
@@ -1030,10 +1031,10 @@ router.post('/change-booking', async (req, res) => {
     if (!errors) {
         var booking_number = req.body.booking_number;
         var data = {
-            "delivery_address": req.body.delivery_address, 
-            "delivery_time": req.body.delivery_time 
+            "delivery_address": req.body.delivery_address,
+            "delivery_time": req.body.delivery_time
         }
-        const bookingResp = await carHelper.change_carBook(booking_number,data);
+        const bookingResp = await carHelper.change_carBook(booking_number, data);
 
         if (bookingResp.status === 'success') {
             res.status(config.OK_STATUS).json(bookingResp);
@@ -1664,15 +1665,15 @@ router.post('/filter123', async (req, res) => {
         //     notEmpty: true,
         //     errorMessage: "Specify your location please"
         // },
-        'latitude':{
+        'latitude': {
             notEmpty: true,
             errorMessage: "Specify your latitude"
         },
-        'longitude':{
+        'longitude': {
             notEmpty: true,
             errorMessage: "Specify your longitude"
         },
-        'resident_type':{
+        'resident_type': {
             notEmpty: true,
             errorMessage: "Are you resident ..? (eg 0 or 1)"
         }
@@ -1764,7 +1765,7 @@ router.post('/filter123', async (req, res) => {
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
-                    resident_criteria  :1,
+                    resident_criteria: 1,
                     image_name: "$car_gallery.name" ? { $arrayElemAt: ["$car_gallery.name", 0] } : null,
                     // trip_status: "$carBookingDetails.trip_status", //now
                     car_book_from_date: {
@@ -1808,12 +1809,12 @@ router.post('/filter123', async (req, res) => {
                         },
                         {
                             // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }
-                            "service_location": { $geoWithin: { $centerSphere:  [ [req.body.longitude, req.body.latitude], 124.274 / 3963.2] } }
+                            "service_location": { $geoWithin: { $centerSphere: [[req.body.longitude, req.body.latitude], 124.274 / 3963.2] } }
                         },
                         {
-                            $or : [
-                                {"resident_criteria" : { $eq : req.body.resident_type } },
-                                {"resident_criteria" : { $eq : 2 } }
+                            $or: [
+                                { "resident_criteria": { $eq: req.body.resident_type } },
+                                { "resident_criteria": { $eq: 2 } }
                             ]
                         },
                         { isDeleted: false }
@@ -1919,7 +1920,7 @@ router.post('/filter123', async (req, res) => {
         }
 
         if (req.body.transmission) {
-           
+
             let transmissionObject = req.body.transmission;
             console.log('Transmission => ', transmissionObject)
             var searchQuery = {
@@ -1994,7 +1995,7 @@ router.post('/filter123', async (req, res) => {
         }
         */
 
-        
+
         // sorting
         if (typeof req.body.sort_by !== 'undefined') {
             let sort_by = parseInt(req.body.sort_by);
@@ -2035,10 +2036,10 @@ router.post('/filter123', async (req, res) => {
                 // console.log(data);
                 // var data = data.length != 0 ? data[0] : {total: 0, data: []}
 
-                if (data && data.length > 0) {                    
+                if (data && data.length > 0) {
                     cars = data.map((c) => {
                         c.car["total_avg_rating"] = c.total_avg_rating;
-                        if(c.car["service_location"] === undefined){
+                        if (c.car["service_location"] === undefined) {
                             c.car["service_location"] = null
                         }
                         delete c.car.reviews;
@@ -2094,7 +2095,7 @@ router.post('/report-list', async (req, res) => {
     var schema = {
         'user_id': {
             notEmpty: true,
-            errorMessage: "Please enter user id",  
+            errorMessage: "Please enter user id",
         }
     };
     req.checkBody(schema);
@@ -2108,7 +2109,7 @@ router.post('/report-list', async (req, res) => {
             res.status(config.BAD_REQUEST).json(carReportResp);
         }
     }
-    else{
+    else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
@@ -2147,27 +2148,27 @@ router.post('/report', async (req, res) => {
     var schema = {
         'user_id': {
             notEmpty: true,
-            errorMessage: "Please enter user id",  
+            errorMessage: "Please enter user id",
         },
         'car_id': {
             notEmpty: true,
-            errorMessage: "Please enter car id",  
+            errorMessage: "Please enter car id",
         },
         'car_rental_company_id': {
             notEmpty: true,
-            errorMessage: "Please enter company id",  
+            errorMessage: "Please enter company id",
         },
         'booking_number': {
             notEmpty: true,
-            errorMessage: "Please enter car booking number",  
+            errorMessage: "Please enter car booking number",
         },
         'report_type': {
             notEmpty: true,
-            errorMessage: "Please enter car report type",  
+            errorMessage: "Please enter car report type",
         },
         'report_message': {
             notEmpty: true,
-            errorMessage: "Please enter car report message",  
+            errorMessage: "Please enter car report message",
         }
     };
     req.checkBody(schema);
@@ -2175,12 +2176,12 @@ router.post('/report', async (req, res) => {
     if (!errors) {
 
         var data = {
-            user_id : req.body.user_id,
-            car_id : req.body.car_id,
-            car_rental_company_id : req.body.car_rental_company_id,
-            booking_number : req.body.booking_number,
-            report_type : req.body.report_type,
-            report_message : req.body.report_message
+            user_id: req.body.user_id,
+            car_id: req.body.car_id,
+            car_rental_company_id: req.body.car_rental_company_id,
+            booking_number: req.body.booking_number,
+            report_type: req.body.report_type,
+            report_message: req.body.report_message
         }
 
         const carReportResp = await carHelper.car_report(data);
@@ -2191,7 +2192,7 @@ router.post('/report', async (req, res) => {
             res.status(config.BAD_REQUEST).json(carReportResp);
         }
     }
-    else{
+    else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
@@ -2220,15 +2221,15 @@ router.post('/report', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/resend-invoice',async (req, res) => {
+router.post('/resend-invoice', async (req, res) => {
     var schema = {
         'booking_number': {
             notEmpty: true,
-            errorMessage: "Please enter car booking number",  
+            errorMessage: "Please enter car booking number",
         },
         'email': {
             notEmpty: true,
-            errorMessage: "Please enter email", 
+            errorMessage: "Please enter email",
         }
     };
     req.checkBody(schema);
@@ -2246,7 +2247,7 @@ router.post('/resend-invoice',async (req, res) => {
             res.status(config.BAD_REQUEST).json(resendInvoiceResp);
         }
     }
-    else{
+    else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
@@ -2255,6 +2256,39 @@ router.post('/resend-invoice',async (req, res) => {
     }
 
 
+});
+
+
+// test notification route
+
+router.post('/test-not', async (req, res) => {
+    var schema = {
+        'device_token': {
+            notEmpty: true,
+            errorMessage: "Please enter device token",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        console.log('D T=>', req.body.device_token);
+        var sendNotification = await pushNotificationHelper.sendToAndroid(req.body.device_token);
+        if (sendNotification.status === 'success') {
+            console.log('Success==>',sendNotification)
+            res.status(config.OK_STATUS).json(sendNotification);
+        }
+        else {
+            console.log('failure',sendNotification)
+            res.status(config.BAD_REQUEST).json(sendNotification);
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
 });
 
 
