@@ -8,6 +8,7 @@ var app = require('../app');
 var debug = require('debug')('carbookingapi:server');
 var http = require('http');
 var config = require('./../config');
+var socket = require('./../socket/socketServer');
 
 /**
  * Get port from environment and store in Express.
@@ -31,6 +32,9 @@ var server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+// Init socket object
+socket.socketStartUp(server);
 
 /**
  * Normalize a port into a number, string, or false.

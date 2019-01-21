@@ -8,10 +8,10 @@ var auth = require('./middlewares/auth');
 var db = require('./database/mongoDbConnection');
 var expressValidator = require('express-validator');
 var fileUpload = require('express-fileupload');
-
 /* config files */
 var config = require('./config');
 var app = express();
+var io = require('socket.io');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -87,9 +87,15 @@ app.use(function (err, req, res, next) {
 });
 
 //} else {
-    // var server = app.listen((config.node_port || 3000), function () {
-    //     console.log('Listening on port ' + (config.node_port || 3000) + '...');
+    // var server = app.listen((3000), function () {
+    //     console.log('Listening on port ' + (3000) + '...');
     // });
     // socket.socketStartUp(server);
+    // socket.socketStartUp = function (server) {
+    //     io.attach(server);
+    //     io.on('connection', function (socket) {
+    //         console.log("New user is connected with socket:", socket);
+    //     })
+    // }
 
 module.exports = app;

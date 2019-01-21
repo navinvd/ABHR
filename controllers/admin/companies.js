@@ -116,6 +116,31 @@ router.post('/add', (req, res, next) => {
                             callback(err);
                         }
                     } else {
+                        var cancell_criteria = [{ 
+                            "hours": 6,
+                            "rate":30
+                        },
+                        { 
+                            "hours": 12,
+                            "rate":20
+                        },
+                        {
+                            "hours": 24,
+                            "rate":10
+                        }];
+                        var terms_conditionData = {
+                            "CompanyId" : data._id,
+                            "cancellation_policy_criteria" : cancell_criteria,
+                            "terms_and_conditions" : "<p>exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p> <br/> 1. Lorem ipsum <br/> 2. Lorem ipsum <br/> 3. Lorem ipsum"
+                        }
+                        var TermsAndConditionModel = new Company(terms_conditionData);
+                        TermsAndConditionModel.save(function (err, data) {
+                            if(err){
+                                callback(err);
+                            }else{
+                                callback(null, data);
+                            }
+                        });
                         var result = {
                             message: "Company added successfully..",
                             data: data
@@ -141,7 +166,6 @@ router.post('/add', (req, res, next) => {
                                 console.log("Mail Success:", res);
                             }
                         })
-
                     }
                 });
 

@@ -19,6 +19,7 @@ var agents = require('./agents');
 var staff = require('./staff');
 var company = require('./companies');
 var car = require('./car');
+var terms_and_conditions = require('./terms_and_conditions');
 
 router.use('/user', users);
 router.use('/keyword', keywords);
@@ -26,6 +27,7 @@ router.use('/agents', agents);
 router.use('/staff', staff);
 router.use('/company', company);
 router.use('/cars', car);
+router.use('/legal_settings', terms_and_conditions);
 
 //models
 var User = require('./../../models/users');

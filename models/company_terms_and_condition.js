@@ -11,6 +11,7 @@ var CompanyTermsAndConditionSchema = new Schema({
         type: String,
         required: true
     },
+    cancellation_policy_criteria: [{ hours: {type: Number}, rate: {type: Number} }],
     isDeleted: {
         type: Boolean,
         default: false
