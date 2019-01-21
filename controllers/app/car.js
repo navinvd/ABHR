@@ -2273,6 +2273,8 @@ router.post('/test-not', async (req, res) => {
     if (!errors) {
         console.log('D T=>', req.body.device_token);
         var sendNotification = await pushNotificationHelper.sendToAndroid(req.body.device_token);
+        console.log('jdkjksjsdjsj=>',sendNotification);
+        // res.send('ok')
         if (sendNotification.status === 'success') {
             console.log('Success==>',sendNotification)
             res.status(config.OK_STATUS).json(sendNotification);
