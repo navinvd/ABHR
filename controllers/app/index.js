@@ -91,7 +91,7 @@ router.post('/registration', async (req, res, next) => {
             type: req.body.user_type,
             app_user_status: "only registered"
         };
-        User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}, function (err, data) {
+        User.findOne({email: req.body.email, isDeleted: false}, function (err, data) {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',

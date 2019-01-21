@@ -178,10 +178,6 @@ router.post('/add', (req, res, next) => {
                 console.log("Here : ",err);
                 return next(err);
             } else {
-                // var resData = {
-                //     "status":"success",
-                //     "message":
-                // }
                 res.status(config.OK_STATUS).json(result);
             }
         });
@@ -424,6 +420,11 @@ router.post('/list', (req, res, next) => {
             $match: {
                 "isDeleted": false,
             }
+        },
+        {
+            $sort: {
+                "createdAt" : -1
+            }
         }];
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
@@ -483,7 +484,7 @@ router.post('/list', (req, res, next) => {
                         $sort: {
                             [colname]: -1
                         }
-                    })
+                    });
                 } else {
                     colname = '$' + colname;
                     defaultQuery = defaultQuery.concat({
@@ -492,14 +493,14 @@ router.post('/list', (req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                        {
-                            $sort: {
-                                "sort_index": 1
-                            }
-                        },
-                        {
-                            $replaceRoot: { newRoot: "$records" }
-                        })
+                    {
+                        $sort: {
+                            "sort_index": 1
+                        }
+                    },
+                    {
+                        $replaceRoot: { newRoot: "$records" }
+                    });
                 }
             }
         }
@@ -521,6 +522,7 @@ router.post('/list', (req, res, next) => {
             }
         }
         ]);
+        console.log('default query===============>',JSON.stringify(defaultQuery));
         Company.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
