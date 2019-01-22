@@ -6,20 +6,24 @@ var fcm = new FCM(serverKey);
 
 var push_notification_helper = {};
 
-push_notification_helper.sendToAndroid = async (device_token) => {
+push_notification_helper.sendToAndroid = async (device_token, car_booking_number) => {
+    console.log('Token ARRAY =>>>>', device_token);
     try {
         var message = {
             // to: 'registration_token',  // single device
             registration_ids: device_token,// one or more device token,
             // collapse_key: 'your_collapse_key', // ask for mobile dev
-
-            notification: {
-                title: 'Welcome to ABHR',
-            },
+            priority : 'high',
+            // notification: {
+            //     title: 'Welcome to ABHR 123456',
+            // },
             data: {  //you can send only notification or only data(or include both)
-                carID: '123',
-                body: "This is test notification"
+                booking_number: car_booking_number,
+                title: 'ABHR Agent',
+                message : 'New car has been book assign to you for delivery process',
+                body : 'New car has been book assign to you for delivery process'
             }
+
         };
 
         // fcm.send(message, async function(err, response){

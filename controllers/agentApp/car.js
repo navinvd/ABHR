@@ -585,10 +585,10 @@ router.post('/receive', async (req, res) => {
 
 router.post('/assign_or_not', async (req, res) => {
     var schema = {
-        // 'agent_assign_for_handover' : {
-        //     notEmpty: true,
-        //     errorMessage: "Please enter status of agent assign for car handover"
-        // },
+        'check_agent_for' : {
+            notEmpty: true,
+            errorMessage: "Value should be one of this (delivery-process or return-process)"
+        },
         'booking_number': {
             notEmpty: true,
             errorMessage: "Please enter car booking id to assign for you"
@@ -620,62 +620,136 @@ router.post('/assign_or_not', async (req, res) => {
 
             if(booking_details && booking_details.length > 0 ){
 
-                if(booking_details[0].agent_assign_for_handover === false){
+                var chk_agent_for = req.body.check_agent_for;
 
-                    var agent_data = {
-                        'agent_id' : req.body.agent_id,
-                        'car_rental_company_id' : req.body.car_rental_company_id,
-                        'car_id' : req.body.car_id,
-                        'user_id' : req.body.user_id,
-                        'booking_number' : req.body.booking_number,
-                        'assign_for': 'handover',
-                        'status' : 'assign'
+                if(chk_agent_for === 'delivery-process')
+                {
+                    if(booking_details[0].agent_assign_for_handover === false){
+
+                        var agent_data = {
+                            'agent_id' : req.body.agent_id,
+                            'car_rental_company_id' : req.body.car_rental_company_id,
+                            'car_id' : req.body.car_id,
+                            'user_id' : req.body.user_id,
+                            'booking_number' : req.body.booking_number,
+                            'assign_for': 'handover',
+                            'status' : 'assign'
+                        }
+        
+                        var carAssignResp = await CarHelper.assign_car_to_agent(agent_data);
+        
+                        if (carAssignResp.status === 'success') {
+                            // update car_booking table
+        
+                            var newdata = {
+                                'car_handover_by_agent_id' : new ObjectId(req.body.agent_id),
+                                'agent_assign_for_handover' : true
+                            }
+        
+                            var bookingUpdate = await CarBooking.updateOne({'booking_number' : req.body.booking_number }, { $set : newdata } )
+        
+                            if(bookingUpdate && bookingUpdate.n > 0){
+                                // boking update
+                                res.status(config.OK_STATUS).json(carAssignResp)
+                            }
+                            else{
+                                // not update
+                                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while update car booking collection"})
+                            }
+                            
+                        }
+                        else {
+                            res.status(config.BAD_REQUEST).json(carAssignResp)
+                        } 
+
                     }
-    
-                    var carAssignResp = await CarHelper.assign_car_to_agent(agent_data);
-    
-                    if (carAssignResp.status === 'success') {
-                        // update car_booking table
-    
-                        var newdata = {
-                            'car_handover_by_agent_id' : new ObjectId(req.body.agent_id),
-                            'agent_assign_for_handover' : true
+                    else{
+                        var searchData = {
+                            "agent_id" : req.body.agent_id,
+                            "booking_number" : req.body.booking_number,
+                            "assign_for" : "handover" // now
+                        }        
+                        var data = await CarAssign.find(searchData);
+                
+                        if(data && data.length > 0){
+                            // allow agent to move ahead 
+                            res.status(config.OK_STATUS).json({ status: 'success', message: "Car has been assigned to you"})
                         }
-    
-                        var bookingUpdate = await CarBooking.updateOne({'booking_number' : req.body.booking_number }, { $set : newdata } )
-    
-                        if(bookingUpdate && bookingUpdate.n > 0){
-                            // boking update
-                            res.status(config.OK_STATUS).json(carAssignResp)
+                        else
+                        {
+                            // car assign already
+                            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car has been al-ready assigned to other agent"})
                         }
-                        else{
-                            // not update
-                            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while update car booking collection"})
-                        }
-                        
                     }
-                    else {
-                        res.status(config.BAD_REQUEST).json(carAssignResp)
-                    } 
+                }
+                else if(chk_agent_for === 'return-process'){
+
+                    if(booking_details[0].agent_assign_for_receive === false){
+
+                        var agent_data = {
+                            'agent_id' : req.body.agent_id,
+                            'car_rental_company_id' : req.body.car_rental_company_id,
+                            'car_id' : req.body.car_id,
+                            'user_id' : req.body.user_id,
+                            'booking_number' : req.body.booking_number,
+                            'assign_for': 'receive',
+                            'status' : 'assign'
+                        }
+        
+                        var carAssignResp = await CarHelper.assign_car_to_agent(agent_data);
+        
+                        if (carAssignResp.status === 'success') {
+                            // update car_booking table
+        
+                            var newdata = {
+                                'car_receive_by_agent_id' : new ObjectId(req.body.agent_id),
+                                'agent_assign_for_receive' : true
+                            }
+        
+                            var bookingUpdate = await CarBooking.updateOne({'booking_number' : req.body.booking_number }, { $set : newdata } )
+        
+                            if(bookingUpdate && bookingUpdate.n > 0){
+                                // boking update
+                                res.status(config.OK_STATUS).json(carAssignResp)
+                            }
+                            else{
+                                // not update
+                                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while update car booking collection"})
+                            }
+                            
+                        }
+                        else {
+                            res.status(config.BAD_REQUEST).json(carAssignResp)
+                        } 
+
+                    }
+                    else{
+                        var searchData = {
+                            "agent_id" : req.body.agent_id,
+                            "booking_number" : req.body.booking_number,
+                            "assign_for" : "receive" // now
+                        }        
+                        var data = await CarAssign.find(searchData);
+                
+                        if(data && data.length > 0){
+                            // allow agent to move ahead 
+                            res.status(config.OK_STATUS).json({ status: 'success', message: "Car has been assigned to you"})
+                        }
+                        else
+                        {
+                            // car assign already
+                            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car has been al-ready assigned to other agent"})
+                        }
+                    }
 
                 }
                 else{
-                    var searchData = {
-                        "agent_id" : req.body.agent_id,
-                        "booking_number" : req.body.booking_number
-                    }        
-                    var data = await CarAssign.find(searchData);
-            
-                    if(data && data.length > 0){
-                        // allow agent to move ahead 
-                        res.status(config.OK_STATUS).json({ status: 'success', message: "Car has been assigned to you"})
-                    }
-                    else
-                    {
-                        // car assign already
-                        res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car has been al-ready assigned to other agent"})
-                    }
+                    res.status(config.BAD_REQUEST).json({ status: 'failed', message: "check agent for Value should be one of this (delivery-process or return-process)"})  ;  
                 }
+
+            }
+            else{
+                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "No booking is available for this booking number"})    
             }
 
         }
