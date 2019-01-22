@@ -16,6 +16,7 @@ var Car = require('./../models/cars');
 var config = require('./../config');
 var bcrypt = require('bcrypt');
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
+var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/testSocket',(req,res) => {
     res.render('index', { title: 'Express' });
@@ -196,7 +197,7 @@ router.post('/checkcarNumber', async (req, res, next) => {
         try{
             var obj = { "licence_plate" : req.body.licence_plate, "isDeleted" : false};
             if(req.body.car_id){
-                var obj = { "licence_plate" : req.body.licence_plate,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.car_id) }};
+                var obj = { "licence_plate" : req.body.licence_plate, "isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.car_id) }};
             }
             var carId = await Car.findOne(obj); 
             if(carId !== null && carId!== ''){
