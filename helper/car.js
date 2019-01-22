@@ -743,7 +743,7 @@ carHelper.carBook = async function (booking_data) {
     let car_booking = new CarBooking(booking_data);
     try {
         let data = await car_booking.save();
-        return { status: 'success', message: "Car has been book successfully" }
+        return { status: 'success', message: "Car has been book successfully", data : { booking_data :data } }
     } catch (err) {
         return { status: 'failed', message: "Error occured while booking car", err };
     }
@@ -822,8 +822,8 @@ carHelper.checkRadius = async function (data) {
         let radius = await CarCompany.aggregate([{
             $match: {
                 $and: [
-                    { _id: new ObjectId(data.company_id) }, //0.621371 1 km  //  6.213712
-                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 0.621371 / 3963.2] } } }
+                    { _id: new ObjectId(data.company_id) }, //0.621371 1 km  // 62.1371 = 100km
+                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude],  62.1371 / 3963.2] } } }
                 ]
             }
         }]

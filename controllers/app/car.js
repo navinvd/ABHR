@@ -7,6 +7,7 @@ const pushNotificationHelper = require('./../../helper/push_notification');
 const Car = require('./../../models/cars');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
+const Users = require('./../../models/users');
 const CarNotification = require('./../../models/car_notification');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
@@ -976,12 +977,42 @@ router.post('/book', async (req, res) => {
         const bookingResp = await carHelper.carBook(data);
 
         if (bookingResp.status === 'success') {
-            res.status(config.OK_STATUS).json(bookingResp);
+
+            console.log('Booking Id =>',bookingResp.data.booking_data['booking_number']);
+            var car_booking_number = bookingResp.data.booking_data['booking_number'];
+            // after car booking need to send push notification to all agent
+
+            /** push notification process to all agent start */
+            var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1 }).lean().exec();
+
+            var agentDeviceTokenArray = [];
+            agentList.map((agent, index) => {
+                if (agent.deviceToken !== undefined) {
+                    if(agent.deviceToken.length > 10){ // temp condition
+                        agentDeviceTokenArray.push(agent.deviceToken);
+                    }
+                }
+            });
+
+            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number);
+
+
+            if (sendNotification.status === 'success') {
+                console.log('Notification send Success==>')
+                // res.status(config.OK_STATUS).json(sendNotification);
+                res.status(config.OK_STATUS).json(bookingResp);
+            }
+            else {
+                console.log('Notification not send failure', sendNotification)
+                // res.status(config.BAD_REQUEST).json(sendNotification);
+                res.status(config.OK_STATUS).json(bookingResp);
+            }
+            /**  ------------Over push notification--------- */
+            //    res.status(config.OK_STATUS).json(bookingResp);
         }
         else {
             res.status(config.BAD_REQUEST).json(bookingResp);
         }
-        // res.json(bookingResp);
 
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -1809,7 +1840,8 @@ router.post('/filter123', async (req, res) => {
                         },
                         {
                             // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }
-                            "service_location": { $geoWithin: { $centerSphere: [[req.body.longitude, req.body.latitude], 124.274 / 3963.2] } }
+                            //62.1371 = 100km
+                            "service_location": { $geoWithin: { $centerSphere: [[req.body.longitude, req.body.latitude], 62.1371 / 3963.2] } }
                         },
                         {
                             $or: [
@@ -2273,14 +2305,14 @@ router.post('/test-not', async (req, res) => {
     if (!errors) {
         console.log('D T=>', req.body.device_token);
         var sendNotification = await pushNotificationHelper.sendToAndroid(req.body.device_token);
-        console.log('jdkjksjsdjsj=>',sendNotification);
+        console.log('jdkjksjsdjsj=>', sendNotification);
         // res.send('ok')
         if (sendNotification.status === 'success') {
-            console.log('Success==>',sendNotification)
+            console.log('Success==>', sendNotification)
             res.status(config.OK_STATUS).json(sendNotification);
         }
         else {
-            console.log('failure',sendNotification)
+            console.log('failure', sendNotification)
             res.status(config.BAD_REQUEST).json(sendNotification);
         }
     }
