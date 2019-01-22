@@ -12,6 +12,7 @@ router.use('/agent', agent);
 var path = require('path');
 var async = require("async");
 var User = require('./../models/users');
+var Car = require('./../models/cars');
 var config = require('./../config');
 var bcrypt = require('bcrypt');
 var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
@@ -162,6 +163,65 @@ router.post('/reset_password', async(req, res, next) => {
             status: 'failed',
             message: "Validation Error",
             error: errors
+        });
+    }
+});
+
+/**
+ * @api {post} /checkcarNumber car Number already exist check
+ * @apiName Car Number Check 
+ * @apiDescription Used to check car Number
+ * @apiGroup Car - Number
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} [car_id] Car Id
+ * @apiParam {String} Number Number
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/checkcarNumber', async (req, res, next) => {
+    var schema = {
+        'licence_plate': {
+            notEmpty: true,
+            errorMessage: "licence_plate is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var obj = { "licence_plate" : req.body.licence_plate, "isDeleted" : false};
+            if(req.body.car_id){
+                var obj = { "licence_plate" : req.body.licence_plate,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.car_id) }};
+            }
+            var carId = await Car.findOne(obj); 
+            if(carId !== null && carId!== ''){
+                res.status(config.OK_STATUS).json({
+                    status: "success",
+                    message: "Record found"
+                });
+            }else{
+                res.status(config.OK_STATUS).json({
+                    status: "failed",
+                    message: "record not found"
+                });
+            }
+        } catch (error) {
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "something went wrong",
+                error: error
+            });
+        }   
+    } else{
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message:"Validation error",
+            error: e
         });
     }
 });
