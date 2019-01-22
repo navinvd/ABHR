@@ -50,6 +50,10 @@ router.post('/add', (req, res, next) => {
         'email': {
             notEmpty: true,
             errorMessage: "Email is required"
+        },
+        'company_address':{
+            notEmpty: true,
+            errorMessage: "Company Address is required"
         }
     };
     req.checkBody(schema);
@@ -148,13 +152,14 @@ router.post('/add', (req, res, next) => {
                                     to: req.body.email,
                                     subject: 'ABHR - Car Company Account Notification'
                                 }
-                                var loginURL = config.FRONT_END_URL + '#/company/login';
+                                var loginURL = config.FRONT_END_URL + '/company/login';
                                 var emaildata = {
                                     name: req.body.name,
                                     email: req.body.email,
                                     password: generatepassword,
                                     link: loginURL
                                 }
+                                console.log(emaildata);
                                 mailHelper.send('/car_company/add_company', option, emaildata, function (err, res) {
                                     if (err) {
                                         errData = {
