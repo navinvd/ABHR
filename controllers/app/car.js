@@ -903,6 +903,7 @@ router.post('/checkCarAvailability', async (req, res) => {
 
 
 // Car booking
+
 router.post('/book', async (req, res) => {
     var schema = {
         'user_id': {
@@ -965,51 +966,7 @@ router.post('/book', async (req, res) => {
 
         // check for already book or not first 
 
-
-        // var test = await CarBooking.find({carId : new ObjectId(req.body.car_id)}).lean().exec();
-//         var test = await CarBooking.aggregate([
-//             {
-//                 $match: {
-//                     $and: [
-//                         { carId: { $eq: new ObjectId(req.body.car_id) } },
-//                         {
-//                             $or: [
-//                                 {
-//                                     $and: [
-//                                         { from_time: { $lt: fromDate } },
-//                                         { to_time: { $lt: fromDate } }
-//                                     ]
-//                                 },
-//                                 {
-//                                     $and: [
-//                                         { from_time: { $gt: toDate } },
-//                                         { to_time: { $gt: toDate } }
-//                                     ]
-//                                 }
-// // euqal
-//                             ]
-//                         }
-//                     ]
-//                 }
-//             }
-//         ])
-
-        /*
-
-        console.log('DATATATATATAT===========>', test);
-
-        if (test && test.length > 0) {
-            // console.log('DATATATATATAT 1===========>',test);
-            res.status(400).json({ msg: 'already book' });
-        }
-        else {
-
-            */
-
-
-
-            // console.log('DATATATATATAT 2===========>',test);
-
+    
             var data = {
                 "userId": req.body.user_id,
                 "carId": req.body.car_id,
@@ -1069,7 +1026,7 @@ router.post('/book', async (req, res) => {
             else {
                 res.status(config.BAD_REQUEST).json(bookingResp);
             }
-        // }
+        
 
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -1975,11 +1932,9 @@ router.post('/filter123', async (req, res) => {
                 defaultQuery.splice(3, 0, searchQuery);
             }
         }
-        console.log('TYpe NVG=>', typeof req.body.navigation);
+
         if (typeof req.body.navigation !== 'undefined') {
 
-            console.log('NVG=>', req.body.navigation);
-            
             if (req.body.navigation === false) {
                 let navigationOject = req.body.navigation;
                 console.log('NAVIGATION 1======>', navigationOject);
@@ -2045,7 +2000,7 @@ router.post('/filter123', async (req, res) => {
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
-        } 
+        }
         // else {
         //     var searchQuery = {
         //         "$match": {
