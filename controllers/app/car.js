@@ -2045,14 +2045,15 @@ router.post('/filter123', async (req, res) => {
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
-        } else {
-            var searchQuery = {
-                "$match": {
-                    "milage": "open",
-                }
-            }
-            defaultQuery.splice(3, 0, searchQuery);
-        }
+        } 
+        // else {
+        //     var searchQuery = {
+        //         "$match": {
+        //             "milage": "open",
+        //         }
+        //     }
+        //     defaultQuery.splice(3, 0, searchQuery);
+        // }
 
         // filter using lat - long
 
