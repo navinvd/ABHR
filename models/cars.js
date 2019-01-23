@@ -22,6 +22,10 @@ var CarSchema = new Schema({
         type: Number,
         required: true
     },
+    deposite:{
+        type: Number,
+        required: true
+    },
     is_AC: {
         type: Boolean,
         default: false

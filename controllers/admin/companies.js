@@ -66,38 +66,6 @@ router.post('/add', (req, res, next) => {
         req.body['password'] = generatepassword;
         async.waterfall([
             function (callback) {
-                // Finding place and insert if not found
-                if (req.body.address) {
-                    Place.findOne({
-                        "google_place_id": {
-                            $eq: req.body.address.placeId
-                        }
-                    }, function (err, data) {
-                        if (err) {
-                            callback(err);
-                        } else {
-                            if (data.length != 0) {
-                                req.body['place_id'] = data.google_place_id
-                                callback(null);
-                            } else {
-                                var addressData = req.body.address;
-                                var placeModel = new Place(addressData);
-                                placeModel.save(function (err, placeData) {
-                                    if (err) {
-                                        callback(err);
-                                    } else {
-                                        req.body['place_id'] = placeData._id;
-                                        callback(null);
-                                    }
-                                });
-                            }
-                        }
-                    });
-                } else {
-                    callback(null);
-                }
-            },
-            function (callback) {
                 var companyModel = new Company(req.body);
                 companyModel.save(function (err, data) {
                     console.log("user data===>", data, err);
@@ -123,16 +91,12 @@ router.post('/add', (req, res, next) => {
                         }
                     } else {
                         var cancell_criteria = [{
-                            "hours": 6,
+                            "hours": 24,
                             "rate": 30
                         },
                         {
-                            "hours": 12,
+                            "hours": 48,
                             "rate": 20
-                        },
-                        {
-                            "hours": 24,
-                            "rate": 10
                         }];
                         var terms_conditionData = {
                             "CompanyId": data._id,
@@ -159,17 +123,12 @@ router.post('/add', (req, res, next) => {
                                     password: generatepassword,
                                     link: loginURL
                                 }
-                                console.log(emaildata);
                                 mailHelper.send('/car_company/add_company', option, emaildata, function (err, res) {
                                     if (err) {
                                         errData = {
                                             message: "Company is Added but mail is not sent",
                                             error: err
                                         };
-                                        console.log(errData);
-                                        // callback(errData);
-                                    } else {
-                                        // callback(null, result);
                                     }
                                 });
                                 callback(null, result);
@@ -1030,7 +989,7 @@ router.post('/car/details', async (req, res) => {
  * @apiParam {Enum} milage ["open","limited"]
  * @apiParam {Enum} car_class ["economy", "luxury", "suv", "family"]
  * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
- * 
+ * @apiParam {Number} deposit deposit for car
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -1070,6 +1029,10 @@ router.post('/car/add', (req, res, next) => {
         'car_class': {
             notEmpty: true,
             errorMessage: "Class is required"
+        },
+        'deposit': {
+            notEmpty: true,
+            errorMessage: "deposit is required"
         }
     };
     req.checkBody(schema);

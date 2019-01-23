@@ -10,7 +10,8 @@ var path = require('path');
 var async = require("async");
 const carHelper = require('./../../helper/car');
 
-/* @api {post} /company/car/add Add car
+/**
+ * @api {post} /company/car/add Add car
  * @apiName add Car
  * @apiDescription Used for Add Car 
  * @apiGroup CompanyAdmin - Car
@@ -31,7 +32,7 @@ const carHelper = require('./../../helper/car');
  * @apiParam {Enum} milage ["open","limited"]
  * @apiParam {Enum} car_class ["economy", "luxury", "suv", "family"]
  * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
- * 
+ * @apiParam {Number} deposit deposit for car
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -71,7 +72,11 @@ router.post('/add', (req, res, next) => {
         'car_class': {
             notEmpty: true,
             errorMessage: "Class is required"
-        }
+        },
+        'deposit': {
+            notEmpty: true,
+            errorMessage: "deposit is required"
+        }   
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
@@ -129,7 +134,8 @@ router.post('/add', (req, res, next) => {
   });
 
 
-/* @api {post} /company/car/list List of all car of perticular company
+/**
+ * @api {post} /company/car/list List of all car of perticular company
  * @apiName company car List
  * @apiDescription To display company car list with pagination
  * @apiGroup CompanyAdmin -Car
@@ -289,14 +295,14 @@ router.post('/list',(req, res, next) => {
     }
 });
 
-/* @api {post} /company/car/details Add car
+/**
+ * @api {post} /company/car/details Add car
  * @apiName add Car
  * @apiDescription Used for Display details Car 
  * @apiGroup CompanyAdmin - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {car_id} car_id id of Car
- * 
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -324,7 +330,8 @@ router.post('/details', async (req, res) => {
 });
 
 
-/* @api {post} /company/car/rented_list List of all rented users
+/**
+ * @api {post} /company/car/rented_list List of all rented users
  * @apiName Rented Car List
  * @apiDescription To display Rented car list with pagination
  * @apiGroup CompanyAdmin - Car
@@ -504,7 +511,7 @@ router.post('/rented_list', (req, res, next) => {
  * @api {post} /company/cars/report_list create report list for cars
  * @apiName Listing of cars report
  * @apiDescription This is for listing car report
- * @apiGroup Admin - Cars
+ * @apiGroup CompanyAdmin - Cars
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
