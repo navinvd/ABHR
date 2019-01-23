@@ -323,6 +323,7 @@ router.post('/booking-details', async (req, res) => {
                     latitude: 1,
                     longitude: 1,
                     coupon_code: 1,
+                    coupon_percentage : 1,
                     isDeleted: 1,
                     agent_assign_for_handover : 1,
                     agent_assign_for_receive : 1,
@@ -397,6 +398,26 @@ router.post('/booking-details', async (req, res) => {
                         if(c.car['car_receive_by_agent_id'] === undefined ){
                             c.car['car_receive_by_agent_id'] = null;
                         }
+                        /** below condition is temporary due to lack of data */
+                        if(c.car['coupon_code'] === undefined ){
+                            c.car['coupon_code'] = null;
+                        }
+                        if(c.car['first_name'] === undefined ){
+                            c.car['first_name'] = 'test';
+                        }
+                        if(c.car['last_name'] === undefined ){
+                            c.car['last_name'] = 'test';
+                        }
+                        if(c.car['phone_number'] === undefined ){
+                            c.car['phone_number'] = '8956235610';
+                        }
+                        if(c.car['country_code'] === undefined ){
+                            c.car['country_code'] = 'Dubai';
+                        }
+                        if(c.car['email'] === undefined ){
+                            c.car['email'] = 'test@email.com';
+                        }
+                        /** ----------------------------------------------- */
                         c.car['total_avg_rating'] = c.total_avg_rating;
                         delete c.car.reviews;
                         return c.car;
