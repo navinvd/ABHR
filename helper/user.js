@@ -147,7 +147,7 @@ userHelper.changePassword = async (data) => {
                 }
             }
             else {
-                return { status: 'failed', message: "Invailid old password" }
+                return { status: 'failed', message: "Invalid old password" }
             }
         }
         else {

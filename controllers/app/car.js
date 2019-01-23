@@ -5,6 +5,7 @@ var config = require('./../../config');
 const carHelper = require('./../../helper/car');
 const pushNotificationHelper = require('./../../helper/push_notification');
 const Car = require('./../../models/cars');
+const CarBooking = require('./../../models/car_booking');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const Users = require('./../../models/users');
@@ -957,62 +958,118 @@ router.post('/book', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
-        console.log(toDate);
-        var data = {
-            "userId": req.body.user_id,
-            "carId": req.body.car_id,
-            "from_time": req.body.fromDate,
-            "to_time": toDate, // auto calculation
-            "days": req.body.days,
-            "booking_rent": req.body.rent_per_day,
-            "delivery_address": req.body.delivery_address, // add field in db as well,
-            "delivery_time": req.body.delivery_time, // add field in db as well',
-            "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
-            "coupon_percentage": req.body.coupon_percentage ? req.body.coupon_percentage : null,
-            "total_booking_amount": req.body.total_booking_amount, // add this field to db
-            "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
-            "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
-            "trip_status": "upcoming"
+
+        var fromDate = req.body.fromDate;
+        console.log('From date =>', fromDate);
+        console.log('To date =>', toDate);
+
+        // check for already book or not first 
+
+
+        // var test = await CarBooking.find({carId : new ObjectId(req.body.car_id)}).lean().exec();
+//         var test = await CarBooking.aggregate([
+//             {
+//                 $match: {
+//                     $and: [
+//                         { carId: { $eq: new ObjectId(req.body.car_id) } },
+//                         {
+//                             $or: [
+//                                 {
+//                                     $and: [
+//                                         { from_time: { $lt: fromDate } },
+//                                         { to_time: { $lt: fromDate } }
+//                                     ]
+//                                 },
+//                                 {
+//                                     $and: [
+//                                         { from_time: { $gt: toDate } },
+//                                         { to_time: { $gt: toDate } }
+//                                     ]
+//                                 }
+// // euqal
+//                             ]
+//                         }
+//                     ]
+//                 }
+//             }
+//         ])
+
+        /*
+
+        console.log('DATATATATATAT===========>', test);
+
+        if (test && test.length > 0) {
+            // console.log('DATATATATATAT 1===========>',test);
+            res.status(400).json({ msg: 'already book' });
         }
-        const bookingResp = await carHelper.carBook(data);
+        else {
 
-        if (bookingResp.status === 'success') {
+            */
 
-            console.log('Booking Id =>',bookingResp.data.booking_data['booking_number']);
-            var car_booking_number = bookingResp.data.booking_data['booking_number'];
-            // after car booking need to send push notification to all agent
 
-            /** push notification process to all agent start */
-            var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1 }).lean().exec();
 
-            var agentDeviceTokenArray = [];
-            agentList.map((agent, index) => {
-                if (agent.deviceToken !== undefined) {
-                    if(agent.deviceToken.length > 10){ // temp condition
-                        agentDeviceTokenArray.push(agent.deviceToken);
+            // console.log('DATATATATATAT 2===========>',test);
+
+            var data = {
+                "userId": req.body.user_id,
+                "carId": req.body.car_id,
+                "from_time": req.body.fromDate,
+                "to_time": toDate, // auto calculation
+                "days": req.body.days,
+                "booking_rent": req.body.rent_per_day,
+                "delivery_address": req.body.delivery_address, // add field in db as well,
+                "delivery_time": req.body.delivery_time, // add field in db as well',
+                "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
+                "coupon_percentage": req.body.coupon_percentage ? req.body.coupon_percentage : null,
+                "total_booking_amount": req.body.total_booking_amount, // add this field to db
+                "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
+                "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
+                "trip_status": "upcoming"
+            }
+            const bookingResp = await carHelper.carBook(data);
+
+            if (bookingResp.status === 'success') {
+
+                console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
+                var car_booking_number = bookingResp.data.booking_data['booking_number'];
+                // after car booking need to send push notification to all agent
+
+
+
+                /** push notification process to all agent start */
+                /*
+                var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1 }).lean().exec();
+
+                var agentDeviceTokenArray = [];
+                agentList.map((agent, index) => {
+                    if (agent.deviceToken !== undefined) {
+                        if (agent.deviceToken.length > 10) { // temp condition
+                            agentDeviceTokenArray.push(agent.deviceToken);
+                        }
                     }
+                });
+
+                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number);
+
+
+                if (sendNotification.status === 'success') {
+                    console.log('Notification send Success==>')
+                    // res.status(config.OK_STATUS).json(sendNotification);
+                    res.status(config.OK_STATUS).json(bookingResp);
                 }
-            });
-
-            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number);
-
-
-            if (sendNotification.status === 'success') {
-                console.log('Notification send Success==>')
-                // res.status(config.OK_STATUS).json(sendNotification);
+                else {
+                    console.log('Notification not send failure', sendNotification)
+                    // res.status(config.BAD_REQUEST).json(sendNotification);
+                    res.status(config.OK_STATUS).json(bookingResp);
+                }
+                */
+                /**  ------------Over push notification--------- */
                 res.status(config.OK_STATUS).json(bookingResp);
             }
             else {
-                console.log('Notification not send failure', sendNotification)
-                // res.status(config.BAD_REQUEST).json(sendNotification);
-                res.status(config.OK_STATUS).json(bookingResp);
+                res.status(config.BAD_REQUEST).json(bookingResp);
             }
-            /**  ------------Over push notification--------- */
-            //    res.status(config.OK_STATUS).json(bookingResp);
-        }
-        else {
-            res.status(config.BAD_REQUEST).json(bookingResp);
-        }
+        // }
 
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -1692,10 +1749,6 @@ router.post('/filter123', async (req, res) => {
                 errorMessage: "Please enter days in number only"
             }
         },
-        // 'location':{
-        //     notEmpty: true,
-        //     errorMessage: "Specify your location please"
-        // },
         'latitude': {
             notEmpty: true,
             errorMessage: "Specify your latitude"
@@ -1922,7 +1975,11 @@ router.post('/filter123', async (req, res) => {
                 defaultQuery.splice(3, 0, searchQuery);
             }
         }
+        console.log('TYpe NVG=>', typeof req.body.navigation);
         if (typeof req.body.navigation !== 'undefined') {
+
+            console.log('NVG=>', req.body.navigation);
+            
             if (req.body.navigation === false) {
                 let navigationOject = req.body.navigation;
                 console.log('NAVIGATION 1======>', navigationOject);
@@ -1942,14 +1999,14 @@ router.post('/filter123', async (req, res) => {
                 defaultQuery.splice(3, 0, searchQuery);
             }
         }
-        else {
-            var searchQuery = {
-                "$match": {
-                    "is_navigation": true,
-                }
-            }
-            defaultQuery.splice(3, 0, searchQuery);
-        }
+        // else {
+        //     var searchQuery = {
+        //         "$match": {
+        //             "is_navigation": true,
+        //         }
+        //     }
+        //     defaultQuery.splice(3, 0, searchQuery);
+        // }
 
         if (req.body.transmission) {
 
