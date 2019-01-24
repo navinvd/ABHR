@@ -20,6 +20,7 @@ var staff = require('./staff');
 var company = require('./companies');
 var car = require('./car');
 var terms_and_conditions = require('./terms_and_conditions');
+var coupon = require('./coupons');
 
 router.use('/user', users);
 router.use('/keyword', keywords);
@@ -28,6 +29,7 @@ router.use('/staff', staff);
 router.use('/company', company);
 router.use('/cars', car);
 router.use('/legal_settings', terms_and_conditions);
+router.use('/coupon', coupon);
 
 //models
 var User = require('./../../models/users');

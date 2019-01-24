@@ -997,6 +997,7 @@ router.post('/car/details', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/car/add', (req, res, next) => {
+    console.log('request body====>',req.body);
     var schema = {
         'car_rental_company_id': {
             notEmpty: true,

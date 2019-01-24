@@ -22,7 +22,7 @@ var CarSchema = new Schema({
         type: Number,
         required: true
     },
-    deposite:{
+    deposit:{
         type: Number,
         required: true
     },

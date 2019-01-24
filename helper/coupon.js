@@ -5,6 +5,7 @@ const UserCoupon = require('./../models/user_coupon');
 
 let couponHelper = {};
 
+// add coupon 
 couponHelper.addCoupon = async (data) => {
     let coopan = await Coupon.find({ coupon_code: data.coupon_code });
     if (coopan && coopan.length > 0) {
@@ -14,13 +15,11 @@ couponHelper.addCoupon = async (data) => {
         let add_coupon = new Coupon(data);
         try {
             let data = await add_coupon.save();
-            return { status: 'success', message: "Coupon has been added" }
+            return { status: 'success', message: "Coupon has been added", data:data }
         } catch (err) {
             return { status: 'failed', message: "Error occured while adding new coupon" };
         }
     }
-
-
 };
 
 
