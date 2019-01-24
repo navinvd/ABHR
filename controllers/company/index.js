@@ -260,7 +260,7 @@ router.post('/change_password', async (req, res, next) => {
                     var updatedata = { "password": bcrypt.hashSync(req.body.new_password, SALT_WORK_FACTOR) }
                     var datta = await Company.update({ "_id": new ObjectId(req.body.company_id) }, { $set: updatedata });
                     if (datta.n > 0) {
-                        res.status(config.BAD_REQUEST).json({
+                        res.status(config.OK_STATUS).json({
                             status: 'success',
                             message: 'Password has been changed successfully'
                         });
