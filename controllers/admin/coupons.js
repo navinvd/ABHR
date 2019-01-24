@@ -5,6 +5,7 @@ var config = require('./../../config');
 const couponHelper = require('./../../helper/coupon');
 var Coupon = require('./../../models/coupon');
 
+
 /**
  * @api {post} /admin/coupon/list List of all superadmin coupon
  * @apiName Coupon List
