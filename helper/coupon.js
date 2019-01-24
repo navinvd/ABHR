@@ -7,7 +7,7 @@ let couponHelper = {};
 
 // add coupon 
 couponHelper.addCoupon = async (data) => {
-    let coopan = await Coupon.find({ coupon_code: data.coupon_code });
+    let coopan = await Coupon.find({ coupon_code: data.coupon_code, isDeleted: false });
     if (coopan && coopan.length > 0) {
         return { status: 'failed', message: "Please try to add coupon with other coupon code" }
     }
@@ -22,6 +22,48 @@ couponHelper.addCoupon = async (data) => {
     }
 };
 
+// update coupon 
+couponHelper.updateCoupon = async (coupon_id, data) => {
+    let coopan = await Coupon.findOne({ coupon_code: data.coupon_code, isDeleted: false, "_id": {$ne: new ObjectId(coupon_id)}});
+    if (coopan) {
+        return { status: 'failed', message: "Please try to add coupon with other coupon code" }
+    }
+    else {
+        try {
+            let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: data});
+            return { status: 'success', message: "Coupon has been updated"}
+        } catch (err) {
+            return { status: 'failed', message: "Error occured while updating coupon" };
+        }
+    }
+};
+
+// delete coupon 
+couponHelper.deleteCoupon = async (coupon_id) => {
+    let coopan = await Coupon.findOne({ isDeleted: false, "_id": new ObjectId(coupon_id)});
+    if (coopan) {
+        return { status: 'failed', message: "no record found with this data" }
+    }
+    else {
+        try {
+            let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: {"isDeleted": true}});
+            return { status: 'success', message: "Coupon has been deleted"}
+        } catch (err) {
+            return { status: 'failed', message: "Error occured while updating coupon" };
+        }
+    }
+};
+
+// get by id coupon 
+couponHelper.getByIdCoupon = async (coupon_id) => {
+    let coopan = await Coupon.findOne({ "_id": new ObjectId(coupon_id), isDeleted: false});
+    if (coopan) {
+        return { status: 'success', message: "Coupon data found", data: coopan }
+    }
+    else {
+        return { status: 'failed', message: "Error occured while fetching coupon" };
+    }
+};
 
 couponHelper.applyCoupon = async (user_id, coupon_code) => {
     try {
@@ -64,10 +106,5 @@ couponHelper.applyCoupon = async (user_id, coupon_code) => {
         return { status: 'failed', message: "Error occured while applying coupon" };
     }
 };
-
-
-
-
-
 
 module.exports = couponHelper;

@@ -253,10 +253,11 @@ router.post('/change_password', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            var userData = await Company.find({ _id: new ObjectId(req.body.company_id) });
-            if (userData && userData.length > 0) {
-                if (bcrypt.compareSync(data.old_password, userData[0].password)) {
-                    var updatedata = { "password": bcrypt.hashSync(data.new_password, SALT_WORK_FACTOR) }
+            var userData = await Company.findOne({ "_id": new ObjectId(req.body.company_id), "isDeleted": false});
+            console.log('userdata=====>',userData);
+            if (userData && userData != undefined) {
+                if (bcrypt.compareSync(req.body.old_password, userData.password)) {
+                    var updatedata = { "password": bcrypt.hashSync(req.body.new_password, SALT_WORK_FACTOR) }
                     var datta = await Company.update({ "_id": new ObjectId(req.body.company_id) }, { $set: updatedata });
                     if (datta.n > 0) {
                         res.status(config.BAD_REQUEST).json({
@@ -284,7 +285,7 @@ router.post('/change_password', async (req, res, next) => {
                 });
             }
         } catch (e) {
-
+            console.log(e);
         }
     } else {
         res.status(config.BAD_REQUEST).json({

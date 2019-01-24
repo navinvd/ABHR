@@ -818,10 +818,10 @@ router.post('/verify', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         var updateData = {};
-        if(req.body.driving_license_verification){
+        if(req.body.driving_license_verification) {
             updateData = Object.assign({}, {"driving_license_verification" : 2});
         }
-        if(req.body.id_card_verification){
+        if(req.body.id_card_verification) {
             updateData = Object.assign(updateData, {"id_card_verification" : 2});
         }
         User.update({ _id: { $eq: req.body.user_id } }, { $set: updateData }, function (err, response) {
@@ -834,7 +834,8 @@ router.post('/verify', async (req, res, next) => {
             } else {
                 res.status(config.OK_STATUS).json({ 
                     status: "success",
-                    message: "Document Verified successfully!!!" });
+                    message: "Document Verified successfully!!!" 
+                });
             }
         });
     } else {
