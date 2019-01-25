@@ -4,6 +4,7 @@ var router = express.Router();
 var config = require('./../../config');
 const couponHelper = require('./../../helper/coupon');
 var Coupon = require('./../../models/coupon');
+var ObjectId = require('mongoose').Types.ObjectId;
 
 
 /**
@@ -49,7 +50,7 @@ router.post('/list', (req, res, next) => {
                 {
                     $unwind: {
                         "path": "$companyDetails",
-                        "preserveNullAndEmptyArrays": false
+                        "preserveNullAndEmptyArrays": true
                     }
                 },
                 {
@@ -180,6 +181,10 @@ router.post('/add', async (req, res) => {
             coupon_code : req.body.coupon_code,
             discount_rate : parseInt(req.body.discount_rate)
         }
+        if(req.body.idCompanyAdded){
+            data = Object.assign(data, {"car_rental_company_id" : new ObjectId(req.body.company_id)});
+        }
+
         const couponResp = await couponHelper.addCoupon(data);
         if(couponResp.status === 'success'){
             res.status(config.OK_STATUS).json(couponResp);
@@ -222,7 +227,13 @@ router.put('/update', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var data = req.body;
+        var data = {
+            coupon_code : req.body.coupon_code,
+            discount_rate : parseInt(req.body.discount_rate)
+        }
+        if(req.body.idCompanyAdded){
+            data = Object.assign(data, {"car_rental_company_id" : new ObjectId(req.body.company_id)});
+        }
         const couponResp = await couponHelper.updateCoupon(req.body.coupon_id, data);
         if(couponResp.status === 'success'){
             res.status(config.OK_STATUS).json(couponResp);
