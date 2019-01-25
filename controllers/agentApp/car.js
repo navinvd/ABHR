@@ -586,6 +586,7 @@ router.post('/receive', async (req, res) => {
 
 
         if (carReceiveResp.status === 'success') {
+            // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_avialable' : true } } );              
             res.status(config.OK_STATUS).json(carReceiveResp)
         }
         else {
@@ -787,6 +788,52 @@ router.post('/assign_or_not', async (req, res) => {
     }
 
 });
+
+
+// Track Location 
+router.post('/track-location', async (req, res) => {
+    var schema = {
+        'booking_number':{
+            notEmpty: true,
+            errorMessage: "Enter booking number"
+        },
+        // 'lattitude' : {
+        //     notEmpty: true,
+        //     errorMessage: "Enter current latitude"
+        // },
+        // 'longitude': {
+        //     notEmpty: true,
+        //     errorMessage: "Enter current longitude"
+        // }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        // pending  (socket event receive from ANDROID and emit to IOS )
+        try {
+            var booking_details = await CarBooking.updateOne({'booking_number': req.body.booking_number},{ $set : { 'trip_status': 'delivering' } });
+
+            if(booking_details && booking_details.n > 0){
+                res.status(config.OK_STATUS).json({ status: 'success', message: "Tracking has been started"})    
+            }
+            else{
+                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Tracking has not been started"})    
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while start tracking", err })
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
 
 
 

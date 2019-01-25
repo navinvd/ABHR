@@ -44,7 +44,7 @@ var BookingSchema = new Schema({
     },
     trip_status: {
         type: String,
-        enum: ["inprogress", "cancelled", "finished", "return", "upcoming"]
+        enum: ["inprogress", "cancelled", "finished", "return", "upcoming", "delivering", "returning"]
     },
     delivery_address: {
         type: String,

@@ -613,6 +613,117 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
 };
 
 
+// Car Booking all history 
+carHelper.history = async (user_id, history_type) => {
+
+    var defaultQuery = [
+        {
+            $lookup: {
+                from: 'cars',
+                localField: 'carId',
+                foreignField: '_id',
+                as: 'car_details'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$car_details",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_model',
+                foreignField: '_id',
+                localField: 'car_details.car_model_id',
+                as: 'model_details'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$model_details",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_brand',
+                foreignField: '_id',
+                localField: 'car_details.car_brand_id',
+                as: 'brand_details'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$brand_details",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $addFields: {
+                "car_details.car_brand": "$brand_details.brand_name",
+                "car_details.car_model": "$model_details.model_name",
+                "car_details.car_model_number": "$model_details.model_number",
+                "car_details.car_model_release_year": "$model_details.release_year"
+            }
+        }
+        // {
+        //     $match: {
+        //         'isDeleted': false,
+        //         'userId': new ObjectId(user_id),
+        //         'trip_status': "upcoming"
+        //     }
+        // }
+    ]
+
+
+    if (history_type === 'all') {
+        var searchQuery = {
+            $match: {
+                'isDeleted': false,
+                'userId': new ObjectId(user_id)
+            }
+        }
+    }
+    else if (history_type === 'active') {
+        var searchQuery = {
+            $match: {
+                'isDeleted': false,
+                'userId': new ObjectId(user_id),
+                'trip_status' : 'delivering'
+            }
+        } 
+    }
+    else if (history_type === 'cancelled') {
+        var searchQuery = {
+            $match: {
+                'isDeleted': false,
+                'userId': new ObjectId(user_id),
+                'trip_status' : 'cancelled'
+            }
+        }
+    }
+
+
+    defaultQuery.push(searchQuery);
+
+    console.log('Default Query :-', JSON.stringify(defaultQuery));
+
+    try {
+        let data = await CarBooking.aggregate(defaultQuery);
+
+        if (data && data.length > 0) {
+            return { status: 'success', message: "History has been found", data: { history: data } }
+        }
+        else {
+            return { status: 'failed', message: "History has not been found" }
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car booking history" };
+    }
+};
+
+
 carHelper.getBrandList = async () => {
     try {
         const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 });
@@ -744,7 +855,7 @@ carHelper.carBook = async function (booking_data) {
     let car_booking = new CarBooking(booking_data);
     try {
         let data = await car_booking.save();
-        return { status: 'success', message: "Car has been book successfully", data : { booking_data :data } }
+        return { status: 'success', message: "Car has been book successfully", data: { booking_data: data } }
     } catch (err) {
         return { status: 'failed', message: "Error occured while booking car", err };
     }
@@ -824,7 +935,7 @@ carHelper.checkRadius = async function (data) {
             $match: {
                 $and: [
                     { _id: new ObjectId(data.company_id) }, //0.621371 1 km  // 62.1371 = 100km
-                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude],  62.1371 / 3963.2] } } }
+                    { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 62.1371 / 3963.2] } } }
                 ]
             }
         }]
@@ -1014,7 +1125,7 @@ carHelper.car_receive = async (req, car_handover_data) => {
         let car_receive_data = new CarReceive(car_hand_over_data);
         let data = await car_receive_data.save();
 
-        // after car handnover we need to change car booking status to -> in-progress
+        // after car receive we need to change car booking status to -> finished
         let booking_number = { booking_number: car_hand_over_data.booking_number };
         let trip_status = { $set: { trip_status: 'finished' } };
 
@@ -1255,7 +1366,7 @@ carHelper.change_carBook = async (booking_number, data) => {
 carHelper.assign_car_to_agent = async (data) => {
     let car_assign = new CarAssign(data);
     try {
-       var save_data = await car_assign.save()
+        var save_data = await car_assign.save()
         return { status: 'success', message: "Car has been assign to you" }
     } catch (err) {
         return { status: 'failed', message: "Error occured while assign car to agent" };
