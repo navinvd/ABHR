@@ -96,6 +96,9 @@ router.post('/list', (req, res, next) => {
             }
             if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
                 if (req.body.search.value) {
+                    if(req.body.search.value == 'Admin' || req.body.search.value == 'admin'){
+
+                    }
                     var regex = new RegExp(req.body.search.value);
                     var match = { $or: [] };
                     req.body['columns'].forEach(function (obj) {
@@ -155,6 +158,8 @@ router.post('/list', (req, res, next) => {
  * 
  * @apiParam {String} coupon_code Add coupon code here
  * @apiParam {Number} discount_rate rate (eg. 50)
+ * @apiParam {Boolean} idCompanyAdded rate (eg. 50)
+ * @apiParam {String} company_id rate (eg. 50)
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -184,7 +189,6 @@ router.post('/add', async (req, res) => {
         if(req.body.idCompanyAdded){
             data = Object.assign(data, {"car_rental_company_id" : new ObjectId(req.body.company_id)});
         }
-
         const couponResp = await couponHelper.addCoupon(data);
         if(couponResp.status === 'success'){
             res.status(config.OK_STATUS).json(couponResp);
@@ -250,13 +254,12 @@ router.put('/update', async (req, res) => {
 });
 
 /**
- * @api {put} /admin/coupon/update Update coupon 
- * @apiName Update Coupon
- * @apiDescription Used to update coupon
+ * @api {post} /admin/coupon/check_coupon Check coupon code
+ * @apiName Check Coupon
+ * @apiDescription Used to check coupon
  * @apiGroup Admin - Coupon
  * 
  * @apiParam {String} coupon_code Update coupon code
- * @apiParam {Number} discount_rate rate (eg. 50)
  * @apiParam {String} coupon_id couponId 
  * 
  * @apiHeader {String}  Content-Type application/json 
@@ -266,28 +269,50 @@ router.put('/update', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 // add coupon
-router.put('/update', async (req, res) => {
+router.post('/check_coupon', async (req, res) => {
     var schema = {
-        'coupon_id':{
+        'coupon_code':{
             notEmpty: true,
-            errorMessage: "Please enter coupon_id",
+            errorMessage: "Please enter coupon_code",
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var data = req.body;
-        const couponResp = await couponHelper.updateCoupon(req.body.coupon_id, data);
-        if(couponResp.status === 'success'){
-            res.status(config.OK_STATUS).json(couponResp);
-        } else{
-            res.status(config.BAD_REQUEST).json(couponResp);
-        }   
+        try {
+            var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false };
+            if (req.body.coupon_id) {
+                var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false, "_id": { "$ne": new ObjectId(req.body.coupon_id) } };
+            }
+            const couponResp = await couponHelper.checkCoupon(obj);
+            if(couponResp.status === 'success'){
+                res.status(config.OK_STATUS).json(couponResp);
+            } else{
+                res.status(config.OK_STATUS).json(couponResp);
+            }  
+            // var userId = await Company.findOne(obj);
+            // if (userId !== null && userId !== '') {
+            //     res.status(config.OK_STATUS).json({
+            //         status: "success",
+            //         message: "Record found"
+            //     });
+            // } else {
+            //     res.status(config.OK_STATUS).json({
+            //         status: "failed",
+            //         message: "record not found"
+            //     });
+            // }
+        } catch (error) {
+            res.status(config.OK_STATUS).json({
+                status: "failed",
+                message: "something went wrong",
+                error: error
+            });
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
-            status: 'failed',
-            message: "Validation Error",
-            errors
+            status: "failed",
+            message: "Validation error"
         });
     }
 });
@@ -336,6 +361,37 @@ router.post('/apply', async (req, res) => {
             errors
         });
     }
+});
+
+/**
+ * @api {get} /app/coupon/companies list of companies
+ * @apiName List of company 
+ * @apiDescription Used to list of company
+ * @apiGroup Admin - Coupon
+ * 
+ * @apiParam {String} user_id id of user
+ * @apiParam {String} coupon_code coupon code (eg "ABCD")
+
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// list of companies coupon code
+router.get('/companies', async (req, res) => {
+    try{
+        const couponResp = await couponHelper.companiList();
+        if(couponResp.status === 'success'){
+            res.status(config.OK_STATUS).json(couponResp);
+        } else{
+            res.status(config.BAD_REQUEST).json(couponResp);
+        }
+    } catch(e){
+        res.status(config.BAD_REQUEST).json(couponResp);
+    }
+       
 });
 
 
