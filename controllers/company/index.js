@@ -336,13 +336,13 @@ router.post('/check_password', async (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(config.BAD_REQUEST).json({
+                    res.status(config.OK_STATUS).json({
                         status: 'failed',
                         message: 'Invailid old password'
                     });
                 }
             } else {
-                res.status(config.BAD_REQUEST).json({
+                res.status(config.OK_STATUS).json({
                     status: 'failed',
                     message: 'No user found with this user id'
                 });
@@ -351,7 +351,7 @@ router.post('/check_password', async (req, res, next) => {
             console.log(e);
         }
     } else {
-        res.status(config.BAD_REQUEST).json({
+        res.status(config.OK_STATUS).json({
             status: 'failed',
             message: errors
         });

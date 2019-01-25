@@ -19,6 +19,7 @@ var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/testSocket',(req,res) => {
+    
     res.render('index', { title: 'Express' });
 });
 
