@@ -254,6 +254,46 @@ router.put('/update', async (req, res) => {
 });
 
 /**
+ * @api {put} /admin/coupon/delete Delete coupon 
+ * @apiName Delete Coupon
+ * @apiDescription Used to Delete coupon
+ * @apiGroup Admin - Coupon
+ * 
+ * @apiParam {String} coupon_id couponId 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// add coupon
+router.put('/delete', async (req, res) => {
+    var schema = {
+        'coupon_id':{
+            notEmpty: true,
+            errorMessage: "Please enter coupon_id",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const couponResp = await couponHelper.deleteCoupon(req.body.coupon_id);
+        if(couponResp.status === 'success'){
+            res.status(config.OK_STATUS).json(couponResp);
+        } else{
+            res.status(config.BAD_REQUEST).json(couponResp);
+        }   
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+/**
  * @api {post} /admin/coupon/check_coupon Check coupon code
  * @apiName Check Coupon
  * @apiDescription Used to check coupon
@@ -371,7 +411,6 @@ router.post('/apply', async (req, res) => {
  * 
  * @apiParam {String} user_id id of user
  * @apiParam {String} coupon_code coupon code (eg "ABCD")
-
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
