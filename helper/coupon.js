@@ -42,15 +42,15 @@ couponHelper.updateCoupon = async (coupon_id, data) => {
 couponHelper.deleteCoupon = async (coupon_id) => {
     let coopan = await Coupon.findOne({ isDeleted: false, "_id": new ObjectId(coupon_id)});
     if (coopan) {
-        return { status: 'failed', message: "no record found with this data" }
-    }
-    else {
         try {
             let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: {"isDeleted": true}});
             return { status: 'success', message: "Coupon has been deleted"}
         } catch (err) {
             return { status: 'failed', message: "Error occured while updating coupon" };
         }
+    }
+    else {
+        return { status: 'failed', message: "no record found with this data" }
     }
 };
 
