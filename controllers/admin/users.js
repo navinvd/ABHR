@@ -105,7 +105,8 @@ router.post('/add', (req, res, next) => {
 });
 
 
-/* @api {put} /user Update User Details
+/**
+ * @api {put} /user Update User Details
  * @apiName Update User
  * @apiDescription Used to update user information
  * @apiGroup Admin - Users
@@ -503,7 +504,7 @@ router.post('/rented_list', (req, res, next) => {
 });
 
 /**
-* @api {get} /admin/user/details/:id Details of perticular user
+ * @api {get} /admin/user/details/:id Details of perticular user
  * @apiName User Details 
  * @apiDescription To display Details of users
  * @apiGroup Admin - Users
@@ -786,4 +787,63 @@ router.post('/report_list', async (req, res, next) => {
     }
 });
 
+
+/**
+ * @api {post} /admin/user/verify verify user license or id proof
+ * @apiName verify User License or Id proof
+ * @apiDescription This is for verify User License or Id proof
+ * @apiGroup Admin - Users
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} user_id userId
+ * @apiParam {String} driving_license_verification the driving_license_verification which you want to verify
+ * @apiParam {String} id_card_verification the id_card_verification which you want to verify
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json   
+ * @apiHeader {String}  x-access-token Admin unique access-key  
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/verify', async (req, res, next) => {
+    console.log('here');
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "start is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var updateData = {};
+        if(req.body.driving_license_verification) {
+            updateData = Object.assign({}, {"driving_license_verification" : 2});
+        }
+        if(req.body.id_card_verification) {
+            updateData = Object.assign(updateData, {"id_card_verification" : 2});
+        }
+        User.update({ _id: { $eq: req.body.user_id } }, { $set: updateData }, function (err, response) {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "Something went wrong",
+                    error: err
+                });
+            } else {
+                res.status(config.OK_STATUS).json({ 
+                    status: "success",
+                    message: "Document Verified successfully!!!" 
+                });
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
 module.exports = router;

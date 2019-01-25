@@ -8,6 +8,7 @@ var CouponSchema = new Schema({
         type: String,
         required: true
     },
+    car_rental_company_id: mongoose.Schema.Types.ObjectId,
     discount_rate: {
         type: Number,
         required: true
