@@ -794,7 +794,8 @@ router.post('/car_list', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var defaultQuery = [{
+        var defaultQuery = [
+        {
             $lookup: {
                 from: 'car_model',
                 foreignField: '_id',
@@ -852,10 +853,8 @@ router.post('/car_list', (req, res, next) => {
                     "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
                 }
             }
-        },
-
-
-        ];
+        }];
+        
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;

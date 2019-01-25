@@ -39,6 +39,20 @@ router.post('/list', (req, res, next) => {
         try{
             var defaultQuery = [
                 {
+                    $lookup: {
+                        from: 'car_company',
+                        foreignField: '_id',
+                        localField: 'car_rental_company_id',
+                        as: "companyDetails",
+                    }
+                },
+                {
+                    $unwind: {
+                        "path": "$companyDetails",
+                        "preserveNullAndEmptyArrays": false
+                    }
+                },
+                {
                     $match: {
                         "isDeleted": false
                     }
@@ -64,7 +78,6 @@ router.post('/list', (req, res, next) => {
                     }
                 }
             ];
-            console.log('order========================>',req.body.order.length);
             if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
@@ -78,7 +91,6 @@ router.post('/list', (req, res, next) => {
                         $sort: { [colname]: -1 }
                     } 
                 } 
-                console.log('sort===>',sortableQuery);
                 defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
             }
             if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
