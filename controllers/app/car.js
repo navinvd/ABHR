@@ -812,6 +812,66 @@ router.post('/booking/upcoming-history', async (req, res) => {
     // res.json(carHistoryResp);
 });
 
+
+
+/**
+ * @api {post} /app/car/booking/history Car History
+ * @apiName car booking history
+ * @apiDescription Used to get car booking history
+ * @apiGroup App - Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id user Id
+ * @apiParam {String} history_type user Id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// Car History
+router.post('/booking/history', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'history_type': {
+            notEmpty: true,
+            errorMessage: "Please enter history type"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user_id = req.body.user_id;
+        var history_type = req.body.history_type;
+
+        const carHistoryResp = await carHelper.history(user_id, history_type);
+
+        if (carHistoryResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carHistoryResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carHistoryResp);
+        }
+    }
+    else{
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        })
+    }
+    // res.json(carHistoryResp);
+});
+
+
+
+
+
 /**
  * @api {post} /app/car/checkCarAvailability Checking is car available on specific date?
  * @apiName Check availability car
@@ -966,7 +1026,77 @@ router.post('/book', async (req, res) => {
 
         // check for already book or not first 
 
-    
+        // var carData = await Car.find({_id : ObjectId(req.body.car_id)},{is_avialable : 1}).lean().exec();
+
+
+        var carData = await CarBooking.find(
+            {
+
+
+                // $match : {
+                $and: [
+                    { "carId": new ObjectId(req.body.car_id) },
+                    { "from_time": { $lte: toDate } },
+                    { "to_time": { $gte: fromDate } },
+                    { "trip_status": { $ne: 'cancelled' } },
+                    // {"trip_status" : { $eq : 'finished'}} // no need
+                    // {
+                    //     $and : [
+                    //         {"trip_status" : { $eq : 'cancelled'}},
+                    //         {"trip_status" : { $eq : 'finished'}}
+                    //     ]
+                    // }
+                    // {
+                    //     $or: [
+                    //             {
+                    //                 $and: [
+                    //                     {from_time : { $gte : fromDate} },
+                    //                     {to_time : { $lte : toDate} }
+                    //                 ]
+                    //             },
+                    //             {
+                    //                 $and: [
+                    //                     {from_time : { $gte : fromDate} },
+                    //                     {to_time : { $gte : toDate} },
+                    //                     {from_time : {$not: { $gte : toDate} } }
+                    //                 ]
+                    //             },
+                    //             {
+                    //                 $and: [
+                    //                     {to_time : { $lte : fromDate} },
+                    //                     {to_time : { $gt : toDate} },
+                    //                     {from_time : { $gt : fromDate} } 
+                    //                 ]
+                    //             },
+                    //             {
+                    //                 $and: [
+                    //                     {from_time : { $lte : fromDate} },
+                    //                     {to_time : { $gte : toDate} }
+                    //                 ]
+                    //             },
+                    //             {
+                    //                 $and: [
+                    //                     {from_time : { $eq : fromDate} },
+                    //                     {to_time : { $eq : toDate} }
+                    //                 ]
+                    //             }
+                    //     ]
+                    // }
+                ]
+
+            }
+            // }
+
+        )
+
+        console.log('CAR DATA ->', carData);
+        console.log('CAR DATA Len->', carData.length);
+
+        if (carData && carData.length > 0) {
+            // already book
+            res.status(config.OK_STATUS).json({ status: "failed", message: "Opps this car has been already booked" });
+        } else {
+
             var data = {
                 "userId": req.body.user_id,
                 "carId": req.body.car_id,
@@ -989,12 +1119,13 @@ router.post('/book', async (req, res) => {
 
                 console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
                 var car_booking_number = bookingResp.data.booking_data['booking_number'];
+
+                // after booking change car avaibility status to false // no need now
+                // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_avialable' : false } } );              
+
                 // after car booking need to send push notification to all agent
-
-
-
                 /** push notification process to all agent start */
-                /*
+
                 var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
@@ -1019,14 +1150,15 @@ router.post('/book', async (req, res) => {
                     // res.status(config.BAD_REQUEST).json(sendNotification);
                     res.status(config.OK_STATUS).json(bookingResp);
                 }
-                */
+
                 /**  ------------Over push notification--------- */
                 res.status(config.OK_STATUS).json(bookingResp);
             }
             else {
                 res.status(config.BAD_REQUEST).json(bookingResp);
             }
-        
+        }
+
 
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -1155,6 +1287,9 @@ router.post('/cancel-booking', async (req, res) => {
         const cancelBookingResp = await carHelper.cancelBooking(data);
 
         if (cancelBookingResp.status === 'success') {
+
+            // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_avialable' : true } } );              
+
             res.status(config.OK_STATUS).json(cancelBookingResp);
         }
         else {
@@ -1845,9 +1980,11 @@ router.post('/filter123', async (req, res) => {
                             $or: [
                                 { car_book_from_date: { $gt: toDate } },
                                 { car_book_to_date: { $lt: fromDate } },
-                                { car_book_from_date: { $eq: null } }
+                                { car_book_from_date: { $eq: null } },
+                                { 'trip_status': { $ne: 'cancelled' } } // add later
                             ]
                         },
+
                         {
                             // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }
                             //62.1371 = 100km
