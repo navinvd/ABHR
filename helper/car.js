@@ -577,11 +577,26 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'car_company',
+                    localField: 'car_details.car_rental_company_id',
+                    foreignField: '_id',
+                    as: 'companyDetails'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$companyDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $addFields: {
                     "car_details.car_brand": "$brand_details.brand_name",
                     "car_details.car_model": "$model_details.model_name",
                     "car_details.car_model_number": "$model_details.model_number",
-                    "car_details.car_model_release_year": "$model_details.release_year"
+                    "car_details.car_model_release_year": "$model_details.release_year",
+                    "phone_number": "$companyDetails.phone_number"
                 }
             },
             {
@@ -620,6 +635,14 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                 else{
                     c['call_or_not'] = 'no' // not call 
                 }
+                if(c['phone_number'] === undefined){
+                    c['phone_number'] = ""
+                }
+
+                // delete c.model_details;
+                // delete c.brand_details;
+                // delete c.companyDetails;
+
                 return c;
             })
 
@@ -683,11 +706,26 @@ carHelper.history = async (user_id, history_type) => {
             }
         },
         {
+            $lookup: {
+                from: 'car_company',
+                localField: 'car_details.car_rental_company_id',
+                foreignField: '_id',
+                as: 'companyDetails'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$companyDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
             $addFields: {
                 "car_details.car_brand": "$brand_details.brand_name",
                 "car_details.car_model": "$model_details.model_name",
                 "car_details.car_model_number": "$model_details.model_number",
-                "car_details.car_model_release_year": "$model_details.release_year"
+                "car_details.car_model_release_year": "$model_details.release_year",
+                "phone_number": "$companyDetails.phone_number"
             }
         }
         // {
@@ -747,6 +785,14 @@ carHelper.history = async (user_id, history_type) => {
                 else{
                     c['call_or_not'] = 'no' // not call 
                 }
+                if(c['phone_number'] === undefined){
+                    c['phone_number'] = ""
+                }
+
+                // delete c.model_details;
+                // delete c.brand_details;
+                // delete c.companyDetails;
+
                 return c;
             })
 
