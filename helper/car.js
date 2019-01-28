@@ -736,7 +736,21 @@ carHelper.history = async (user_id, history_type) => {
         let data = await CarBooking.aggregate(defaultQuery);
 
         if (data && data.length > 0) {
-            return { status: 'success', message: "History has been found", data: { history: data } }
+
+            var currentDate = moment().toDate().toISOString(Date.now());            
+            var data1 = data.map((c) => {
+                // if(moment().diff(moment(c['from_time'])) > 0)
+                if(moment(currentDate) >= moment(c['from_time']))
+                {
+                    c['call_or_not'] = 'yes' // place manual call
+                }
+                else{
+                    c['call_or_not'] = 'no' // not call 
+                }
+                return c;
+            })
+
+            return { status: 'success', message: "History has been found", data: { history: data1 } }
         }
         else {
             return { status: 'failed', message: "History has not been found" }
