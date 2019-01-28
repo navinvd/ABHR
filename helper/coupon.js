@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 const Coupon = require('./../models/coupon');
 const UserCoupon = require('./../models/user_coupon');
-
+const Company = require('./../models/car_company');
 let couponHelper = {};
 
 // add coupon 
@@ -42,15 +42,15 @@ couponHelper.updateCoupon = async (coupon_id, data) => {
 couponHelper.deleteCoupon = async (coupon_id) => {
     let coopan = await Coupon.findOne({ isDeleted: false, "_id": new ObjectId(coupon_id)});
     if (coopan) {
-        return { status: 'failed', message: "no record found with this data" }
-    }
-    else {
         try {
             let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: {"isDeleted": true}});
             return { status: 'success', message: "Coupon has been deleted"}
         } catch (err) {
             return { status: 'failed', message: "Error occured while updating coupon" };
         }
+    }
+    else {
+        return { status: 'failed', message: "no record found with this data" }
     }
 };
 
@@ -63,6 +63,22 @@ couponHelper.getByIdCoupon = async (coupon_id) => {
     else {
         return { status: 'failed', message: "Error occured while fetching coupon" };
     }
+};
+
+// check coupon 
+couponHelper.checkCoupon = async (data) => {
+    try{
+        let coopan = await Coupon.findOne(data);
+        if (coopan !== null && coopan !== '') {
+            return { status: 'success', message: "Coupon data found"}
+        }
+        else {
+            return { status: 'failed', message: "Error occured while fetching coupon" };
+        }
+    } catch(e){
+        return { status: 'failed', message: "Error occured while fetching coupon" };
+    }
+    
 };
 
 couponHelper.applyCoupon = async (user_id, coupon_code) => {
@@ -105,6 +121,22 @@ couponHelper.applyCoupon = async (user_id, coupon_code) => {
     } catch (err) {
         return { status: 'failed', message: "Error occured while applying coupon" };
     }
+};
+
+// list of companies 
+couponHelper.companiList = async () => {
+    try{
+        let companies = await Company.find({"isDeleted": false}, {"name": 1});
+        if (companies !== null && companies !== '') {
+            return { status: 'success', message: "Coupon data found", data: companies}
+        }
+        else {
+            return { status: 'failed', message: "Error occured while fetching coupon" };
+        }
+    } catch(e){
+        return { status: 'failed', message: "Error occured while fetching coupon" };
+    }
+    
 };
 
 module.exports = couponHelper;

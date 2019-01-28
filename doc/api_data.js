@@ -2494,6 +2494,97 @@ define({ "api": [
             "optional": false,
             "field": "discount_rate",
             "description": "<p>rate (eg. 50)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": false,
+            "field": "idCompanyAdded",
+            "description": "<p>rate (eg. 50)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "company_id",
+            "description": "<p>rate (eg. 50)</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/coupons.js",
+    "groupTitle": "Admin___Coupon"
+  },
+  {
+    "type": "post",
+    "url": "/admin/coupon/check_coupon",
+    "title": "Check coupon code",
+    "name": "Check_Coupon",
+    "description": "<p>Used to check coupon</p>",
+    "group": "Admin___Coupon",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "coupon_code",
+            "description": "<p>Update coupon code</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "coupon_id",
+            "description": "<p>couponId</p>"
           }
         ]
       }
@@ -2626,11 +2717,11 @@ define({ "api": [
     "groupTitle": "Admin___Coupon"
   },
   {
-    "type": "put",
-    "url": "/admin/coupon/update",
-    "title": "Update coupon",
-    "name": "Update_Coupon",
-    "description": "<p>Used to update coupon</p>",
+    "type": "get",
+    "url": "/app/coupon/companies",
+    "title": "list of companies",
+    "name": "List_of_company",
+    "description": "<p>Used to list of company</p>",
     "group": "Admin___Coupon",
     "parameter": {
       "fields": {
@@ -2639,22 +2730,15 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "coupon_code",
-            "description": "<p>Update coupon code</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": false,
-            "field": "discount_rate",
-            "description": "<p>rate (eg. 50)</p>"
+            "field": "user_id",
+            "description": "<p>id of user</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "coupon_id",
-            "description": "<p>couponId</p>"
+            "field": "coupon_code",
+            "description": "<p>coupon code (eg &quot;ABCD&quot;)</p>"
           }
         ]
       }
@@ -7307,6 +7391,83 @@ define({ "api": [
             "optional": true,
             "field": "review_text",
             "description": "<p>review comment</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
+    "type": "post",
+    "url": "/app/car/booking/history",
+    "title": "Car History",
+    "name": "car_booking_history",
+    "description": "<p>Used to get car booking history</p>",
+    "group": "App___Car",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>user Id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "history_type",
+            "description": "<p>user Id</p>"
           }
         ]
       }
