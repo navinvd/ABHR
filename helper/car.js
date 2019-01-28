@@ -601,7 +601,30 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
 
         ]);
         if (data && data.length > 0) {
-            return { status: 'success', message: "Car booking upcomming history", data: { upcoming_history: data } }
+
+            console.log('DATA===>',data);
+            // var currentDate = moment(Date.now()).format('YYYY-MM-DD');
+            var currentDate = moment().toDate().toISOString(Date.now());
+            console.log('C Date=>',currentDate);
+            console.log('C Date IOS=>', moment().toDate().toISOString( Date.now() ))
+
+           console.log('MOment Db Date = >',moment("2019-01-28T05:19:50.975Z"))
+           console.log('MOment Current Date = >',moment());
+            
+            var data1 = data.map((c) => {
+                // if(moment().diff(moment(c['from_time'])) > 0)
+                if(moment(currentDate) >= moment(c['from_time']))
+                {
+                    c['call_or_not'] = 'yes' // place manual call
+                }
+                else{
+                    c['call_or_not'] = 'no' // not call 
+                }
+                return c;
+            })
+
+            return { status: 'success', message: "Car booking upcomming history", data: { upcoming_history: data1 } }
+            
         }
         else {
             return { status: 'failed', message: "No car book yet" }

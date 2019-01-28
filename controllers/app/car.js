@@ -822,7 +822,7 @@ router.post('/booking/upcoming-history', async (req, res) => {
  * @apiVersion 0.0.0
  * 
  * @apiParam {Number} user_id user Id
- * @apiParam {String} history_type user Id
+ * @apiParam {String} history_type one of this (all,active,cancelled)
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
