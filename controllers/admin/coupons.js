@@ -96,28 +96,33 @@ router.post('/list', (req, res, next) => {
             }
             if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
                 if (req.body.search.value) {
-                    if(req.body.search.value == 'Admin' || req.body.search.value == 'admin'){
-
-                    }
-                    var regex = new RegExp(req.body.search.value);
-                    var match = { $or: [] };
-                    req.body['columns'].forEach(function (obj) {
-                        if (obj.name) {
-                            var json = {};
-                            if (obj.isNumber) {
-                                json[obj.name] = parseInt(req.body.search.value)
-                            } else {
-                                json[obj.name] = {
-                                    "$regex": regex,
-                                    "$options": "i"
+                    console.log(req.body.search.value)
+                    if(req.body.search.value === 'Admin' || req.body.search.value === 'admin' || req.body.search.value === 'ADMIN'){
+                        console.log(req.body.search.value);
+                        var match = {$eq : [$car_rental_company_id, undefined]};
+                        console.log(match);
+                    }else{
+                        var regex = new RegExp(req.body.search.value);
+                        var match = { $or: [] };
+                        req.body['columns'].forEach(function (obj) {
+                            if (obj.name) {
+                                var json = {};
+                                if (obj.isNumber) {
+                                    json[obj.name] = parseInt(req.body.search.value)
+                                } else {
+                                    json[obj.name] = {
+                                        "$regex": regex,
+                                        "$options": "i"
+                                    }
                                 }
+                                match['$or'].push(json)
                             }
-                            match['$or'].push(json)
-                        }
-                    });
+                        });
+                    }
                     var searchQuery = {
                         $match: match
                     }
+                    console.log(match);
                     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
                     console.log("==>", JSON.stringify(searchQuery));
                 }
@@ -236,9 +241,16 @@ router.put('/update', async (req, res) => {
             discount_rate : parseInt(req.body.discount_rate)
         }
         if(req.body.idCompanyAdded){
+            isunset = false
             data = Object.assign(data, {"car_rental_company_id" : new ObjectId(req.body.company_id)});
+        }else{
+            if(req.body.hasOwnProperty('company_id')){
+                isunset = true;
+            } else{
+                isunset = false;
+            }
         }
-        const couponResp = await couponHelper.updateCoupon(req.body.coupon_id, data);
+        const couponResp = await couponHelper.updateCoupon(req.body.coupon_id, data, isunset);
         if(couponResp.status === 'success'){
             res.status(config.OK_STATUS).json(couponResp);
         } else{
@@ -429,9 +441,7 @@ router.get('/companies', async (req, res) => {
         }
     } catch(e){
         res.status(config.BAD_REQUEST).json(couponResp);
-    }
-       
+    }   
 });
-
 
 module.exports = router;
