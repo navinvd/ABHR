@@ -23,14 +23,20 @@ couponHelper.addCoupon = async (data) => {
 };
 
 // update coupon 
-couponHelper.updateCoupon = async (coupon_id, data) => {
+couponHelper.updateCoupon = async (coupon_id, data, isunset) => {
     let coopan = await Coupon.findOne({ coupon_code: data.coupon_code, isDeleted: false, "_id": {$ne: new ObjectId(coupon_id)}});
     if (coopan) {
         return { status: 'failed', message: "Please try to add coupon with other coupon code" }
     }
     else {
         try {
-            let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: data});
+            if(isunset){
+                console.log('in unset=================');
+                let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $unset: {car_rental_company_id:1}, $set: data });
+            } else{
+                console.log('in set=================');
+                let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: data});
+            }
             return { status: 'success', message: "Coupon has been updated"}
         } catch (err) {
             return { status: 'failed', message: "Error occured while updating coupon" };
