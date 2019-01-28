@@ -244,11 +244,7 @@ router.put('/update', async (req, res) => {
             isunset = false
             data = Object.assign(data, {"car_rental_company_id" : new ObjectId(req.body.company_id)});
         }else{
-            if(req.body.hasOwnProperty('company_id')){
                 isunset = true;
-            } else{
-                isunset = false;
-            }
         }
         const couponResp = await couponHelper.updateCoupon(req.body.coupon_id, data, isunset);
         if(couponResp.status === 'success'){
