@@ -957,18 +957,27 @@ carHelper.carBook = async function (booking_data) {
 // cancel car booking
 carHelper.cancelBooking = async function (data) {
     try {
-        var condition = {
-            $and: [
-                { userId: new ObjectId(data.userId) },
-                { carId: new ObjectId(data.carId) }
-            ]
-        }
+        // var condition = {
+        //     $and: [
+        //         { userId: new ObjectId(data.userId) },
+        //         { carId: new ObjectId(data.carId) }
+        //     ]
+        // }
 
+        var condition = { 'booking_number' :  data.booking_number}
         var update_data = { $set: { cancel_date: data.cancel_date, cancel_reason: data.cancel_reason, trip_status: data.trip_status } };
 
         var datta = await CarBooking.update(condition, update_data);
-        if (datta.n > 0) {
-            return { status: 'success', message: "Your car booking has been cancelled successfully" }
+        if (datta && datta.n > 0) {
+
+            var update_carAssign = await CarAssign.updateOne(condition, update_data);
+
+            if(update_carAssign && update_carAssign.n > 0){
+                return { status: 'success', message: "Your car booking has been cancelled successfully" }
+            }
+            else{
+                return { status: 'failed', message: "Error occured while cancelling your car booking" }
+            }
         }
         else {
             return { status: 'failed', message: "Error occured while cancelling your car booking" }
@@ -1129,9 +1138,24 @@ carHelper.car_handover = async (req, car_handover_data) => {
                         let booking_number = { booking_number: car_hand_over_data.booking_number };
                         let trip_status = { $set: { trip_status: 'inprogress' } };
 
-                        await CarBooking.updateOne(booking_number, trip_status);
+                        var  bookingUpdate = await CarBooking.updateOne(booking_number, trip_status);
 
-                        return { status: "success", message: "Car hand over successfully" };
+                        if(bookingUpdate && bookingUpdate.n > 0){
+                            // update data in car_assign_agent table as well
+                            var car_assign_agent_Update = await CarAssign.updateOne(booking_number, trip_status);
+
+                            if(car_assign_agent_Update && car_assign_agent_Update.n > 0){
+                                return { status: "success", message: "Car hand over successfully" };
+                            }
+                            else{
+                                return { status: "failed", message: "Error accured while update car_agent_assign collection" };    
+                            }
+                        }
+                        else{
+                            return { status: "failed", message: "Error accured while update car booking collection" };    
+                        }
+
+                        // return { status: "success", message: "Car hand over successfully" };
                     }
                     else {
                         return { status: "failed", message: "Error accured while uplaod signature" };

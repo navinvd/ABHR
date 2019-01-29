@@ -1252,13 +1252,17 @@ router.post('/change-booking', async (req, res) => {
 //Cancel Car booking 
 router.post('/cancel-booking', async (req, res) => {
     var schema = {
-        'user_id': {
+        // 'user_id': {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter login user id",
+        // },
+        // 'car_id': {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter car id which you are going to book",
+        // },
+         'booking_number': {
             notEmpty: true,
-            errorMessage: "Please enter login user id",
-        },
-        'car_id': {
-            notEmpty: true,
-            errorMessage: "Please enter car id which you are going to book",
+            errorMessage: "Please enter car booking number",
         },
         'cancel_date': {
             notEmpty: true,
@@ -1278,8 +1282,9 @@ router.post('/cancel-booking', async (req, res) => {
     if (!errors) {
 
         var data = {
-            "userId": req.body.user_id,
-            "carId": req.body.car_id,
+            // "userId": req.body.user_id,
+            // "carId": req.body.car_id,
+            "booking_number" : req.body.booking_number,
             "cancel_date": req.body.cancel_date,
             "cancel_reason": req.body.cancel_reason ? req.body.cancel_reason : null,
             "trip_status": "cancelled"
