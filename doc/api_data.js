@@ -2717,6 +2717,76 @@ define({ "api": [
     "groupTitle": "Admin___Coupon"
   },
   {
+    "type": "put",
+    "url": "/admin/coupon/delete",
+    "title": "Delete coupon",
+    "name": "Delete_Coupon",
+    "description": "<p>Used to Delete coupon</p>",
+    "group": "Admin___Coupon",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "coupon_id",
+            "description": "<p>couponId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/coupons.js",
+    "groupTitle": "Admin___Coupon"
+  },
+  {
     "type": "get",
     "url": "/app/coupon/companies",
     "title": "list of companies",
@@ -2876,6 +2946,120 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "controllers/admin/coupons.js",
     "groupTitle": "Admin___Coupon"
+  },
+  {
+    "type": "get",
+    "url": "/admin/dashboard/no_of_cars",
+    "title": "counting of cars",
+    "name": "No_of_Cars",
+    "description": "<p>To display counting of cars</p>",
+    "group": "Admin___Dashboard",
+    "version": "0.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/dashboard.js",
+    "groupTitle": "Admin___Dashboard"
+  },
+  {
+    "type": "get",
+    "url": "/admin/dashboard/no_of_companies",
+    "title": "counting of rental companies",
+    "name": "No_of_Rental_Companies",
+    "description": "<p>To display counting of rental companies</p>",
+    "group": "Admin___Dashboard",
+    "version": "0.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/dashboard.js",
+    "groupTitle": "Admin___Dashboard"
   },
   {
     "type": "post",
@@ -3461,6 +3645,83 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/admin/users/report_list",
+    "title": "create report list for cars",
+    "name": "Listing_of_users_report",
+    "description": "<p>This is for listing user report</p>",
+    "group": "Admin___Users",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/users.js",
+    "groupTitle": "Admin___Users"
+  },
+  {
+    "type": "post",
     "url": "/company/users/report_list",
     "title": "create report list for cars",
     "name": "Listing_of_users_report",
@@ -3541,83 +3802,6 @@ define({ "api": [
       }
     },
     "filename": "controllers/company/users.js",
-    "groupTitle": "Admin___Users"
-  },
-  {
-    "type": "post",
-    "url": "/admin/users/report_list",
-    "title": "create report list for cars",
-    "name": "Listing_of_users_report",
-    "description": "<p>This is for listing user report</p>",
-    "group": "Admin___Users",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "start",
-            "description": "<p>pagination start page no</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "end",
-            "description": "<p>pagination length no of page length</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Admin unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/admin/users.js",
     "groupTitle": "Admin___Users"
   },
   {
@@ -7028,7 +7212,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/agentApp/car.js",
+    "filename": "controllers/app/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -7161,7 +7345,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/app/car.js",
+    "filename": "controllers/agentApp/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -7467,7 +7651,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "history_type",
-            "description": "<p>user Id</p>"
+            "description": "<p>one of this (all,active,cancelled)</p>"
           }
         ]
       }
@@ -7812,7 +7996,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/admin/coupons.js",
+    "filename": "controllers/app/coupon.js",
     "groupTitle": "App___Coupon"
   },
   {
@@ -7889,7 +8073,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/app/coupon.js",
+    "filename": "controllers/admin/coupons.js",
     "groupTitle": "App___Coupon"
   },
   {

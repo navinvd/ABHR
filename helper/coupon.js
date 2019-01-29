@@ -38,17 +38,13 @@ couponHelper.updateCoupon = async (coupon_id, data, isunset) => {
                     }else{
                         let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: data});
                     }
-                    console.log('in unset=================');
                 } else{
-                    console.log('in set=================');
                     let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: data});
                 } 
             }
             if(isunset){
-                console.log('in unset=================');
                 let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $unset: {car_rental_company_id:1}, $set: data });
             } else{
-                console.log('in set=================');
                 let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: data});
             }
             return { status: 'success', message: "Coupon has been updated"}
