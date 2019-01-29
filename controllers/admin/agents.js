@@ -101,7 +101,7 @@ router.post('/add', (req, res, next) => {
             },
             function (callback) {
                 var email = 0;
-                User.find({ "email": req.body.email }, function (err, data) {
+                User.find({ "email": req.body.email, "isDeleted": false}, function (err, data) {
                     if (data && data.length > 0) {
                         email = 1;
                         callback({message:"Email is already exist", email :email});
