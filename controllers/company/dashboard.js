@@ -58,7 +58,8 @@ router.post('/no_of_cars', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         try{
-            const dashboardResp = await dashboardHelper.companyNoOfCars();
+
+            const dashboardResp = await dashboardHelper.companyNoOfCars(req.body.company_id);
             if(dashboardResp.status === 'success'){
                 res.status(config.OK_STATUS).json(dashboardResp);
             } else{
@@ -76,7 +77,7 @@ router.post('/no_of_cars', async (req, res) => {
 });
 
 /**
- * @api {get} /admin/dashboard/no_of_rentals counting of rentals
+ * @api {get} /company/dashboard/no_of_rentals counting of rentals
  * @apiName No of Rentals
  * @apiDescription To display counting of rentals
  * @apiGroup Admin - Dashboard
