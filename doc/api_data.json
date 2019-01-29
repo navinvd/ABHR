@@ -2949,76 +2949,6 @@
   },
   {
     "type": "get",
-    "url": "/company/dashboard/no_of_cars",
-    "title": "counting of cars",
-    "name": "No_of_Cars",
-    "description": "<p>To display counting of cars</p>",
-    "group": "Admin___Dashboard",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "company_id",
-            "description": "<p>CompanyId</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Users unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/company/dashboard.js",
-    "groupTitle": "Admin___Dashboard"
-  },
-  {
-    "type": "get",
     "url": "/admin/dashboard/no_of_cars",
     "title": "counting of cars",
     "name": "No_of_Cars",
@@ -3128,7 +3058,7 @@
         ]
       }
     },
-    "filename": "controllers/admin/dashboard.js",
+    "filename": "controllers/company/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -3185,64 +3115,7 @@
         ]
       }
     },
-    "filename": "controllers/company/dashboard.js",
-    "groupTitle": "Admin___Dashboard"
-  },
-  {
-    "type": "get",
-    "url": "/admin/dashboard/no_of_rentals",
-    "title": "counting of rentals",
-    "name": "No_of_Rentals",
-    "description": "<p>To display counting of rentals</p>",
-    "group": "Admin___Dashboard",
-    "version": "0.0.0",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Users unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/company/dashboard.js",
+    "filename": "controllers/admin/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -3300,6 +3173,63 @@
       }
     },
     "filename": "controllers/admin/dashboard.js",
+    "groupTitle": "Admin___Dashboard"
+  },
+  {
+    "type": "get",
+    "url": "/admin/dashboard/no_of_rentals",
+    "title": "counting of rentals",
+    "name": "No_of_Rentals",
+    "description": "<p>To display counting of rentals</p>",
+    "group": "Admin___Dashboard",
+    "version": "0.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -8732,69 +8662,6 @@
   },
   {
     "type": "post",
-    "url": "/company/car/details",
-    "title": "Add car",
-    "name": "add_Car",
-    "description": "<p>Used for Display details Car</p>",
-    "group": "CompanyAdmin___Car",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "car_id",
-            "optional": false,
-            "field": "car_id",
-            "description": "<p>id of Car</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/company/cars.js",
-    "groupTitle": "CompanyAdmin___Car"
-  },
-  {
-    "type": "post",
     "url": "/company/car/add",
     "title": "Add car",
     "name": "add_Car",
@@ -8963,6 +8830,69 @@
   },
   {
     "type": "post",
+    "url": "/company/car/details",
+    "title": "Add car",
+    "name": "add_Car",
+    "description": "<p>Used for Display details Car</p>",
+    "group": "CompanyAdmin___Car",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "car_id",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>id of Car</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/cars.js",
+    "groupTitle": "CompanyAdmin___Car"
+  },
+  {
+    "type": "post",
     "url": "/company/cars/report_list",
     "title": "create report list for cars",
     "name": "Listing_of_cars_report",
@@ -9044,6 +8974,76 @@
     },
     "filename": "controllers/company/cars.js",
     "groupTitle": "CompanyAdmin___Cars"
+  },
+  {
+    "type": "get",
+    "url": "/company/dashboard/no_of_cars",
+    "title": "counting of cars",
+    "name": "No_of_Cars",
+    "description": "<p>To display counting of cars</p>",
+    "group": "CompanyAdmin___Dashboard",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "company_id",
+            "description": "<p>CompanyId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/dashboard.js",
+    "groupTitle": "CompanyAdmin___Dashboard"
   },
   {
     "type": "post",

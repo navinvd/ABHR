@@ -52,4 +52,20 @@ dashboardHelper.NoOfRentals = async () => {
     } 
 };
 
+// list of cars for company 
+dashboardHelper.companyNoOfCars = async (company_id) => {
+    try{
+        let cars = await Car.find({"isDeleted": false, "car_rental_company_id": new ObjectId(company_id)}).count();
+        if (cars !== null && cars !== '') {
+            return { status: 'success', message: "Cars data found", data: cars}
+        }
+        else {
+            return { status: 'failed', message: "Error occured while fetching coupon" };
+        }
+    } catch(e){
+        return { status: 'failed', message: "Error occured while fetching coupon" };
+    } 
+};
+
+
 module.exports = dashboardHelper;

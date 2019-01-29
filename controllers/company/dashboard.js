@@ -36,7 +36,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
  * @api {get} /company/dashboard/no_of_cars counting of cars
  * @apiName No of Cars
  * @apiDescription To display counting of cars
- * @apiGroup Admin - Dashboard
+ * @apiGroup CompanyAdmin - Dashboard
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} company_id CompanyId
@@ -49,20 +49,16 @@ var ObjectId = require('mongoose').Types.ObjectId;
  */
 router.post('/no_of_cars', async (req, res) => {
     var schema = {
-        'email': {
+        'company_id': {
             notEmpty: true,
-            errorMessage: "Email is required"
-        },
-        'password': {
-            notEmpty: true,
-            errorMessage: "Password is required"
+            errorMessage: "company_id is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
         try{
-            const dashboardResp = await dashboardHelper.NoOfCars();
+            const dashboardResp = await dashboardHelper.companyNoOfCars();
             if(dashboardResp.status === 'success'){
                 res.status(config.OK_STATUS).json(dashboardResp);
             } else{
