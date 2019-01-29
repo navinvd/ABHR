@@ -612,6 +612,9 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                     'userId': new ObjectId(user_id),
                     'trip_status': "upcoming"
                 }
+            },
+            {
+                $sort : { 'from_time' : 1}
             }
 
         ]);
@@ -751,7 +754,7 @@ carHelper.history = async (user_id, history_type) => {
             $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(user_id),
-                'trip_status' : 'delivering'
+                'trip_status' :  { $in : ['delivering','returning'] } 
             }
         } 
     }
@@ -767,6 +770,13 @@ carHelper.history = async (user_id, history_type) => {
 
 
     defaultQuery.push(searchQuery);
+
+    // sorting
+    var sortData = {
+        $sort : { 'from_time' : 1}
+    }
+
+    defaultQuery.push(sortData);
 
     console.log('Default Query :-', JSON.stringify(defaultQuery));
 

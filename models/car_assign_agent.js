@@ -17,6 +17,10 @@ var Car_Assign_Schema = new Schema({
         enum : ['handover','receive'],
         required: true
     },
+    trip_status: {
+        type: String,
+        enum: ["inprogress", "cancelled", "finished", "return", "upcoming", "delivering", "returning"]
+    },
     status : {
         type : String,
         enum : ['assign','handover','receive'],
