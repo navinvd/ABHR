@@ -858,7 +858,7 @@ router.post('/booking/history', async (req, res) => {
             res.status(config.BAD_REQUEST).json(carHistoryResp);
         }
     }
-    else{
+    else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
             message: "Validation Error",
@@ -1260,7 +1260,7 @@ router.post('/cancel-booking', async (req, res) => {
         //     notEmpty: true,
         //     errorMessage: "Please enter car id which you are going to book",
         // },
-         'booking_number': {
+        'booking_number': {
             notEmpty: true,
             errorMessage: "Please enter car booking number",
         },
@@ -1284,7 +1284,7 @@ router.post('/cancel-booking', async (req, res) => {
         var data = {
             // "userId": req.body.user_id,
             // "carId": req.body.car_id,
-            "booking_number" : req.body.booking_number,
+            "booking_number": req.body.booking_number,
             "cancel_date": req.body.cancel_date,
             "cancel_reason": req.body.cancel_reason ? req.body.cancel_reason : null,
             "trip_status": "cancelled"
@@ -1989,6 +1989,24 @@ router.post('/filter123', async (req, res) => {
                                 { 'trip_status': { $ne: 'cancelled' } } // add later
                             ]
                         },
+
+
+
+
+                        // { "from_time": { $lte: toDate } },
+                        // { "to_time": { $gte: fromDate } },
+                        // { "trip_status": { $ne: 'cancelled' } },
+
+
+
+                        // { car_book_from_date: { $lt : toDate } },
+                        // { car_book_to_date: { $gt : fromDate } },
+
+                        // { car_book_from_date: { $eq: null } },
+                        // { 'trip_status': { $ne: 'cancelled' } }, // add later
+
+
+
 
                         {
                             // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }

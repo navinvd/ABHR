@@ -816,6 +816,10 @@ router.post('/track-location', async (req, res) => {
             notEmpty: true,
             errorMessage: "Enter booking number"
         },
+        'type': {
+            notEmpty: true,
+            errorMessage: "Enter type eg( delivering or returning)"
+        }
         // 'lattitude' : {
         //     notEmpty: true,
         //     errorMessage: "Enter current latitude"
@@ -830,10 +834,20 @@ router.post('/track-location', async (req, res) => {
     if (!errors) {
         // pending  (socket event receive from ANDROID and emit to IOS )
         try {
-            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
+            // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
+            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': req.body.type } });
 
             if (booking_details && booking_details.n > 0) {
-                res.status(config.OK_STATUS).json({ status: 'success', message: "Tracking has been started" })
+                var CarAssignData = await CarAssign.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': req.body.type } });
+
+                if(CarAssignData && CarAssignData.n > 0){
+
+                    res.status(config.OK_STATUS).json({ status: 'success', message: "Tracking has been started" })
+                }
+                else{
+                    res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Tracking has not been started" })
+                }
+
             }
             else {
                 res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Tracking has not been started" })
@@ -1207,9 +1221,10 @@ router.post('/car-list-v2', async (req, res) => {
     var match_object = [];
     var apply_filter = 0; // not applying now
 
-    if (req.body.confirm_rental) { // for upcomming car default filter
+    if (req.body.confirm_rental) { // for upcomming car 
         apply_filter = 1
-        match_object.push({ 'trip_status': req.body.confirm_rental })
+        // match_object.push({ 'trip_status': req.body.confirm_rental })
+        match_object.push({ 'trip_status': { $in : [req.body.confirm_rental, 'delivering'] } })
     }
 
     if (req.body.cancellation) { // for cancelled car
@@ -1224,7 +1239,7 @@ router.post('/car-list-v2', async (req, res) => {
 
     if (req.body.return) { // when customer apply for return car 
         apply_filter = 1
-        match_object.push({ 'trip_status': req.body.return })
+        match_object.push({ 'trip_status': { $in : [req.body.return, 'returning'] } } )
     }
 
     if (req.body.today) {
@@ -1246,7 +1261,7 @@ router.post('/car-list-v2', async (req, res) => {
     }
 
     var sortData = {
-        $sort : { 'booking_number' : -1 }
+        $sort: { 'booking_number': -1 }
     }
 
     defaultQuery.push(sortData);
@@ -1287,6 +1302,565 @@ router.post('/car-list-v2', async (req, res) => {
 
 });
 
+
+
+/// new Api car list 123 testing car which has not been assign yet list
+router.post('/car-list-123', async (req, res) => {
+
+    var defaultQuery = [
+        {
+            $match: {
+                $or: [
+                    {
+                        $and: [
+                            { "trip_status": "upcoming" },
+                            { "agent_assign_for_handover": false }
+                        ]
+                    },
+                    {
+                        $and: [
+                            { "trip_status": "return" },
+                            { "agent_assign_for_receive": false }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            $lookup: {
+                from: 'cars',
+                foreignField: '_id',
+                localField: 'carId',
+                as: "carDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+
+        {
+            $lookup: {
+                from: 'car_model',
+                foreignField: '_id',
+                localField: 'carDetails.car_model_id',
+                as: "modelDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$modelDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_brand',
+                foreignField: '_id',
+                localField: 'carDetails.car_brand_id',
+                as: "brandDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$brandDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+
+        {
+            $project: {
+                _id: 1,
+                booking_number: 1,
+                userId: 1,
+                carId: 1,
+                car_rental_company_id: "$carDetails.car_rental_company_id",
+                isDeleted: 1,
+                trip_status: 1,
+
+                car_book_from_date: {
+                    $dateToString: {
+                        date: "$from_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+                car_book_to_date: {
+                    $dateToString: {
+                        date: "$to_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+
+                days: 1,
+                booking_rent: 1,
+
+                delivery_address: 1,
+                delivery_time: 1,
+                total_booking_amount: 1,
+                latitude: 1,
+                longitude: 1,
+                coupon_code: 1,
+                agent_assign_for_handover: 1,
+                agent_assign_for_receive: 1,
+
+                image_name: "$carDetails.car_gallery",
+                is_navigation: "$carDetails.is_navigation",
+                is_AC: "$carDetails.is_AC",
+                is_luggage_carrier: "$carDetails.is_luggage_carrier",
+                driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
+                is_avialable: "$carDetails.is_avialable",
+                is_delieverd: "$carDetails.is_delieverd",
+                car_rental_company_id: "$carDetails.car_rental_company_id",
+                no_of_person: "$carDetails.no_of_person",
+                transmission: "$carDetails.transmission",
+                milage: "$carDetails.milage",
+                car_class: "$carDetails.car_class",
+                licence_plate: "$carDetails.licence_plate",
+                car_color: "$carDetails.car_color",
+                car_brand: "$brandDetails.brand_name",
+                car_model: "$modelDetails.model_name",
+                car_model_number: "$modelDetails.model_number",
+                car_model_release_year: "$modelDetails.release_year",
+
+            }
+        }
+
+    ];
+
+    var sortData = {
+        $sort: { 'booking_number': -1 }
+    }
+
+    defaultQuery.push(sortData);
+
+    // console.log('Match Condition ====>', match_object);
+    console.log('Default Query========>', JSON.stringify(defaultQuery));
+
+    CarBooking.aggregate(defaultQuery, function (err, data) {
+        if (err) {
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "error in fetching data",
+                err
+            });
+        } else {
+            if (data && data.length > 0) {
+                var data = data.map((c) => {
+                    if (c['image_name'] === undefined) {
+                        c['image_name'] = null
+                    }
+                    return c;
+                })
+
+                res.status(config.OK_STATUS).json({
+                    status: "success",
+                    message: "car data found",
+                    data: { cars: data },
+                });
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "No car data found"
+                });
+            }
+        }
+    });
+
+});
+
+
+// Modify car list v3
+router.post('/car-list-v3', async (req, res) => {
+
+    var defaultQuery = [
+        {
+            $match: { 'agent_id': new ObjectId(req.body.agent_id) }
+        },
+        {
+            $lookup: {
+                from: 'cars',
+                foreignField: '_id',
+                localField: 'car_id',
+                as: "carDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_model',
+                foreignField: '_id',
+                localField: 'carDetails.car_model_id',
+                as: "modelDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$modelDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_brand',
+                foreignField: '_id',
+                localField: 'carDetails.car_brand_id',
+                as: "brandDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$brandDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_booking',
+                foreignField: 'booking_number',
+                localField: 'booking_number',
+                as: "bookingDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$bookingDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                booking_number: 1,
+                userId: "$bookingDetails.userId",
+                carId: "$bookingDetails.carId",
+                // user_id : 1,
+                // car_id : 1,
+                car_rental_company_id: 1,
+                isDeleted: 1,
+                trip_status: 1,
+
+                car_book_from_date: {
+                    $dateToString: {
+                        date: "$bookingDetails.from_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+                car_book_to_date: {
+                    $dateToString: {
+                        date: "$bookingDetails.to_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+
+                days: "$bookingDetails.days",
+                booking_rent: "$bookingDetails.booking_rent",
+
+                delivery_address: "$bookingDetails.delivery_address",
+                delivery_time: "$bookingDetails.delivery_time",
+                total_booking_amount: "$bookingDetails.total_booking_amount",
+                latitude: "$bookingDetails.latitude",
+                longitude: "$bookingDetails.latitude",
+                coupon_code: "$bookingDetails.coupon_code",
+                agent_assign_for_handover: "$bookingDetails.agent_assign_for_handover",
+                agent_assign_for_receive: "$bookingDetails.agent_assign_for_receive",
+
+                image_name: "$carDetails.car_gallery",
+                is_navigation: "$carDetails.is_navigation",
+                is_AC: "$carDetails.is_AC",
+                is_luggage_carrier: "$carDetails.is_luggage_carrier",
+                driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
+                is_avialable: "$carDetails.is_avialable",
+                is_delieverd: "$carDetails.is_delieverd",
+                car_rental_company_id: "$carDetails.car_rental_company_id",
+                no_of_person: "$carDetails.no_of_person",
+                transmission: "$carDetails.transmission",
+                milage: "$carDetails.milage",
+                car_class: "$carDetails.car_class",
+                licence_plate: "$carDetails.licence_plate",
+                car_color: "$carDetails.car_color",
+                car_brand: "$brandDetails.brand_name",
+                car_model: "$modelDetails.model_name",
+                car_model_number: "$modelDetails.model_number",
+                car_model_release_year: "$modelDetails.release_year",
+
+            }
+        }
+
+    ];
+
+    var match_object = [];
+    var apply_filter = 0; // not applying now
+
+    if (req.body.confirm_rental) { // for upcomming car default filter
+        apply_filter = 1
+        // match_object.push({ 'trip_status': req.body.confirm_rental })
+           match_object.push({ 'trip_status': { $in : [req.body.confirm_rental, 'delivering'] } })
+    }
+
+    if (req.body.cancellation) { // for cancelled car
+        apply_filter = 1
+        match_object.push({ 'trip_status': req.body.cancellation })
+    }
+
+    if (req.body.deliverd_rental) { // car which is deliver to customer now come in in-progress status in db
+        apply_filter = 1
+        match_object.push({ 'trip_status': req.body.deliverd_rental })
+    }
+
+    if (req.body.return) { // when customer apply for return car 
+        apply_filter = 1
+        // match_object.push({ 'trip_status': req.body.return })
+        match_object.push({ 'trip_status': { $in : [req.body.return, 'returning'] } } )
+    }
+
+    if (req.body.today) {
+        var searchQuery = {
+            "$match": {
+                car_book_from_date: req.body.today
+            }
+        }
+        defaultQuery.splice(10, 0, searchQuery); //7
+    }
+
+    if (apply_filter === 1) {
+        var searchQuery = {
+            "$match": {
+                $or: match_object
+            }
+        }
+        defaultQuery.splice(10, 0, searchQuery); //7
+    }
+
+    var sortData = {
+        $sort: { 'booking_number': -1 }
+    }
+
+    defaultQuery.push(sortData);
+
+    console.log('Match Condition ====>', match_object);
+    console.log('Default Query========>', JSON.stringify(defaultQuery));
+
+
+    var queryResult1 = await CarAssign.aggregate(defaultQuery);
+    // console.log('QUERY RESULT 1 =>', queryResult1);
+
+
+
+    // Query 2
+
+    var defaultQuery2 = [
+        {
+            $match: {
+                $or: [
+                    {
+                        $and: [
+                            { "trip_status": "upcoming" },
+                            { "agent_assign_for_handover": false }
+                        ]
+                    },
+                    {
+                        $and: [
+                            { "trip_status": "return" },
+                            { "agent_assign_for_receive": false }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            $lookup: {
+                from: 'cars',
+                foreignField: '_id',
+                localField: 'carId',
+                as: "carDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+
+        {
+            $lookup: {
+                from: 'car_model',
+                foreignField: '_id',
+                localField: 'carDetails.car_model_id',
+                as: "modelDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$modelDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_brand',
+                foreignField: '_id',
+                localField: 'carDetails.car_brand_id',
+                as: "brandDetails"
+            }
+        },
+        {
+            $unwind: {
+                "path": "$brandDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+
+        {
+            $project: {
+                _id: 1,
+                booking_number: 1,
+                userId: 1,
+                carId: 1,
+                car_rental_company_id: "$carDetails.car_rental_company_id",
+                isDeleted: 1,
+                trip_status: 1,
+
+                car_book_from_date: {
+                    $dateToString: {
+                        date: "$from_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+                car_book_to_date: {
+                    $dateToString: {
+                        date: "$to_time",
+                        format: "%Y-%m-%d"
+                    }
+                },
+
+                days: 1,
+                booking_rent: 1,
+
+                delivery_address: 1,
+                delivery_time: 1,
+                total_booking_amount: 1,
+                latitude: 1,
+                longitude: 1,
+                coupon_code: 1,
+                agent_assign_for_handover: 1,
+                agent_assign_for_receive: 1,
+
+                image_name: "$carDetails.car_gallery",
+                is_navigation: "$carDetails.is_navigation",
+                is_AC: "$carDetails.is_AC",
+                is_luggage_carrier: "$carDetails.is_luggage_carrier",
+                driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
+                is_avialable: "$carDetails.is_avialable",
+                is_delieverd: "$carDetails.is_delieverd",
+                car_rental_company_id: "$carDetails.car_rental_company_id",
+                no_of_person: "$carDetails.no_of_person",
+                transmission: "$carDetails.transmission",
+                milage: "$carDetails.milage",
+                car_class: "$carDetails.car_class",
+                licence_plate: "$carDetails.licence_plate",
+                car_color: "$carDetails.car_color",
+                car_brand: "$brandDetails.brand_name",
+                car_model: "$modelDetails.model_name",
+                car_model_number: "$modelDetails.model_number",
+                car_model_release_year: "$modelDetails.release_year",
+
+            }
+        }
+
+    ];
+
+
+    var match_object2 = [];
+    var apply_filter2 = 0; // not applying now
+
+    if (req.body.confirm_rental) { // for upcomming car 
+        apply_filter2 = 1
+        match_object2.push({ 'trip_status': req.body.confirm_rental })
+        
+    }
+
+    if (req.body.cancellation) { // for cancelled car
+        apply_filter2 = 1
+        match_object2.push({ 'trip_status': req.body.cancellation })
+    }
+
+    if (req.body.deliverd_rental) { // car which is deliver to customer now come in in-progress status in db
+        apply_filter2 = 1
+        match_object2.push({ 'trip_status': req.body.deliverd_rental })
+    }
+
+    if (req.body.return) { // when customer apply for return car 
+        apply_filter2 = 1
+        match_object2.push({ 'trip_status': req.body.return })
+    }
+
+    if (req.body.today) {
+        var searchQuery2 = {
+            "$match": {
+                car_book_from_date: req.body.today
+            }
+        }
+        defaultQuery2.splice(8, 0, searchQuery2); //7
+    }
+
+    if (apply_filter2 === 1) {
+        var searchQuery2 = {
+            "$match": {
+                $or: match_object
+            }
+        }
+        defaultQuery2.splice(8, 0, searchQuery2); //7
+    }
+
+
+
+    var sortData2 = {
+        $sort: { 'booking_number': -1 }
+    }
+
+    defaultQuery2.push(sortData2);
+
+    // console.log('Match Condition ====>', match_object);
+    console.log('Default Query 2========>', JSON.stringify(defaultQuery2));
+
+    var queryResult2 = await CarBooking.aggregate(defaultQuery2)
+
+    // console.log('QUERY RESULT 2 =>', queryResult2);
+
+    // res.json('ok');
+
+    var finalData = queryResult1.concat(queryResult2);
+
+    if (finalData.length > 0) {
+
+        var finalData = finalData.map((c) => {
+                        if (c['image_name'] === undefined) {
+                            c['image_name'] = null
+                        }
+                        return c;
+            })
+
+            finalData.sort(function(a, b) { // Desc sort
+                return parseFloat(b.booking_number) - parseFloat(a.booking_number);
+            });
+
+
+        res.status(config.OK_STATUS).json({status: "success",message: "Car has been found", data: { cars: finalData }});
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({status: "failed",message: "Car has not been found"});
+    }
+
+});
 
 
 module.exports = router;
