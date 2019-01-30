@@ -51,8 +51,9 @@ termsandconditionHelper.UpdateAdminData = async function (updateData) {
 
 // get company legal setting data
 termsandconditionHelper.getCompanyData = async function (companyId) {
+    console.log(companyId);
     try {
-        let companyadmin = await CompanyTemrsAndCondition.findOne({"companyId": new ObjectId(companyId), "isDeleted":false});
+        let companyadmin = await CompanyTemrsAndCondition.findOne({"CompanyId": new ObjectId(companyId), "isDeleted":false});
         console.log(companyadmin);
         if (typeof companyadmin !== 'undefined' && companyadmin !== null) {
             return { status: 'success', message: "Terms & Comdition data found", data: companyadmin }

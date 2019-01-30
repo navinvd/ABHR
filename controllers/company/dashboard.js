@@ -19,26 +19,27 @@ var ObjectId = require('mongoose').Types.ObjectId;
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.get('/no_of_companies', async (req, res) => {
-    try{
-        const dashboardResp = await dashboardHelper.NoOfCompaines();
-        if(dashboardResp.status === 'success'){
-            res.status(config.OK_STATUS).json(dashboardResp);
-        } else{
-            res.status(config.BAD_REQUEST).json(dashboardResp);
-        }
-    } catch(e){
-        res.status(config.BAD_REQUEST).json(dashboardResp);
-    }   
-});
+// router.get('/no_of_companies', async (req, res) => {
+//     try{
+//         const dashboardResp = await dashboardHelper.NoOfCompaines();
+//         if(dashboardResp.status === 'success'){
+//             res.status(config.OK_STATUS).json(dashboardResp);
+//         } else{
+//             res.status(config.BAD_REQUEST).json(dashboardResp);
+//         }
+//     } catch(e){
+//         res.status(config.BAD_REQUEST).json(dashboardResp);
+//     }   
+// });
 
 /**
- * @api {get} /admin/dashboard/no_of_cars counting of cars
+ * @api {get} /company/dashboard/no_of_cars counting of cars
  * @apiName No of Cars
  * @apiDescription To display counting of cars
- * @apiGroup Admin - Dashboard
+ * @apiGroup CompanyAdmin - Dashboard
  * @apiVersion 0.0.0
  * 
+ * @apiParam {String} company_id CompanyId
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -46,21 +47,37 @@ router.get('/no_of_companies', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.get('/no_of_cars', async (req, res) => {
-    try{
-        const dashboardResp = await dashboardHelper.NoOfCars();
-        if(dashboardResp.status === 'success'){
-            res.status(config.OK_STATUS).json(dashboardResp);
-        } else{
-            res.status(config.BAD_REQUEST).json(dashboardResp);
+router.post('/no_of_cars', async (req, res) => {
+    var schema = {
+        'company_id': {
+            notEmpty: true,
+            errorMessage: "company_id is required"
         }
-    } catch(e){
-        res.status(config.BAD_REQUEST).json(dashboardResp);
-    }   
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+
+            const dashboardResp = await dashboardHelper.companyNoOfCars(req.body.company_id);
+            if(dashboardResp.status === 'success'){
+                res.status(config.OK_STATUS).json(dashboardResp);
+            } else{
+                res.status(config.BAD_REQUEST).json(dashboardResp);
+            }
+        } catch(e){
+            res.status(config.BAD_REQUEST).json(dashboardResp);
+        }  
+    } else{
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }  
 });
 
 /**
- * @api {get} /admin/dashboard/no_of_rentals counting of rentals
+ * @api {get} /company/dashboard/no_of_rentals counting of rentals
  * @apiName No of Rentals
  * @apiDescription To display counting of rentals
  * @apiGroup Admin - Dashboard
