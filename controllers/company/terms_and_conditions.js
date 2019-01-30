@@ -52,7 +52,7 @@ router.get('/:id', async (req, res) => {
 router.put('/update', async (req, res) => {
     var companyId = req.body.company_id;
     delete req.body.company_id;
-    var updateData = req.body
+    let updateData = req.body
     console.log('after deleting companyid=====>',updateData);
     const termsAndconditionResp = await TermsAndConditionHelper.updateCompanyData(companyId, updateData);
     if (termsAndconditionResp.status === 'success') {

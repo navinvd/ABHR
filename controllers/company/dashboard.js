@@ -79,7 +79,7 @@ router.post('/no_of_cars', async (req, res) => {
  * @api {post} /company/dashboard/no_of_rentals counting of rentals
  * @apiName No of Rentals
  * @apiDescription To display counting of rentals
- * @apiGroup Admin - Dashboard
+ * @apiGroup CompanyAdmin - Dashboard
  * @apiVersion 0.0.0
  * 
  * 
