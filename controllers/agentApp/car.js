@@ -7,6 +7,7 @@ const Car = require('./../../models/cars');
 const CarBooking = require('./../../models/car_booking');
 const CarAssign = require('./../../models/car_assign_agent');
 const CarModel = require('./../../models/car_model');
+const CarHandOver = require('./../../models/car_hand_over');
 const CarHelper = require('./../../helper/car');
 
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -810,6 +811,7 @@ router.post('/assign_or_not', async (req, res) => {
 
 
 // Track Location 
+/*
 router.post('/track-location', async (req, res) => {
     var schema = {
         'booking_number': {
@@ -865,6 +867,7 @@ router.post('/track-location', async (req, res) => {
         });
     }
 });
+*/
 
 
 
@@ -1224,7 +1227,7 @@ router.post('/car-list-v2', async (req, res) => {
     if (req.body.confirm_rental) { // for upcomming car 
         apply_filter = 1
         // match_object.push({ 'trip_status': req.body.confirm_rental })
-        match_object.push({ 'trip_status': { $in : [req.body.confirm_rental, 'delivering'] } })
+        match_object.push({ 'trip_status': { $in: [req.body.confirm_rental, 'delivering'] } })
     }
 
     if (req.body.cancellation) { // for cancelled car
@@ -1239,7 +1242,7 @@ router.post('/car-list-v2', async (req, res) => {
 
     if (req.body.return) { // when customer apply for return car 
         apply_filter = 1
-        match_object.push({ 'trip_status': { $in : [req.body.return, 'returning'] } } )
+        match_object.push({ 'trip_status': { $in: [req.body.return, 'returning'] } })
     }
 
     if (req.body.today) {
@@ -1602,7 +1605,7 @@ router.post('/car-list-v3', async (req, res) => {
     if (req.body.confirm_rental) { // for upcomming car default filter
         apply_filter = 1
         // match_object.push({ 'trip_status': req.body.confirm_rental })
-           match_object.push({ 'trip_status': { $in : [req.body.confirm_rental, 'delivering'] } })
+        match_object.push({ 'trip_status': { $in: [req.body.confirm_rental, 'delivering'] } })
     }
 
     if (req.body.cancellation) { // for cancelled car
@@ -1618,7 +1621,7 @@ router.post('/car-list-v3', async (req, res) => {
     if (req.body.return) { // when customer apply for return car 
         apply_filter = 1
         // match_object.push({ 'trip_status': req.body.return })
-        match_object.push({ 'trip_status': { $in : [req.body.return, 'returning'] } } )
+        match_object.push({ 'trip_status': { $in: [req.body.return, 'returning'] } })
     }
 
     if (req.body.today) {
@@ -1785,7 +1788,7 @@ router.post('/car-list-v3', async (req, res) => {
     if (req.body.confirm_rental) { // for upcomming car 
         apply_filter2 = 1
         match_object2.push({ 'trip_status': req.body.confirm_rental })
-        
+
     }
 
     if (req.body.cancellation) { // for cancelled car
@@ -1843,24 +1846,214 @@ router.post('/car-list-v3', async (req, res) => {
     if (finalData.length > 0) {
 
         var finalData = finalData.map((c) => {
-                        if (c['image_name'] === undefined) {
-                            c['image_name'] = null
-                        }
-                        return c;
-            })
+            if (c['image_name'] === undefined) {
+                c['image_name'] = null
+            }
+            return c;
+        })
 
-            finalData.sort(function(a, b) { // Desc sort
-                return parseFloat(b.booking_number) - parseFloat(a.booking_number);
-            });
+        finalData.sort(function (a, b) { // Desc sort
+            return parseFloat(b.booking_number) - parseFloat(a.booking_number);
+        });
 
 
-        res.status(config.OK_STATUS).json({status: "success",message: "Car has been found", data: { cars: finalData }});
+        res.status(config.OK_STATUS).json({ status: "success", message: "Car has been found", data: { cars: finalData } });
     }
     else {
-        res.status(config.BAD_REQUEST).json({status: "failed",message: "Car has not been found"});
+        res.status(config.BAD_REQUEST).json({ status: "failed", message: "Car has not been found" });
     }
 
 });
+
+
+// car Delivering process
+
+router.post('/delivering', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
+        },
+        'agent_id': {
+            notEmpty: true,
+            errorMessage: "Please enter agent id"
+        },
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter rental company id"
+        },
+        'defected_points': {
+            notEmpty: true,
+            errorMessage: "Please enter car defecets points"
+        },
+        'milage': {
+            notEmpty: true,
+            errorMessage: "Please enter car milage"
+        },
+        'petrol_tank': {
+            notEmpty: true,
+            errorMessage: "Please enter car petrol tank fuel"
+        },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number"
+        }
+    };
+    req.checkBody(schema);
+    // car_defects_gallery
+    // notes
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var hand_over_data = {
+            'user_id': req.body.user_id,
+            'car_id': req.body.car_id,
+            'agent_id': req.body.agent_id,
+            'car_rental_company_id': req.body.car_rental_company_id,
+            'defected_points': req.body.defected_points,
+            'milage': req.body.milage,
+            'petrol_tank': req.body.petrol_tank,
+            'notes': req.body.notes ? req.body.notes : null,
+            'booking_number': req.body.booking_number
+            // 'signature' : req.body.signature ?  req.body.signature : null,
+            // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
+        }
+
+        const carHandOverResp = await CarHelper.car_delivering(req, hand_over_data);
+        console.log('RESP=>', carHandOverResp);
+
+
+        if (carHandOverResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carHandOverResp)
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carHandOverResp)
+        }
+        // res.json(carHandOverResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+// Get Point from booking number for next handover process
+router.post('/handover-screen', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number"
+        }
+    };
+    req.checkBody(schema);
+    
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            const carHandOverResp = await CarHandOver.find({ 'booking_number': req.body.booking_number });
+            if (carHandOverResp && carHandOverResp.length > 0) {
+                res.status(config.OK_STATUS).json({ status: 'success', message: "Got data for handover process", data: { handoverData: carHandOverResp } })
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "No Data available for hand over screen" })
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while geting car hand over screen data", err})
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+// car handover v2
+
+router.post('/handover-v2', async (req, res) => {
+    var schema = {
+        // 'defected_points': {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter car defecets points"
+        // },
+        // 'milage': {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter car milage"
+        // },
+        // 'petrol_tank': {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter car petrol tank fuel"
+        // },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number"
+        }
+    };
+    req.checkBody(schema);
+    // car_defects_gallery
+    // notes
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        // var hand_over_data = {
+        //     'defected_points': req.body.defected_points,
+        //     'milage': req.body.milage,
+        //     'petrol_tank': req.body.petrol_tank,
+        //     'notes': req.body.notes ? req.body.notes : null,
+        //     'booking_number': req.body.booking_number
+        //     // 'signature' : req.body.signature ?  req.body.signature : null,
+        //     // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
+        // }
+
+        var hand_over_data = {};
+
+        if(req.body.defected_points){
+            hand_over_data.defected_points = req.body.defected_points
+        }
+        if(req.body.milage){
+            hand_over_data.milage = req.body.milage
+        }
+        if(req.body.petrol_tank){
+            hand_over_data.petrol_tank = req.body.petrol_tank
+        }
+        if(req.body.notes){
+            hand_over_data.notes = req.body.notes
+        }
+
+
+        const carHandOverResp = await CarHelper.car_handover_v2(req, req.body.booking_number, hand_over_data);
+        console.log('RESP=>', carHandOverResp);
+
+
+        if (carHandOverResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carHandOverResp)
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carHandOverResp)
+        }
+        // res.json(carHandOverResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+
 
 
 module.exports = router;

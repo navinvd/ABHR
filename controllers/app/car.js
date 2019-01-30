@@ -1981,32 +1981,33 @@ router.post('/filter123', async (req, res) => {
             {
                 $match: {
                     $and: [
+
                         {
                             $or: [
                                 { car_book_from_date: { $gt: toDate } },
                                 { car_book_to_date: { $lt: fromDate } },
                                 { car_book_from_date: { $eq: null } },
-                                { 'trip_status': { $ne: 'cancelled' } } // add later
+                                // { 'trip_status': { $ne: 'cancelled' } }, // add later                                
+                                // { 'carBookingDetails.trip_status': { $eq: 'upcoming' } }, // add later                                
                             ]
                         },
-
-
-
-
-                        // { "from_time": { $lte: toDate } },
-                        // { "to_time": { $gte: fromDate } },
-                        // { "trip_status": { $ne: 'cancelled' } },
-
-
-
-                        // { car_book_from_date: { $lt : toDate } },
-                        // { car_book_to_date: { $gt : fromDate } },
-
-                        // { car_book_from_date: { $eq: null } },
-                        // { 'trip_status': { $ne: 'cancelled' } }, // add later
-
-
-
+                        
+                        // {
+                        //     $or: [
+                        //             {
+                        //                 $and: [
+                        //                     {car_book_from_date : { $lt : fromDate} },
+                        //                     {car_book_from_date : { $lt : toDate} }
+                        //                 ]
+                        //             },
+                        //             {
+                        //                 $and: [
+                        //                     {car_book_to_date : { $lt : fromDate} },
+                        //                     {car_book_to_date : { $lt : toDate} }
+                        //                 ]
+                        //             }
+                        //         ]
+                        // },
 
                         {
                             // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }

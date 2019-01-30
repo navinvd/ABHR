@@ -18,7 +18,7 @@ var CarHandOverSChema = new Schema({
     },
     petrol_tank: {
         type: Number,
-        default: true
+        required: true
     },
     // car_defects_gallery: [{type: String, default : null}],
     car_defects_gallery: [{
@@ -31,8 +31,11 @@ var CarHandOverSChema = new Schema({
     },
     signature: {
         type: String,
-        default : null,
-        required : true
+        default : null
+    },
+    booking_number: {
+        type: Number,
+        required: true
     },
     isDeleted: {
         type: Boolean,
