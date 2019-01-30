@@ -96,11 +96,8 @@ router.post('/list', (req, res, next) => {
             }
             if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
                 if (req.body.search.value) {
-                    console.log(req.body.search.value)
                     if(req.body.search.value === 'Admin' || req.body.search.value === 'admin' || req.body.search.value === 'ADMIN'){
-                        console.log(req.body.search.value);
-                        var match = {$eq : [$car_rental_company_id, undefined]};
-                        console.log(match);
+                        var match = { 'car_rental_company_id' : {'$eq':null}};
                     }else{
                         var regex = new RegExp(req.body.search.value);
                         var match = { $or: [] };
@@ -122,9 +119,7 @@ router.post('/list', (req, res, next) => {
                     var searchQuery = {
                         $match: match
                     }
-                    console.log(match);
                     defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-                    console.log("==>", JSON.stringify(searchQuery));
                 }
             }
             console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
