@@ -97,15 +97,15 @@ dashboardHelper.companyNoOfRentals = async (company_id) => {
           ];
         console.log( JSON.stringify(defaultQuery));
         let rentals = await CarBooking.aggregate(defaultQuery);
-        console.log(rentals);
-        if (rentals !== null && rentals !== '') {
+        console.log('rentals===>',rentals);
+        if (rentals !== null && rentals !== '' && rentals.length !== 0) {
             return { status: 'success', message: "Rental data found", data: rentals[0].total}
         }
         else {
             return { status: 'failed', message: "No rental data found" };
         }
     } catch(e){
-        return { status: 'failed', message: "Error occured while fetching coupon" };
+        return { status: 'failed', message: "Error occured while fetching coupon" , err:e};
     } 
 };
 
