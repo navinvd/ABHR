@@ -67,5 +67,47 @@ dashboardHelper.companyNoOfCars = async (company_id) => {
     } 
 };
 
+// list of retnals for company 
+dashboardHelper.companyNoOfRentals = async (company_id) => {
+    try{
+        var defaultQuery = [
+            {
+              "$lookup": {
+                "from": "cars",
+                "foreignField": "_id",
+                "localField": "carId",
+                "as": "carDetails"
+              }
+            },
+            {
+              "$unwind": {
+                "path": "$carDetails",
+                "preserveNullAndEmptyArrays": true
+              }
+            },
+            {
+                "$match" : { "carDetails.car_rental_company_id" : new ObjectId(company_id)}
+            },
+            {
+                "$group" : {
+                      _id : "$carCompanyDetails._id",
+                      total: { $sum: 1 }
+                }
+            }
+          ];
+        console.log( JSON.stringify(defaultQuery));
+        let rentals = await CarBooking.aggregate(defaultQuery);
+        console.log(rentals);
+        if (rentals !== null && rentals !== '') {
+            return { status: 'success', message: "Rental data found", data: rentals[0].total}
+        }
+        else {
+            return { status: 'failed', message: "No rental data found" };
+        }
+    } catch(e){
+        return { status: 'failed', message: "Error occured while fetching coupon" };
+    } 
+};
+
 
 module.exports = dashboardHelper;
