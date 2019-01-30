@@ -72,11 +72,7 @@ router.post('/add', (req, res, next) => {
         'car_class': {
             notEmpty: true,
             errorMessage: "Class is required"
-        },
-        'deposit': {
-            notEmpty: true,
-            errorMessage: "deposit is required"
-        }   
+        } 
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
