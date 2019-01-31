@@ -1966,16 +1966,16 @@ router.post('/filter123', async (req, res) => {
             },
             // {
             //     $match: {
-            //         $and: [
-            //             {
-            //                 $or: [
-            //                     { car_book_from_date: { $gt: toDate } },
-            //                     { car_book_to_date: { $lt: fromDate } },
-            //                     { car_book_from_date: { $eq: null } }
-            //                 ]
-            //             },
-            //             { isDeleted: false }
-            //         ]
+                    // $and: [
+                    //     {
+                    //         $or: [
+                    //             { car_book_from_date: { $gt: toDate } },
+                    //             { car_book_to_date: { $lt: fromDate } },
+                    //             { car_book_from_date: { $eq: null } }
+                    //         ]
+                    //     },
+                    //     { isDeleted: false }
+                    // ]
             //     }
             // },
             {
@@ -2005,9 +2005,33 @@ router.post('/filter123', async (req, res) => {
                         //                     {car_book_to_date : { $lt : fromDate} },
                         //                     {car_book_to_date : { $lt : toDate} }
                         //                 ]
-                        //             }
+                        //             },
+                        //             { car_book_from_date: { $eq: null } },
                         //         ]
                         // },
+
+
+                        {
+                            $or: [
+                                    {
+                                        $and: [
+                                            {car_book_from_date : { $gt : fromDate} },
+                                            {car_book_from_date : { $gt : toDate} }
+                                        ]
+                                    },
+                                    {
+                                        $and: [
+                                            {car_book_to_date : { $lt : fromDate} },
+                                            {car_book_to_date : { $lt : toDate} }
+                                        ]
+                                    },
+                                    { car_book_from_date: { $eq: null } },
+                                ]
+                        },
+
+
+
+
 
                         {
                             // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }

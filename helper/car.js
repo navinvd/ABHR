@@ -1053,6 +1053,7 @@ carHelper.checkRadius = async function (data) {
 
 
 // car_handover for agent app
+
 carHelper.car_handover = async (req, car_handover_data) => {
     try {
 
@@ -1061,7 +1062,7 @@ carHelper.car_handover = async (req, car_handover_data) => {
             'car_id': car_handover_data.car_id,
             'car_rental_company_id': car_handover_data.car_rental_company_id,//
             'agent_id': car_handover_data.agent_id,
-            'defected_points': car_handover_data.defected_points,
+            'defected_points': JSON.parse(car_handover_data.defected_points),
             'milage': car_handover_data.milage,
             'petrol_tank': car_handover_data.petrol_tank,
             'notes': car_handover_data.notes ? car_handover_data.notes : null,
@@ -1189,7 +1190,7 @@ carHelper.car_delivering = async (req, car_handover_data) => {
             'car_id': car_handover_data.car_id,
             'car_rental_company_id': car_handover_data.car_rental_company_id,//
             'agent_id': car_handover_data.agent_id,
-            'defected_points': car_handover_data.defected_points,
+            'defected_points': JSON.parse(car_handover_data.defected_points),
             'milage': car_handover_data.milage,
             'petrol_tank': car_handover_data.petrol_tank,
             'notes': car_handover_data.notes ? car_handover_data.notes : null,
@@ -1382,9 +1383,6 @@ carHelper.car_handover_v2 = async (req, booking_number, car_handover_data) => {
         return { status: 'failed', message: "Error accured while hand over car", err }
     }
 };
-
-
-
 
 
 // car_receive for agent app

@@ -450,6 +450,7 @@ router.post('/booking-details', async (req, res) => {
 });
 
 // car handover
+/*
 router.post('/handover', async (req, res) => {
     var schema = {
         'user_id': {
@@ -524,6 +525,7 @@ router.post('/handover', async (req, res) => {
         });
     }
 });
+*/
 
 
 // car receive 
@@ -1307,7 +1309,7 @@ router.post('/car-list-v2', async (req, res) => {
 
 
 
-/// new Api car list 123 testing car which has not been assign yet list
+/// new Api car list 123 testing car which has not been assign yet list [Test]
 router.post('/car-list-123', async (req, res) => {
 
     var defaultQuery = [
@@ -1475,7 +1477,7 @@ router.post('/car-list-123', async (req, res) => {
 });
 
 
-// Modify car list v3
+// Modify car list v3 [Final]
 router.post('/car-list-v3', async (req, res) => {
 
     var defaultQuery = [
@@ -1866,8 +1868,7 @@ router.post('/car-list-v3', async (req, res) => {
 });
 
 
-// car Delivering process
-
+// car Delivering process (change trip_status to delivering & make entry in car handover collection)
 router.post('/delivering', async (req, res) => {
     var schema = {
         'user_id': {
@@ -1957,8 +1958,15 @@ router.post('/handover-screen', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            const carHandOverResp = await CarHandOver.find({ 'booking_number': req.body.booking_number });
+            const carHandOverResp = await CarHandOver.find({ 'booking_number': req.body.booking_number }).lean();
             if (carHandOverResp && carHandOverResp.length > 0) {
+
+                
+                delete carHandOverResp[0].createdAt;
+                delete carHandOverResp[0].modifiedAt;
+
+                console.log('Datat======>',carHandOverResp);
+
                 res.status(config.OK_STATUS).json({ status: 'success', message: "Got data for handover process", data: { handoverData: carHandOverResp } })
             }
             else {
@@ -1979,7 +1987,6 @@ router.post('/handover-screen', async (req, res) => {
 
 
 // car handover v2
-
 router.post('/handover-v2', async (req, res) => {
     var schema = {
         // 'defected_points': {
@@ -2050,10 +2057,6 @@ router.post('/handover-v2', async (req, res) => {
         });
     }
 });
-
-
-
-
 
 
 module.exports = router;
