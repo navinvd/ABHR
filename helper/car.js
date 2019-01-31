@@ -1394,7 +1394,7 @@ carHelper.car_receive = async (req, car_handover_data) => {
             'car_id': car_handover_data.car_id,
             'car_rental_company_id': car_handover_data.car_rental_company_id,//
             'agent_id': car_handover_data.agent_id,
-            'defected_points': car_handover_data.defected_points,
+            'defected_points': JSON.stringify(car_handover_data.defected_points),
             'milage': car_handover_data.milage,
             'petrol_tank': car_handover_data.petrol_tank,
             'notes': car_handover_data.notes ? car_handover_data.notes : null,
@@ -1450,9 +1450,21 @@ carHelper.car_receive = async (req, car_handover_data) => {
         let booking_number = { booking_number: car_hand_over_data.booking_number };
         let trip_status = { $set: { trip_status: 'finished' } };
 
-        await CarBooking.updateOne(booking_number, trip_status);
+        var updateCarBooking = await CarBooking.updateOne(booking_number, trip_status);
 
-        return { status: "success", message: "Car has been receive successfully" };
+        if(updateCarBooking && updateCarBooking.n > 0){
+            var updateCarAssign = await CarAssign.updateOne(booking_number, trip_status);
+            if(updateCarAssign && updateCarAssign.n > 0){
+                return { status: "success", message: "Car has been receive successfully" };
+            }
+            else{
+                return { status: 'failed', message: "Error accured while update car assign collection" }
+            }
+        }
+        else{
+            return { status: 'failed', message: "Error accured while update car booking collection" }
+        }
+
     }
     catch (err) {
         return { status: 'failed', message: "Error accured while receive car", err }

@@ -29,6 +29,10 @@ var CarReceiveSChema = new Schema({
         type: String,
         default : null
     },
+    booking_number: {
+        type: Number,
+        required: true
+    },
     isDeleted: {
         type: Boolean,
         default: false

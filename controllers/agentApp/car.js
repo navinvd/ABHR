@@ -813,17 +813,17 @@ router.post('/assign_or_not', async (req, res) => {
 
 
 // Track Location 
-/*
-router.post('/track-location', async (req, res) => {
+// car returning process only chang trip status to returning
+router.post('/returning', async (req, res) => {
     var schema = {
         'booking_number': {
             notEmpty: true,
             errorMessage: "Enter booking number"
-        },
-        'type': {
-            notEmpty: true,
-            errorMessage: "Enter type eg( delivering or returning)"
         }
+        // 'type': {
+        //     notEmpty: true,
+        //     errorMessage: "Enter type eg( delivering or returning)"
+        // }
         // 'lattitude' : {
         //     notEmpty: true,
         //     errorMessage: "Enter current latitude"
@@ -839,26 +839,26 @@ router.post('/track-location', async (req, res) => {
         // pending  (socket event receive from ANDROID and emit to IOS )
         try {
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
-            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': req.body.type } });
+            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'returning' } });
 
             if (booking_details && booking_details.n > 0) {
-                var CarAssignData = await CarAssign.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': req.body.type } });
+                var CarAssignData = await CarAssign.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'returning' } });
 
                 if(CarAssignData && CarAssignData.n > 0){
 
-                    res.status(config.OK_STATUS).json({ status: 'success', message: "Tracking has been started" })
+                    res.status(config.OK_STATUS).json({ status: 'success', message: "Car returning process has been started" })
                 }
                 else{
-                    res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Tracking has not been started" })
+                    res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car returning process has not been started" })
                 }
 
             }
             else {
-                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Tracking has not been started" })
+                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car returning process has not been started" })
             }
         }
         catch (err) {
-            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while start tracking", err })
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while start returning process", err })
         }
     }
     else {
@@ -869,7 +869,7 @@ router.post('/track-location', async (req, res) => {
         });
     }
 });
-*/
+
 
 
 
