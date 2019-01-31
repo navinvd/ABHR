@@ -1269,7 +1269,7 @@ carHelper.car_delivering = async (req, car_handover_data) => {
 
             // return { status: "success", message: "Car hand over successfully" };
         }
-        else{
+        else {
             return { status: "failed", message: "Error accured while upload car defected images to server" };
         }
 
@@ -1283,7 +1283,7 @@ carHelper.car_delivering = async (req, car_handover_data) => {
 carHelper.car_handover_v2 = async (req, booking_number, car_handover_data) => {
     try {
 
-        
+
         // let car_hand_over_data = {
         //     'user_id': car_handover_data.user_id,
         //     'car_id': car_handover_data.car_id,
@@ -1306,8 +1306,8 @@ carHelper.car_handover_v2 = async (req, booking_number, car_handover_data) => {
                     console.log('Comming');
                     var file = req.files.signature; // store entire file object
                     var dir = "./upload/signature";
-                    extention = paths.extname(file.name);
-                    savefilename = "signature_" + Date.now() + extention;
+                    var extention = paths.extname(file.name);
+                    var savefilename = "signature_" + Date.now() + extention;
                     var makeEntry = 1;
                     await file.mv(dir + '/' + savefilename, async function (err) {
                         if (err) {
@@ -1322,41 +1322,41 @@ carHelper.car_handover_v2 = async (req, booking_number, car_handover_data) => {
                     if (makeEntry == 1) {
                         var car_hand_over_data = car_handover_data;
                         car_hand_over_data.signature = savefilename;
-                        // car_hand_over_data.car_defects_gallery = gallaryArray;
-
-                        /*
-                        let car_hand_over = new CarHandOver(car_hand_over_data);
-                        let data = await car_hand_over.save();
-                        */
 
                         // update collection car_handover
 
                         var cond = { booking_number: booking_number };
-                        var setData ={ $set: car_handover_data };
+                        var setData = { $set: car_hand_over_data };
 
-                        var updateCarHandover = CarHandOver.updateOne(cond, setData);
+                        var updateCarHandover = await CarHandOver.updateOne(cond, setData);
 
+                        if (updateCarHandover && updateCarHandover.n > 0) {
+                            // after car handnover we need to change car booking status to -> in-progress
+                            let book_number = { booking_number: booking_number };
+                            let trip_status = { $set: { trip_status: 'inprogress' } };
 
-                        // after car handnover we need to change car booking status to -> in-progress
-                        let book_number = { booking_number: booking_number };
-                        let trip_status = { $set: { trip_status: 'inprogress' } };
+                            var bookingUpdate = await CarBooking.updateOne(book_number, trip_status);
 
-                        var bookingUpdate = await CarBooking.updateOne(book_number, trip_status);
+                            if (bookingUpdate && bookingUpdate.n > 0) {
+                                // update data in car_assign_agent table as well
+                                var car_assign_agent_Update = await CarAssign.updateOne(book_number, trip_status);
 
-                        if (bookingUpdate && bookingUpdate.n > 0) {
-                            // update data in car_assign_agent table as well
-                            var car_assign_agent_Update = await CarAssign.updateOne(book_number, trip_status);
-
-                            if (car_assign_agent_Update && car_assign_agent_Update.n > 0) {
-                                return { status: "success", message: "Car hand over successfully" };
+                                if (car_assign_agent_Update && car_assign_agent_Update.n > 0) {
+                                    return { status: "success", message: "Car hand over successfully" };
+                                }
+                                else {
+                                    return { status: "failed", message: "Error accured while update car_agent_assign collection" };
+                                }
                             }
                             else {
-                                return { status: "failed", message: "Error accured while update car_agent_assign collection" };
+                                return { status: "failed", message: "Error accured while update car booking collection" };
                             }
+
                         }
                         else {
-                            return { status: "failed", message: "Error accured while update car booking collection" };
+                            return { status: "failed", message: "Error accured while update car handover collection" };
                         }
+
 
                         // return { status: "success", message: "Car hand over successfully" };
                     }
