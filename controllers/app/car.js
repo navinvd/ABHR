@@ -2011,23 +2011,23 @@ router.post('/filter123', async (req, res) => {
                         // },
 
 
-                        {
-                            $or: [
-                                    {
-                                        $and: [
-                                            {car_book_from_date : { $gt : fromDate} },
-                                            {car_book_from_date : { $gt : toDate} }
-                                        ]
-                                    },
-                                    {
-                                        $and: [
-                                            {car_book_to_date : { $lt : fromDate} },
-                                            {car_book_to_date : { $lt : toDate} }
-                                        ]
-                                    },
-                                    { car_book_from_date: { $eq: null } },
-                                ]
-                        },
+                        // {
+                        //     $or: [
+                        //             {
+                        //                 $and: [
+                        //                     {car_book_from_date : { $gt : fromDate} },
+                        //                     {car_book_from_date : { $gt : toDate} }
+                        //                 ]
+                        //             },
+                        //             {
+                        //                 $and: [
+                        //                     {car_book_to_date : { $lt : fromDate} },
+                        //                     {car_book_to_date : { $lt : toDate} }
+                        //                 ]
+                        //             },
+                        //             { car_book_from_date: { $eq: null } },
+                        //         ]
+                        // },
 
 
 
