@@ -121,7 +121,7 @@ router.post('/car-list', async (req, res) => {
                 is_AC: "$carDetails.is_AC",
                 is_luggage_carrier: "$carDetails.is_luggage_carrier",
                 driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
-                is_avialable: "$carDetails.is_avialable",
+                is_available: "$carDetails.is_available",
                 is_delieverd: "$carDetails.is_delieverd",
                 car_rental_company_id: "$carDetails.car_rental_company_id",
                 no_of_person: "$carDetails.no_of_person",
@@ -336,7 +336,7 @@ router.post('/booking-details', async (req, res) => {
                     is_AC: "$carDetails.is_AC",
                     is_luggage_carrier: "$carDetails.is_luggage_carrier",
                     driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
-                    is_avialable: "$carDetails.is_avialable",
+                    is_available: "$carDetails.is_available",
                     is_delieverd: "$carDetails.is_delieverd",
                     car_rental_company_id: "$carDetails.car_rental_company_id",
                     no_of_person: "$carDetails.no_of_person",
@@ -590,7 +590,7 @@ router.post('/receive', async (req, res) => {
 
 
         if (carReceiveResp.status === 'success') {
-            // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_avialable' : true } } );              
+            // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
             res.status(config.OK_STATUS).json(carReceiveResp)
         }
         else {
@@ -1003,7 +1003,7 @@ router.post('/booking-details123', async (req, res) => {
                     is_AC: "$carDetails.is_AC",
                     is_luggage_carrier: "$carDetails.is_luggage_carrier",
                     driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
-                    is_avialable: "$carDetails.is_avialable",
+                    is_available: "$carDetails.is_available",
                     is_delieverd: "$carDetails.is_delieverd",
                     car_model_id: "$carDetails.car_model_id",
                     car_brand_id: "$carDetails.car_brand_id",
@@ -1205,7 +1205,7 @@ router.post('/car-list-v2', async (req, res) => {
                 is_AC: "$carDetails.is_AC",
                 is_luggage_carrier: "$carDetails.is_luggage_carrier",
                 driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
-                is_avialable: "$carDetails.is_avialable",
+                is_available: "$carDetails.is_available",
                 is_delieverd: "$carDetails.is_delieverd",
                 car_rental_company_id: "$carDetails.car_rental_company_id",
                 no_of_person: "$carDetails.no_of_person",
@@ -1416,7 +1416,7 @@ router.post('/car-list-123', async (req, res) => {
                 is_AC: "$carDetails.is_AC",
                 is_luggage_carrier: "$carDetails.is_luggage_carrier",
                 driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
-                is_avialable: "$carDetails.is_avialable",
+                is_available: "$carDetails.is_available",
                 is_delieverd: "$carDetails.is_delieverd",
                 car_rental_company_id: "$carDetails.car_rental_company_id",
                 no_of_person: "$carDetails.no_of_person",
@@ -1583,7 +1583,7 @@ router.post('/car-list-v3', async (req, res) => {
                 is_AC: "$carDetails.is_AC",
                 is_luggage_carrier: "$carDetails.is_luggage_carrier",
                 driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
-                is_avialable: "$carDetails.is_avialable",
+                is_available: "$carDetails.is_available",
                 is_delieverd: "$carDetails.is_delieverd",
                 car_rental_company_id: "$carDetails.car_rental_company_id",
                 no_of_person: "$carDetails.no_of_person",
@@ -1765,7 +1765,7 @@ router.post('/car-list-v3', async (req, res) => {
                 is_AC: "$carDetails.is_AC",
                 is_luggage_carrier: "$carDetails.is_luggage_carrier",
                 driving_eligibility_criteria: "$carDetails.driving_eligibility_criteria",
-                is_avialable: "$carDetails.is_avialable",
+                is_available: "$carDetails.is_available",
                 is_delieverd: "$carDetails.is_delieverd",
                 car_rental_company_id: "$carDetails.car_rental_company_id",
                 no_of_person: "$carDetails.no_of_person",

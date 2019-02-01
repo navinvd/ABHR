@@ -989,6 +989,7 @@ router.post('/car/details', async (req, res) => {
  * @apiParam {Enum} car_class ["economy", "luxury", "suv", "family"]
  * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
  * @apiParam {Number} deposit deposit for car
+ * @apiParam {Array} is_available avaibility for car
  * 
  * @apiHeader {String}  Content-Type application/json    
  * 
@@ -1029,6 +1030,10 @@ router.post('/car/add', (req, res, next) => {
         'car_class': {
             notEmpty: true,
             errorMessage: "Class is required"
+        },
+        'is_available': {
+            notEmpty: true,
+            errorMessage: "Avaibility is required"
         }
     };
     req.checkBody(schema);

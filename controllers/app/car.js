@@ -222,7 +222,7 @@ router.post('/filter', async (req, res) => {
                     is_navigation: 1,
                     driving_eligibility_criteria: 1,
                     car_class: 1,
-                    is_avialable: 1,
+                    is_available: 1,
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
@@ -1026,7 +1026,7 @@ router.post('/book', async (req, res) => {
 
         // check for already book or not first 
 
-        // var carData = await Car.find({_id : ObjectId(req.body.car_id)},{is_avialable : 1}).lean().exec();
+        // var carData = await Car.find({_id : ObjectId(req.body.car_id)},{is_available : 1}).lean().exec();
 
 
         var carData = await CarBooking.find(
@@ -1121,7 +1121,7 @@ router.post('/book', async (req, res) => {
                 var car_booking_number = bookingResp.data.booking_data['booking_number'];
 
                 // after booking change car avaibility status to false // no need now
-                // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_avialable' : false } } );              
+                // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : false } } );              
 
                 // after car booking need to send push notification to all agent
                 /** push notification process to all agent start */
@@ -1293,7 +1293,7 @@ router.post('/cancel-booking', async (req, res) => {
 
         if (cancelBookingResp.status === 'success') {
 
-            // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_avialable' : true } } );              
+            // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
 
             res.status(config.OK_STATUS).json(cancelBookingResp);
         }
@@ -1564,7 +1564,7 @@ router.post('/location-filter', async (req, res) => {
                     is_navigation: 1,
                     driving_eligibility_criteria: 1,
                     car_class: 1,
-                    is_avialable: 1,
+                    is_available: 1,
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,
@@ -1942,7 +1942,7 @@ router.post('/filter123', async (req, res) => {
                     is_navigation: 1,
                     driving_eligibility_criteria: 1,
                     car_class: 1,
-                    is_avialable: 1,
+                    is_available: 1,
                     car_model_id: 1,
                     car_brand_id: 1,
                     isDeleted: 1,

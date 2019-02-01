@@ -6,10 +6,6 @@ var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 //Define a schema
 var Schema = mongoose.Schema;
 var UserSchema = new Schema({
-    // username: {
-    //     type: String,
-    //     lowercase: true
-    // },
     first_name : {
         type: String,
         required: true,
