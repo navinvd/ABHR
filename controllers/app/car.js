@@ -2484,8 +2484,6 @@ router.post('/test-not', async (req, res) => {
 
 
 // car filter v4
-
-
 router.post('/filter-v4', async (req, res) => {
     var schema = {
         'fromDate': {
@@ -2524,12 +2522,6 @@ router.post('/filter-v4', async (req, res) => {
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
         console.log(toDate);
         var defaultQuery = [
-            // {
-            //     "$match":{
-            //         "_id": new ObjectId("5c2dacff2ddfe072055f5e39")
-            //     }
-            // },
-            
             {
               "$lookup": {
                 "from": "car_model",
@@ -2647,7 +2639,7 @@ router.post('/filter-v4', async (req, res) => {
                           $lt: new Date(fromDate)  
                         }
                       },
-                      { "booking": null }
+                      { "booking": null },
                     ]
                   },
                   {
@@ -2670,13 +2662,7 @@ router.post('/filter-v4', async (req, res) => {
                   {
                     "data.service_location": {
                       "$geoWithin": {
-                        "$centerSphere": [
-                          [
-                            72.7997356,
-                            21.1925707
-                          ],
-                          0.015678517359709324
-                        ]
+                        "$centerSphere": [[req.body.longitude, req.body.latitude], 62.1371 / 3963.2]
                       }
                     }
                   },
@@ -2684,7 +2670,7 @@ router.post('/filter-v4', async (req, res) => {
                     "$or": [
                       {
                         "data.resident_criteria": {
-                          "$eq": 1
+                          "$eq": req.body.resident_type
                         }
                       },
                       {
@@ -2718,14 +2704,6 @@ router.post('/filter-v4', async (req, res) => {
                 "availableBooking":{ "$first": "$availableBooking"}
               }
             }
-            
-
-            // {
-            //   "$sort": {
-            //     "total_avg_rating": -1
-            //   }
-            // }
-
         ];
         var paginationArray = [
             {
@@ -2783,6 +2761,7 @@ router.post('/filter-v4', async (req, res) => {
                     }
                 }
                 defaultQuery.splice(3, 0, searchQuery);
+            
             } else {
                 console.log('NAVIGATION 2======>', req.body.navigation);
                 var searchQuery = {
@@ -2791,6 +2770,7 @@ router.post('/filter-v4', async (req, res) => {
                     }
                 }
                 defaultQuery.splice(3, 0, searchQuery);
+            
             }
         }
         // else {
@@ -2839,6 +2819,7 @@ router.post('/filter-v4', async (req, res) => {
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
+            
         }
         // else {
         //     var searchQuery = {
@@ -2922,17 +2903,29 @@ router.post('/filter-v4', async (req, res) => {
                 // res.json('ok');
 
                 if(data && data.length > 0){
-
                     var finalDaata = data.filter((c)=>{
                         if(c.car['totalBooking'] === c['availableBooking'].length){
-                            return c.car;
+
+                            if (c.car["service_location"] === undefined) {
+                                c.car["service_location"] = null
+                            }
+                            
+                            c.car['total_avg_rating'] = c['total_avg_rating'];
+                            c.car['availableBooking'] = c['availableBooking'];
+
+                            delete c.car['reviews'];
+                            delete c.car['booking'];
+
+                            return true;
                         }
-                    })
+                    });
+
+                    finalDaata = finalDaata.map((d) => { return d.car})
 
                     res.status(config.OK_STATUS).json({
                         status: "success",
                         message: "car data found",
-                        data: { cars: finalDaata }
+                        data: {cars : finalDaata }
                     });
                 }
                 else {
