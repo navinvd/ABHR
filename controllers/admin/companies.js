@@ -1072,6 +1072,14 @@ router.post('/car/add', (req, res, next) => {
                 each_callback()
             })
         }
+        var avaibility = JSON.parse(req.body.is_available);
+        var AvailObj = [];
+        for (var key in avaibility){
+            let datesobj = { "month": parseInt(key), "availability": avaibility[key]};
+            console.log('datesobj===.', datesobj);
+            AvailObj.push(datesobj);
+            }
+        req.body.is_available = AvailObj;
         req.body.car_gallery = galleryArray;
         var CarModel = new Car(req.body);
         CarModel.save(function (err, data) {
