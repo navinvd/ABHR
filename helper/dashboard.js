@@ -90,14 +90,12 @@ dashboardHelper.companyNoOfRentals = async (company_id) => {
             },
             {
                 "$group" : {
-                      _id : "$carCompanyDetails._id",
+                      _id : "$carDetails.car_rental_company_id",
                       total: { $sum: 1 }
                 }
             }
           ];
-        console.log( JSON.stringify(defaultQuery));
         let rentals = await CarBooking.aggregate(defaultQuery);
-        console.log('rentals===>',rentals);
         if (rentals !== null && rentals !== '' && rentals.length !== 0) {
             return { status: 'success', message: "Rental data found", data: rentals[0].total}
         }
@@ -108,6 +106,5 @@ dashboardHelper.companyNoOfRentals = async (company_id) => {
         return { status: 'failed', message: "Error occured while fetching coupon" , err:e};
     } 
 };
-
 
 module.exports = dashboardHelper;
