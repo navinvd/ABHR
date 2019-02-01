@@ -614,31 +614,30 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                 }
             },
             {
-                $sort : { 'from_time' : 1}
+                $sort: { 'from_time': 1 }
             }
 
         ]);
         if (data && data.length > 0) {
 
-            console.log('DATA===>',data);
+            console.log('DATA===>', data);
             // var currentDate = moment(Date.now()).format('YYYY-MM-DD');
             var currentDate = moment().toDate().toISOString(Date.now());
-            console.log('C Date=>',currentDate);
-            console.log('C Date IOS=>', moment().toDate().toISOString( Date.now() ))
+            console.log('C Date=>', currentDate);
+            console.log('C Date IOS=>', moment().toDate().toISOString(Date.now()))
 
-           console.log('MOment Db Date = >',moment("2019-01-28T05:19:50.975Z"))
-           console.log('MOment Current Date = >',moment());
-            
+            console.log('MOment Db Date = >', moment("2019-01-28T05:19:50.975Z"))
+            console.log('MOment Current Date = >', moment());
+
             var data1 = data.map((c) => {
                 // if(moment().diff(moment(c['from_time'])) > 0)
-                if(moment(currentDate) >= moment(c['from_time']))
-                {
+                if (moment(currentDate) >= moment(c['from_time'])) {
                     c['call_or_not'] = 'yes' // place manual call
                 }
-                else{
+                else {
                     c['call_or_not'] = 'no' // not call 
                 }
-                if(c['phone_number'] === undefined){
+                if (c['phone_number'] === undefined) {
                     c['phone_number'] = ""
                 }
 
@@ -650,7 +649,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
             })
 
             return { status: 'success', message: "Car booking upcomming history", data: { upcoming_history: data1 } }
-            
+
         }
         else {
             return { status: 'failed', message: "No car book yet" }
@@ -754,16 +753,16 @@ carHelper.history = async (user_id, history_type) => {
             $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(user_id),
-                'trip_status' :  { $in : ['delivering','returning'] } 
+                'trip_status': { $in: ['delivering', 'returning'] }
             }
-        } 
+        }
     }
     else if (history_type === 'cancelled') {
         var searchQuery = {
             $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(user_id),
-                'trip_status' : 'cancelled'
+                'trip_status': 'cancelled'
             }
         }
     }
@@ -773,7 +772,7 @@ carHelper.history = async (user_id, history_type) => {
 
     // sorting
     var sortData = {
-        $sort : { 'from_time' : 1}
+        $sort: { 'from_time': 1 }
     }
 
     defaultQuery.push(sortData);
@@ -785,17 +784,16 @@ carHelper.history = async (user_id, history_type) => {
 
         if (data && data.length > 0) {
 
-            var currentDate = moment().toDate().toISOString(Date.now());            
+            var currentDate = moment().toDate().toISOString(Date.now());
             var data1 = data.map((c) => {
                 // if(moment().diff(moment(c['from_time'])) > 0)
-                if(moment(currentDate) >= moment(c['from_time']))
-                {
+                if (moment(currentDate) >= moment(c['from_time'])) {
                     c['call_or_not'] = 'yes' // place manual call
                 }
-                else{
+                else {
                     c['call_or_not'] = 'no' // not call 
                 }
-                if(c['phone_number'] === undefined){
+                if (c['phone_number'] === undefined) {
                     c['phone_number'] = ""
                 }
 
@@ -964,7 +962,7 @@ carHelper.cancelBooking = async function (data) {
         //     ]
         // }
 
-        var condition = { 'booking_number' :  data.booking_number}
+        var condition = { 'booking_number': data.booking_number }
         var update_data = { $set: { cancel_date: data.cancel_date, cancel_reason: data.cancel_reason, trip_status: data.trip_status } };
 
         var datta = await CarBooking.update(condition, update_data);
@@ -972,10 +970,10 @@ carHelper.cancelBooking = async function (data) {
 
             var update_carAssign = await CarAssign.updateOne(condition, update_data);
 
-            if(update_carAssign && update_carAssign.n > 0){
+            if (update_carAssign && update_carAssign.n > 0) {
                 return { status: 'success', message: "Your car booking has been cancelled successfully" }
             }
-            else{
+            else {
                 return { status: 'failed', message: "Error occured while cancelling your car booking" }
             }
         }
@@ -1055,6 +1053,7 @@ carHelper.checkRadius = async function (data) {
 
 
 // car_handover for agent app
+
 carHelper.car_handover = async (req, car_handover_data) => {
     try {
 
@@ -1063,7 +1062,7 @@ carHelper.car_handover = async (req, car_handover_data) => {
             'car_id': car_handover_data.car_id,
             'car_rental_company_id': car_handover_data.car_rental_company_id,//
             'agent_id': car_handover_data.agent_id,
-            'defected_points': car_handover_data.defected_points,
+            'defected_points': JSON.parse(car_handover_data.defected_points),
             'milage': car_handover_data.milage,
             'petrol_tank': car_handover_data.petrol_tank,
             'notes': car_handover_data.notes ? car_handover_data.notes : null,
@@ -1138,22 +1137,227 @@ carHelper.car_handover = async (req, car_handover_data) => {
                         let booking_number = { booking_number: car_hand_over_data.booking_number };
                         let trip_status = { $set: { trip_status: 'inprogress' } };
 
-                        var  bookingUpdate = await CarBooking.updateOne(booking_number, trip_status);
+                        var bookingUpdate = await CarBooking.updateOne(booking_number, trip_status);
 
-                        if(bookingUpdate && bookingUpdate.n > 0){
+                        if (bookingUpdate && bookingUpdate.n > 0) {
                             // update data in car_assign_agent table as well
                             var car_assign_agent_Update = await CarAssign.updateOne(booking_number, trip_status);
 
-                            if(car_assign_agent_Update && car_assign_agent_Update.n > 0){
+                            if (car_assign_agent_Update && car_assign_agent_Update.n > 0) {
                                 return { status: "success", message: "Car hand over successfully" };
                             }
-                            else{
-                                return { status: "failed", message: "Error accured while update car_agent_assign collection" };    
+                            else {
+                                return { status: "failed", message: "Error accured while update car_agent_assign collection" };
                             }
                         }
-                        else{
-                            return { status: "failed", message: "Error accured while update car booking collection" };    
+                        else {
+                            return { status: "failed", message: "Error accured while update car booking collection" };
                         }
+
+                        // return { status: "success", message: "Car hand over successfully" };
+                    }
+                    else {
+                        return { status: "failed", message: "Error accured while uplaod signature" };
+                    }
+                }
+                else {
+                    return { status: 'failed', message: "Enter valid signature formate" };
+                }
+            }
+            else {
+                return { status: 'failed', message: "Please enter your signature" };
+            }
+            // Signature save
+        }
+        else {
+            return { status: 'failed', message: "Please enter signature" };
+        }
+
+    }
+    catch (err) {
+        return { status: 'failed', message: "Error accured while hand over car", err }
+    }
+};
+
+
+// car delivering process
+
+carHelper.car_delivering = async (req, car_handover_data) => {
+    try {
+
+        let car_hand_over_data = {
+            'user_id': car_handover_data.user_id,
+            'car_id': car_handover_data.car_id,
+            'car_rental_company_id': car_handover_data.car_rental_company_id,//
+            'agent_id': car_handover_data.agent_id,
+            'defected_points': JSON.parse(car_handover_data.defected_points),
+            'milage': car_handover_data.milage,
+            'petrol_tank': car_handover_data.petrol_tank,
+            'notes': car_handover_data.notes ? car_handover_data.notes : null,
+            'booking_number': car_handover_data.booking_number
+        }
+        // console.log('HElper =>', req.files)
+
+        var gallaryArray = [];
+        var makeEntry = 1;
+        if (req.files) {
+            if (req.files.car_defects_gallery) {
+                // console.log('Gallary=>',req.files)
+                var gallary = [];
+                // var gallaryArray = [];
+                var gallary = req.files.car_defects_gallery;
+                // var makeEntry = 1;
+                if (!Array.isArray(gallary)) {
+                    gallary = [gallary];
+                    console.log('DATATAT=>', gallary);
+                }
+                console.log('DATATAT=>', gallary);
+                var dir = "./upload/car_defect";
+                async.each(gallary, function (gal) {
+                    var extention = paths.extname(gal.name);
+                    var filename = "car_defect" + Date.now() + extention;
+                    var filepath = dir + '/' + filename;
+
+                    if (fs.existsSync(filepath)) {
+                        filename = "car_defect" + Date.now() + 1 + extention;
+                        filepath = dir + '/' + filename;
+                    }
+                    var json_gal = { name: filename, type: gal['mimetype'] }
+                    gallaryArray.push(json_gal);
+
+                    gal.mv(filepath, function (err) {
+                        if (err) {
+                            makeEntry = 0;
+                            return { status: "failed", message: "Error accured while uplaod car defected images" };
+                        }
+                    });
+
+                })
+
+            }
+
+            /** Save data ith signature */
+            // Signature save
+        }
+
+        if (makeEntry == 1) {
+            // car_hand_over_data.signature = savefilename;
+            car_hand_over_data.car_defects_gallery = gallaryArray;
+
+            let car_hand_over = new CarHandOver(car_hand_over_data);
+            let data = await car_hand_over.save();
+
+            // after car handnover we need to change car booking status to -> in-progress
+            let booking_number = { booking_number: car_hand_over_data.booking_number };
+            let trip_status = { $set: { trip_status: 'delivering' } };
+
+            var bookingUpdate = await CarBooking.updateOne(booking_number, trip_status);
+
+            if (bookingUpdate && bookingUpdate.n > 0) {
+                // update data in car_assign_agent table as well
+                var car_assign_agent_Update = await CarAssign.updateOne(booking_number, trip_status);
+
+                if (car_assign_agent_Update && car_assign_agent_Update.n > 0) {
+                    return { status: "success", message: "Start car delivering process" };
+                }
+                else {
+                    return { status: "failed", message: "Error accured while update car_agent_assign collection" };
+                }
+            }
+            else {
+                return { status: "failed", message: "Error accured while update car booking collection" };
+            }
+
+            // return { status: "success", message: "Car hand over successfully" };
+        }
+        else {
+            return { status: "failed", message: "Error accured while upload car defected images to server" };
+        }
+
+    }
+    catch (err) {
+        return { status: 'failed', message: "Error accured while car delivering", err }
+    }
+};
+
+//car_handover_v2
+carHelper.car_handover_v2 = async (req, booking_number, car_handover_data) => {
+    try {
+
+
+        // let car_hand_over_data = {
+        //     'user_id': car_handover_data.user_id,
+        //     'car_id': car_handover_data.car_id,
+        //     'car_rental_company_id': car_handover_data.car_rental_company_id,//
+        //     'agent_id': car_handover_data.agent_id,
+        //     'defected_points': car_handover_data.defected_points,
+        //     'milage': car_handover_data.milage,
+        //     'petrol_tank': car_handover_data.petrol_tank,
+        //     'notes': car_handover_data.notes ? car_handover_data.notes : null,
+        //     'booking_number': car_handover_data.booking_number
+        // }
+        // console.log('HElper =>', req.files)
+
+        if (req.files) {
+            /** Save data ith signature */
+            if (req.files.signature) {
+                var mimetype = config.mimetypes;
+                if (mimetype.indexOf(req.files.signature.mimetype) != -1) {
+                    // upload now
+                    console.log('Comming');
+                    var file = req.files.signature; // store entire file object
+                    var dir = "./upload/signature";
+                    var extention = paths.extname(file.name);
+                    var savefilename = "signature_" + Date.now() + extention;
+                    var makeEntry = 1;
+                    await file.mv(dir + '/' + savefilename, async function (err) {
+                        if (err) {
+                            makeEntry = 0;
+                            return { status: "failed", message: "Error accured while uplaod signature" };
+                        }
+                        else {
+                            console.log('HHHHHHHHHHHHH');
+                        }
+                    });
+
+                    if (makeEntry == 1) {
+                        var car_hand_over_data = car_handover_data;
+                        car_hand_over_data.signature = savefilename;
+
+                        // update collection car_handover
+
+                        var cond = { booking_number: booking_number };
+                        var setData = { $set: car_hand_over_data };
+
+                        var updateCarHandover = await CarHandOver.updateOne(cond, setData);
+
+                        if (updateCarHandover && updateCarHandover.n > 0) {
+                            // after car handnover we need to change car booking status to -> in-progress
+                            let book_number = { booking_number: booking_number };
+                            let trip_status = { $set: { trip_status: 'inprogress' } };
+
+                            var bookingUpdate = await CarBooking.updateOne(book_number, trip_status);
+
+                            if (bookingUpdate && bookingUpdate.n > 0) {
+                                // update data in car_assign_agent table as well
+                                var car_assign_agent_Update = await CarAssign.updateOne(book_number, trip_status);
+
+                                if (car_assign_agent_Update && car_assign_agent_Update.n > 0) {
+                                    return { status: "success", message: "Car hand over successfully" };
+                                }
+                                else {
+                                    return { status: "failed", message: "Error accured while update car_agent_assign collection" };
+                                }
+                            }
+                            else {
+                                return { status: "failed", message: "Error accured while update car booking collection" };
+                            }
+
+                        }
+                        else {
+                            return { status: "failed", message: "Error accured while update car handover collection" };
+                        }
+
 
                         // return { status: "success", message: "Car hand over successfully" };
                     }
@@ -1190,7 +1394,7 @@ carHelper.car_receive = async (req, car_handover_data) => {
             'car_id': car_handover_data.car_id,
             'car_rental_company_id': car_handover_data.car_rental_company_id,//
             'agent_id': car_handover_data.agent_id,
-            'defected_points': car_handover_data.defected_points,
+            'defected_points': JSON.stringify(car_handover_data.defected_points),
             'milage': car_handover_data.milage,
             'petrol_tank': car_handover_data.petrol_tank,
             'notes': car_handover_data.notes ? car_handover_data.notes : null,
@@ -1246,9 +1450,21 @@ carHelper.car_receive = async (req, car_handover_data) => {
         let booking_number = { booking_number: car_hand_over_data.booking_number };
         let trip_status = { $set: { trip_status: 'finished' } };
 
-        await CarBooking.updateOne(booking_number, trip_status);
+        var updateCarBooking = await CarBooking.updateOne(booking_number, trip_status);
 
-        return { status: "success", message: "Car has been receive successfully" };
+        if(updateCarBooking && updateCarBooking.n > 0){
+            var updateCarAssign = await CarAssign.updateOne(booking_number, trip_status);
+            if(updateCarAssign && updateCarAssign.n > 0){
+                return { status: "success", message: "Car has been receive successfully" };
+            }
+            else{
+                return { status: 'failed', message: "Error accured while update car assign collection" }
+            }
+        }
+        else{
+            return { status: 'failed', message: "Error accured while update car booking collection" }
+        }
+
     }
     catch (err) {
         return { status: 'failed', message: "Error accured while receive car", err }
