@@ -331,6 +331,7 @@ router.post('/booking-details', async (req, res) => {
                     car_handover_by_agent_id: 1,
                     car_receive_by_agent_id: 1,
                     image_name: "$carDetails.car_gallery",
+                    deposite: "$carDetails.deposit",
                     is_navigation: "$carDetails.is_navigation",
                     is_AC: "$carDetails.is_AC",
                     is_luggage_carrier: "$carDetails.is_luggage_carrier",
