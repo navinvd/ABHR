@@ -1126,13 +1126,15 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification to all agent
                 /** push notification process to all agent start */
 
-                var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1 }).lean().exec();
+                var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
                 agentList.map((agent, index) => {
                     if (agent.deviceToken !== undefined) {
-                        if (agent.deviceToken.length > 10) { // temp condition
-                            agentDeviceTokenArray.push(agent.deviceToken);
+                        if (agent.deviceToken !== null) {
+                            if (agent.deviceToken.length > 10) { // temp condition
+                                agentDeviceTokenArray.push(agent.deviceToken);
+                            }
                         }
                     }
                 });
@@ -1152,7 +1154,7 @@ router.post('/book', async (req, res) => {
                 }
 
                 /**  ------------Over push notification--------- */
-                res.status(config.OK_STATUS).json(bookingResp);
+                // res.status(config.OK_STATUS).json(bookingResp);
             }
             else {
                 res.status(config.BAD_REQUEST).json(bookingResp);
@@ -1966,16 +1968,16 @@ router.post('/filter123', async (req, res) => {
             },
             // {
             //     $match: {
-                    // $and: [
-                    //     {
-                    //         $or: [
-                    //             { car_book_from_date: { $gt: toDate } },
-                    //             { car_book_to_date: { $lt: fromDate } },
-                    //             { car_book_from_date: { $eq: null } }
-                    //         ]
-                    //     },
-                    //     { isDeleted: false }
-                    // ]
+            // $and: [
+            //     {
+            //         $or: [
+            //             { car_book_from_date: { $gt: toDate } },
+            //             { car_book_to_date: { $lt: fromDate } },
+            //             { car_book_from_date: { $eq: null } }
+            //         ]
+            //     },
+            //     { isDeleted: false }
+            // ]
             //     }
             // },
             {
@@ -1991,7 +1993,7 @@ router.post('/filter123', async (req, res) => {
                                 // { 'carBookingDetails.trip_status': { $eq: 'upcoming' } }, // add later                                
                             ]
                         },
-                        
+
                         {
                             // "service_location": { $geoWithin: { $centerSphere: [req.body.location, 124.274 / 3963.2] } }
                             //62.1371 = 100km
@@ -2484,8 +2486,6 @@ router.post('/test-not', async (req, res) => {
 
 
 // car filter v4
-
-
 router.post('/filter-v4', async (req, res) => {
     var schema = {
         'fromDate': {
@@ -2524,208 +2524,188 @@ router.post('/filter-v4', async (req, res) => {
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
         console.log(toDate);
         var defaultQuery = [
-            // {
-            //     "$match":{
-            //         "_id": new ObjectId("5c2dacff2ddfe072055f5e39")
-            //     }
-            // },
-            
             {
-              "$lookup": {
-                "from": "car_model",
-                "foreignField": "_id",
-                "localField": "car_model_id",
-                "as": "modelDetails"
-              }
-            },
-            {
-              "$unwind": {
-                "path": "$modelDetails",
-                "preserveNullAndEmptyArrays": true
-              }
-            },
-            {
-              "$lookup": {
-                "from": "car_brand",
-                "foreignField": "_id",
-                "localField": "car_brand_id",
-                "as": "brandDetails"
-              }
-            },
-            {
-              "$unwind": {
-                "path": "$brandDetails",
-                "preserveNullAndEmptyArrays": true
-              }
-            },
-              {
-              "$lookup": {
-                "from": "car_company",
-                "foreignField": "_id",
-                "localField": "car_rental_company_id",
-                "as": "companyDetails"
-              }
-            },
-            {
-              "$unwind": {
-                "path": "$companyDetails",
-                "preserveNullAndEmptyArrays": true
-              }
-            },
-            {
-              "$lookup": {
-                "from": "car_reviews",
-                "localField": "_id",
-                "foreignField": "car_id",
-                "as": "reviews"
-              }
-            },
-            {
-              "$lookup": {
-                "from": "car_booking",
-                "foreignField": "carId",
-                "localField": "_id",
-                "as": "carBookingDetails"
-              }
-            },
-            {
-              "$project": {
-                "_id": 1,
-                "car_rental_company_id": 1,
-                "car_brand": "$brandDetails.brand_name",
-                "car_model": "$modelDetails.model_name",
-                "car_model_number": "$modelDetails.model_number",
-                "car_model_release_year": "$modelDetails.release_year",
-                "car_color": 1,
-                "rent_price": 1,
-                "is_AC": 1,
-                "is_luggage_carrier": 1,
-                "licence_plate": 1,
-                "no_of_person": 1,
-                "transmission": 1,
-                "is_delieverd": 1,
-                "milage": 1,
-                "is_navigation": 1,
-                "driving_eligibility_criteria": 1,
-                "car_class": 1,
-                "is_avialable": 1,
-                "car_model_id": 1,
-                "car_brand_id": 1,
-                "isDeleted": 1,
-                "resident_criteria": 1,
-                "image_name": {
-                  "$arrayElemAt": [
-                    "$car_gallery.name",
-                    0
-                  ]
-                },
-                "totalBooking":{$size:"$carBookingDetails"},
-                "booking":"$carBookingDetails",
-                "service_location": "$companyDetails.service_location",
-                "reviews":1
-              }
+                "$lookup": {
+                    "from": "car_model",
+                    "foreignField": "_id",
+                    "localField": "car_model_id",
+                    "as": "modelDetails"
+                }
             },
             {
                 "$unwind": {
-                            "path" : "$booking",
-                            "preserveNullAndEmptyArrays": true
-                        }
+                    "path": "$modelDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
             },
             {
-              "$match": {
-                $and: [
-                  {
-                    $or: [
-                      {
-                        "booking.from_time": {
-                          $gt: new Date(toDate)
-                          
-                        }
-                      },
-                      {
-                        "booking.to_time": {
-                          $lt: new Date(fromDate)  
-                        }
-                      },
-                      { "booking": null }
-                    ]
-                  },
-                  {
-                    "isDeleted": false
-                  }
-                ]
-              }
-            },
-            
-            {
-               "$group":{
-                  "_id":"$_id",
-                  "data":{$first:"$$ROOT"},
-                  "availableBooking":{$push:"$booking.booking_number"}
-               }
+                "$lookup": {
+                    "from": "car_brand",
+                    "foreignField": "_id",
+                    "localField": "car_brand_id",
+                    "as": "brandDetails"
+                }
             },
             {
-              "$match": {
-                "$and": [
-                  {
-                    "data.service_location": {
-                      "$geoWithin": {
-                        "$centerSphere": [
-                          [
-                            72.7997356,
-                            21.1925707
-                          ],
-                          0.015678517359709324
+                "$unwind": {
+                    "path": "$brandDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "car_company",
+                    "foreignField": "_id",
+                    "localField": "car_rental_company_id",
+                    "as": "companyDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$companyDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "car_reviews",
+                    "localField": "_id",
+                    "foreignField": "car_id",
+                    "as": "reviews"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "car_booking",
+                    "foreignField": "carId",
+                    "localField": "_id",
+                    "as": "carBookingDetails"
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "car_rental_company_id": 1,
+                    "car_brand": "$brandDetails.brand_name",
+                    "car_model": "$modelDetails.model_name",
+                    "car_model_number": "$modelDetails.model_number",
+                    "car_model_release_year": "$modelDetails.release_year",
+                    "car_color": 1,
+                    "rent_price": 1,
+                    "is_AC": 1,
+                    "is_luggage_carrier": 1,
+                    "licence_plate": 1,
+                    "no_of_person": 1,
+                    "transmission": 1,
+                    "is_delieverd": 1,
+                    "milage": 1,
+                    "is_navigation": 1,
+                    "driving_eligibility_criteria": 1,
+                    "car_class": 1,
+                    "is_avialable": 1,
+                    "car_model_id": 1,
+                    "car_brand_id": 1,
+                    "isDeleted": 1,
+                    "resident_criteria": 1,
+                    "image_name": {
+                        "$arrayElemAt": [
+                            "$car_gallery.name",
+                            0
                         ]
-                      }
-                    }
-                  },
-                  {
-                    "$or": [
-                      {
-                        "data.resident_criteria": {
-                          "$eq": 1
+                    },
+                    "totalBooking": { $size: "$carBookingDetails" },
+                    "booking": "$carBookingDetails",
+                    "service_location": "$companyDetails.service_location",
+                    "reviews": 1
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$booking",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$match": {
+                    $and: [
+                        {
+                            $or: [
+                                {
+                                    "booking.from_time": {
+                                        $gt: new Date(toDate)
+
+                                    }
+                                },
+                                {
+                                    "booking.to_time": {
+                                        $lt: new Date(fromDate)
+                                    }
+                                },
+                                { "booking": null },
+                            ]
+                        },
+                        {
+                            "isDeleted": false
                         }
-                      },
-                      {
-                        "data.resident_criteria": {
-                          "$eq": 2
-                        }
-                      }
                     ]
-                  },
-                  {
-                    "data.isDeleted": false
-                  }
-                ]
-              }
+                }
+            },
+
+            {
+                "$group": {
+                    "_id": "$_id",
+                    "data": { $first: "$$ROOT" },
+                    "availableBooking": { $push: "$booking.booking_number" }
+                }
             },
             {
-              "$unwind": {
-                "path": "$data.reviews",
-                "preserveNullAndEmptyArrays": true
-              }
+                "$match": {
+                    "$and": [
+                        {
+                            "data.service_location": {
+                                "$geoWithin": {
+                                    "$centerSphere": [[req.body.longitude, req.body.latitude], 62.1371 / 3963.2]
+                                }
+                            }
+                        },
+                        {
+                            "$or": [
+                                {
+                                    "data.resident_criteria": {
+                                        "$eq": req.body.resident_type
+                                    }
+                                },
+                                {
+                                    "data.resident_criteria": {
+                                        "$eq": 2
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "data.isDeleted": false
+                        }
+                    ]
+                }
             },
             {
-              "$group": {
-                "_id": "$_id",
-                "total_avg_rating": {
-                  "$avg": "$data.reviews.stars"
-                },
-                "car": {
-                  "$first": "$data"
-                },
-                "availableBooking":{ "$first": "$availableBooking"}
-              }
+                "$unwind": {
+                    "path": "$data.reviews",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$_id",
+                    "total_avg_rating": {
+                        "$avg": "$data.reviews.stars"
+                    },
+                    "car": {
+                        "$first": "$data"
+                    },
+                    "availableBooking": { "$first": "$availableBooking" }
+                }
             }
-            
-
-            // {
-            //   "$sort": {
-            //     "total_avg_rating": -1
-            //   }
-            // }
-
         ];
         var paginationArray = [
             {
@@ -2783,6 +2763,7 @@ router.post('/filter-v4', async (req, res) => {
                     }
                 }
                 defaultQuery.splice(3, 0, searchQuery);
+
             } else {
                 console.log('NAVIGATION 2======>', req.body.navigation);
                 var searchQuery = {
@@ -2791,6 +2772,7 @@ router.post('/filter-v4', async (req, res) => {
                     }
                 }
                 defaultQuery.splice(3, 0, searchQuery);
+
             }
         }
         // else {
@@ -2839,6 +2821,7 @@ router.post('/filter-v4', async (req, res) => {
                 }
             }
             defaultQuery.splice(3, 0, searchQuery);
+
         }
         // else {
         //     var searchQuery = {
@@ -2917,17 +2900,29 @@ router.post('/filter-v4', async (req, res) => {
                     err
                 });
             } else {
-                console.log("DATATA===>",data);
-                
+                console.log("DATATA===>", data);
+
                 // res.json('ok');
 
-                if(data && data.length > 0){
+                if (data && data.length > 0) {
+                    var finalDaata = data.filter((c) => {
+                        if (c.car['totalBooking'] === c['availableBooking'].length) {
 
-                    var finalDaata = data.filter((c)=>{
-                        if(c.car['totalBooking'] === c['availableBooking'].length){
-                            return c.car;
+                            if (c.car["service_location"] === undefined) {
+                                c.car["service_location"] = null
+                            }
+
+                            c.car['total_avg_rating'] = c['total_avg_rating'];
+                            c.car['availableBooking'] = c['availableBooking'];
+
+                            delete c.car['reviews'];
+                            delete c.car['booking'];
+
+                            return true;
                         }
-                    })
+                    });
+
+                    finalDaata = finalDaata.map((d) => { return d.car })
 
                     res.status(config.OK_STATUS).json({
                         status: "success",
@@ -2943,7 +2938,7 @@ router.post('/filter-v4', async (req, res) => {
                 }
 
 
-                
+
 
 
 

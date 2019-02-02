@@ -732,6 +732,7 @@ router.post('/assign_or_not', async (req, res) => {
                             'trip_status': 'return'
                         }
 
+                        // before entry in db check if same user allocated for handover & receive then just update record
                         var carAssignResp = await CarHelper.assign_car_to_agent(agent_data);
 
                         if (carAssignResp.status === 'success') {

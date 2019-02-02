@@ -38,8 +38,10 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
 
             fcm.send(message, async (err, result) => {
                 if (err) {
+                    console.log('Not Send =>',err);
                     resolve({status : 'failed', message : 'Notification has not been sent', data : err })
                 } else {
+                    console.log('Send =>',result);
                     resolve({status : 'success', message : 'Notification has been sent successfully', data : result})
                 }   
             });
