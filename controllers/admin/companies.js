@@ -1215,6 +1215,16 @@ router.post('/car/edit', async (req, res, next) => {
         car_images.push(...new_images);
         car_images.push(...oldArray);
         console.log(car_images);
+        if(req.body.is_available !== undefined){
+            var avaibility = JSON.parse(req.body.is_available);
+            var AvailObj = [];
+            for (var key in avaibility){
+                let datesobj = { "month": parseInt(key), "availability": avaibility[key]};
+                console.log('datesobj===.', datesobj);
+                AvailObj.push(datesobj);
+            }
+            req.body.is_available = AvailObj;
+        }
         req.body.car_gallery = car_images;
         console.log('re.body=====>', req.body);
         Car.update({

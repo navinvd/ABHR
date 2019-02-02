@@ -302,13 +302,10 @@ userHelper.updateAddress = async function (user_id, address_id, new_address) {
 };
 
 
-
-
-
 // Logout user
 userHelper.logOut = async function (user_id, deviceToken) {
     try {
-        var data = await User.updateOne({ _id : new ObjectId(user_id), "deviceToken" : deviceToken }, { $set : { deviceToken : null } }  );
+        var data = await User.updateOne({ _id : new ObjectId(user_id), "deviceToken" : deviceToken }, { $set : { "deviceToken" : null } }  );
         if(data && data.n > 0){
             return { status: 'success', message: "You have been logout successfully" }
         }
