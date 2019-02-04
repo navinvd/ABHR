@@ -591,27 +591,43 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'car_company_terms_and_condition',
+                    localField: 'car_details.car_rental_company_id',
+                    foreignField: 'CompanyId',
+                    as: 'car_company_terms_and_condition_Details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_company_terms_and_condition_Details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $addFields: {
                     "car_details.car_brand": "$brand_details.brand_name",
                     "car_details.car_model": "$model_details.model_name",
                     "car_details.car_model_number": "$model_details.model_number",
                     "car_details.car_model_release_year": "$model_details.release_year",
+                    "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
                     "phone_number": "$companyDetails.phone_number"
                 }
             },
             {
-                // $match: {
-                //     'isDeleted': false,
-                //     'userId': new ObjectId(user_id),
-                //     'from_time': {
-                //         $gte: new Date(),
-                //     }
-                // }
                 $match: {
                     'isDeleted': false,
                     'userId': new ObjectId(user_id),
-                    'trip_status': "upcoming"
+                    'from_time': {
+                        $gt: new Date(),
+                    },
+                    'trip_status' : { $nin: [ 'cancelled', 'finished' ]}
                 }
+                // $match: {
+                //     'isDeleted': false,
+                //     'userId': new ObjectId(user_id),
+                //     'trip_status': "upcoming"
+                // }
             },
             {
                 $sort: { 'from_time': 1 }
@@ -722,11 +738,26 @@ carHelper.history = async (user_id, history_type) => {
             }
         },
         {
+            $lookup: {
+                from: 'car_company_terms_and_condition',
+                localField: 'car_details.car_rental_company_id',
+                foreignField: 'CompanyId',
+                as: 'car_company_terms_and_condition_Details'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$car_company_terms_and_condition_Details",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
             $addFields: {
                 "car_details.car_brand": "$brand_details.brand_name",
                 "car_details.car_model": "$model_details.model_name",
                 "car_details.car_model_number": "$model_details.model_number",
                 "car_details.car_model_release_year": "$model_details.release_year",
+                "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
                 "phone_number": "$companyDetails.phone_number"
             }
         }
@@ -753,7 +784,14 @@ carHelper.history = async (user_id, history_type) => {
             $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(user_id),
-                'trip_status': { $in: ['delivering', 'returning'] }
+                // 'trip_status': { $in: ['delivering', 'returning'] }
+
+                // add later
+                'from_time': {
+                    // $eq: new Date("2019-02-04"),
+                    $eq: new Date(moment().utcOffset(0).set({hour:0,minute:0,second:0,millisecond:0}).toISOString())
+                },
+                'trip_status' : { $nin: [ 'cancelled', 'finished' ]}
             }
         }
     }
@@ -950,7 +988,7 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
 
     var defaultQuery = [
         {
-            "$match" : { "_id" : new ObjectId(car_id) }
+            "$match": { "_id": new ObjectId(car_id) }
         },
         {
             "$lookup": {
@@ -960,7 +998,7 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
                 "as": "carBookingDetails"
             }
         },
-         {
+        {
             "$project": {
                 "_id": 1,
                 "totalBooking": { $size: "$carBookingDetails" },
@@ -1019,7 +1057,7 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
     try {
         let cars = await Car.aggregate(defaultQuery);
 
-        console.log('DATA=>',JSON.stringify(cars));
+        console.log('DATA=>', JSON.stringify(cars));
 
         if (cars && cars.length > 0) {
 
@@ -1031,15 +1069,15 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
 
             // console.log('Final DATA=>',finalDaata);
 
-            if(finalDaata && finalDaata.length > 0){
+            if (finalDaata && finalDaata.length > 0) {
                 finalDaata = finalDaata.map((d) => { return d.car })
-                return { status: 'success', message: "Car is available on this date"}
+                return { status: 'success', message: "Car is available on this date" }
                 // return { status: 'success', message: "Car is available on this date", data : finalDaata }
             }
-            else{
-                return { status: 'failed', message: "Car is not available on this date" }    
+            else {
+                return { status: 'failed', message: "Car is not available on this date" }
             }
-            
+
         } else {
             return { status: 'failed', message: "Car is not available on this date" }
         }
@@ -1562,17 +1600,17 @@ carHelper.car_receive = async (req, car_handover_data) => {
 
         var updateCarBooking = await CarBooking.updateOne(booking_number, trip_status);
 
-        if(updateCarBooking && updateCarBooking.n > 0){
+        if (updateCarBooking && updateCarBooking.n > 0) {
             // var updateCarAssign = await CarAssign.updateOne(booking_number, trip_status);
-            var updateCarAssign = await CarAssign.updateMany(booking_number, trip_status, {multi : true});
-            if(updateCarAssign && updateCarAssign.n > 0){
+            var updateCarAssign = await CarAssign.updateMany(booking_number, trip_status, { multi: true });
+            if (updateCarAssign && updateCarAssign.n > 0) {
                 return { status: "success", message: "Car has been receive successfully" };
             }
-            else{
+            else {
                 return { status: 'failed', message: "Error accured while update car assign collection" }
             }
         }
-        else{
+        else {
             return { status: 'failed', message: "Error accured while update car booking collection" }
         }
 
