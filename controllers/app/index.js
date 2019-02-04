@@ -125,12 +125,21 @@ router.post('/registration', async (req, res, next) => {
                             console.log('userdata===>',userData);
                             const u = userData;
 
-                            // const u = {
-                            //     _id:userData._id,
-                            //     first_name:userData.first_name,
-                            //     last_name:userData.last_name,
-                            //     email:userData.email
-                            // }
+                            var option = {
+                                to: userData.email,
+                                subject: 'ABHR - Registration Notification'
+                            }
+                            var data = {
+                                first_name: userData.first_name,
+                                last_name: userData.last_name
+                            }
+                            mailHelper.send('/welcome_email', option, data, function (err, res) {
+                                if (err) {
+                                    console.log('Mail Err:');
+                                } else {
+                                    console.log('Mail Success:');
+                                }
+                            })
                             var result = {
                                 status: 'success',
                                 message: "User registered successfully.",
@@ -352,6 +361,21 @@ router.post('/social_login', async (req, res, next) => {
                     var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
                         expiresIn: 60 * 60 * 24 // expires in 24 hours
                     });
+                    var option = {
+                        to: data.email,
+                        subject: 'ABHR - Registration Notification'
+                    }
+                    var emailData = {
+                        first_name: data.first_name,
+                        last_name: data.last_name
+                    }
+                    mailHelper.send('/welcome_email', option, emailData, function (err, res) {
+                        if (err) {
+                            console.log('Mail Err:');
+                        } else {
+                            console.log('Mail Success:');
+                        }
+                    })
                     var result = {
                         status: 'success',
                         message: "Login Successfully",
