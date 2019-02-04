@@ -175,8 +175,8 @@ router.post('/report_list', async (req, res, next) => {
                 defaultQuery.push({
                     $match: {
                         $and:[
-                            { "from_time": { $lte: To_date } },
-                            { "to_time": { $gte: From_date } },
+                            { "from_time": { $lte: new Date(req.body.selectToDate) } },
+                            { "to_time": { $gte: new Date(req.body.selectFromDate) } },
                         ]
                     },
                 })

@@ -659,13 +659,13 @@ router.post('/report_list', async (req, res, next) => {
                 $unwind: '$car_brand'
             }];
             if (req.body.selectFromDate && req.body.selectToDate) {
-                var From_date = moment(req.body.selectFromDate).utc();
-                var To_date = moment(req.body.selectToDate).utc();
+                var From_date = moment(req.body.selectFromDate);
+                var To_date = moment(req.body.selectToDate);
                 defaultQuery.push({
                     $match: {
                         $and:[
-                            { "from_time": { $lte: To_date } },
-                            { "to_time": { $gte: From_date } },
+                            { "from_time": { $lte: new Date(req.body.selectToDate) } },
+                            { "to_time": { $gte: new Date(req.body.selectFromDate) } },
                         ]
                     },
                 })
