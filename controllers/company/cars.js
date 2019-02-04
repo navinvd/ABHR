@@ -656,8 +656,8 @@ router.post('/report_list', async (req, res, next) => {
             });
 
             if (req.body.selectFromDate && req.body.selectToDate) {
-                var From_date = moment(req.body.date).utc();
-                var To_date = moment(req.body.date).utc();
+                var From_date = moment(req.body.selectFromDate).utc();
+                var To_date = moment(req.body.selectToDate).utc();
                 defaultQuery.push({
                     $match: {
                         $and:[

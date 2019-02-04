@@ -1074,6 +1074,7 @@ router.post('/car/add', (req, res, next) => {
         }
         var avaibility = JSON.parse(req.body.is_available);
         var AvailObj = [];
+        console.log('avaibility===>',avaibility);
         for (var key in avaibility){
             let datesobj = { "month": parseInt(key), "availability": avaibility[key]};
             console.log('datesobj===.', datesobj);
