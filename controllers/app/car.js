@@ -1140,7 +1140,8 @@ router.post('/book', async (req, res) => {
                     }
                 });
 
-                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number);
+                var notificationFor = "new-booking";
+                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor);
 
 
                 if (sendNotification.status === 'success') {
@@ -2984,6 +2985,75 @@ router.post('/filter-v4', async (req, res) => {
 });
 
 
+// Send Notification form user to agent app when user click in return button in user app
+router.post('/return-request',async(req,res)=>{
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var booking_number = req.body.booking_number;
+        
+        const updateStatusResp = await CarBooking.updateOne({'booking_number':booking_number},{$set:{'trip_status':'return'}});
+        if (updateStatusResp && updateStatusResp.n > 0) {
+            // send notification to all agent
+
+
+            var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
+
+
+                var agentDeviceTokenArray = [];
+                agentList.map((agent, index) => {
+                    if (agent.deviceToken !== undefined) {
+                        if (agent.deviceToken !== null) {
+                            if (agent.deviceToken.length > 10) { // temp condition
+                                agentDeviceTokenArray.push(agent.deviceToken);
+                            }
+                        }
+                    }
+                });
+
+                var notificationFor = "return-process";
+                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor);
+
+                if (sendNotification.status === 'success') {
+                    console.log('Notification send Success==>')
+                    // res.status(config.OK_STATUS).json(sendNotification);
+                    res.status(config.OK_STATUS).json('ok');
+                }
+                else {
+                    console.log('Notification not send failure', sendNotification)
+                    // res.status(config.BAD_REQUEST).json(sendNotification);
+                    res.status(config.OK_STATUS).json('error');
+                }
+
+
+
+
+
+
+
+
+            // res.json('ok')
+        }
+        else {
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Your request for return car has not been placed" })
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+
+});
 
 
 module.exports = router;
