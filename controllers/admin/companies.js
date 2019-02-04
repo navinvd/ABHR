@@ -614,6 +614,7 @@ router.post('/car/rental_list', (req, res, next) => {
                 "$project": {
                     "_id": 1,
                     "userId": "$user_details",
+                    "booking_rent":1,
                     "booking_number": 1,
                     "from_time": 1,
                     "to_time": 1,

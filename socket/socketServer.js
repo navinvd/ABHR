@@ -4,7 +4,7 @@ socketFunction.socketStartUp = function (server) {
     console.log('hereeeeee======');
     try{
         io.attach(server);
-        io.on('connection', function (socket) {
+        io.sockets.on('connection', function (socket) {
             // console.log('socket====',socket);
             console.log("New user is connected with socket:");
             socket.on('myowntest',(data)=>{
