@@ -1453,7 +1453,8 @@ carHelper.car_receive = async (req, car_handover_data) => {
         var updateCarBooking = await CarBooking.updateOne(booking_number, trip_status);
 
         if(updateCarBooking && updateCarBooking.n > 0){
-            var updateCarAssign = await CarAssign.updateOne(booking_number, trip_status);
+            // var updateCarAssign = await CarAssign.updateOne(booking_number, trip_status);
+            var updateCarAssign = await CarAssign.updateMany(booking_number, trip_status, {multi : true});
             if(updateCarAssign && updateCarAssign.n > 0){
                 return { status: "success", message: "Car has been receive successfully" };
             }
