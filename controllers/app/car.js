@@ -3003,9 +3003,7 @@ router.post('/return-request',async(req,res)=>{
         if (updateStatusResp && updateStatusResp.n > 0) {
             // send notification to all agent
 
-
             var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
-
 
                 var agentDeviceTokenArray = [];
                 agentList.map((agent, index) => {
@@ -3021,25 +3019,19 @@ router.post('/return-request',async(req,res)=>{
                 var notificationFor = "return-process";
                 var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor);
 
+                console.log('Not Status =>',sendNotification);
+
                 if (sendNotification.status === 'success') {
                     console.log('Notification send Success==>')
                     // res.status(config.OK_STATUS).json(sendNotification);
-                    res.status(config.OK_STATUS).json('ok');
+                    res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
                 }
                 else {
                     console.log('Notification not send failure', sendNotification)
                     // res.status(config.BAD_REQUEST).json(sendNotification);
-                    res.status(config.OK_STATUS).json('error');
+                    // res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Your request for return car has not been placed" });
+                    res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
                 }
-
-
-
-
-
-
-
-
-            // res.json('ok')
         }
         else {
             res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Your request for return car has not been placed" })
