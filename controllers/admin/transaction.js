@@ -1,0 +1,340 @@
+var express = require('express');
+var router = express.Router();
+var config = require('./../../config');
+var User = require('./../../models/users');
+var Company = require('./../../models/car_company');
+var CarBooking = require('./../../models/car_booking');
+var Transaction = require('./../../models/transaction');
+var Car = require('./../../models/cars');
+var path = require('path');
+var async = require("async");
+var ObjectId = require('mongoose').Types.ObjectId;
+var moment = require('moment');
+var _ = require('underscore');
+var mailHelper = require('./../../helper/mail');
+
+/**
+ * @api {post} /admin/transaction/list create transaction list for booking
+ * @apiName Listing of booking transaction
+ * @apiDescription This is for listing booking transaction
+ * @apiGroup Admin - Transaction
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} start pagination start page no
+ * @apiParam {String} end pagination length no of page length
+ * 
+ * @apiHeader {String}  Content-Type application/json   
+ * @apiHeader {String}  x-access-token Admin unique access-key  
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/list', async (req, res, next) => {
+
+    var schema = {
+        'start': {
+            notEmpty: true,
+            errorMessage: "start is required"
+        },
+        'length': {
+            notEmpty: true,
+            errorMessage: "length is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var defaultQuery = [
+            {
+              "$match": {
+                "isDeleted": false,
+              }
+            },
+            {
+              "$lookup": {
+                "from": "cars",
+                "localField": "carId",
+                "foreignField": "_id",
+                "as": "car_details",
+              }
+            },
+            {
+              "$unwind": {
+                "path": "$car_details",
+                "preserveNullAndEmptyArrays": true
+              }
+            },
+            {
+              "$lookup": {
+                "from": "car_booking",
+                "localField": "booking_number",
+                "foreignField": "booking_number",
+                "as": "car_booking_details",
+              }
+            },
+            {
+              "$unwind": {
+                  "path": "$car_booking_details",
+                  "preserveNullAndEmptyArrays": true
+              }
+            }, 
+            {
+              "$lookup": {
+                "from": "users",
+                "localField": "car_booking_details.car_handover_by_agent_id",
+                "foreignField": "_id",
+                "as": "agent_for_handover",
+              }
+            },
+            {
+              "$unwind": {
+                  "path": "$aget_for_handover",
+                  "preserveNullAndEmptyArrays": true
+              }
+            },
+            {
+              "$lookup": {
+                "from": "users",
+                "localField": "car_booking_details.car_receive_by_agent_id",
+                "foreignField": "_id",
+                "as": "agent_for_receive",
+              }
+            },
+            {
+              "$unwind": {
+                  "path": "$agent_for_receive",
+                  "preserveNullAndEmptyArrays": true
+              }
+            },
+            {
+              "$lookup": {
+                "from": "car_company",
+                "localField": "car_details.car_rental_company_id",
+                "foreignField": "_id",
+                "as": "car_compnay"
+              }
+            },
+            {
+              "$unwind": "$car_compnay"
+            },
+            {
+              "$lookup": {
+                "from": "car_model",
+                "localField": "car_details.car_model_id",
+                "foreignField": "_id",
+                "as": "car_model",
+              }
+            },
+            {
+              "$unwind": "$car_model"
+            },
+            {
+              "$lookup": {
+                "from": "car_brand",
+                "localField": "car_details.car_brand_id",
+                "foreignField": "_id",
+                "as": "car_brand",
+              }
+            },
+            {
+              "$unwind": "$car_brand"
+            },
+            {
+              "$lookup": {
+                "from": "users",
+                "localField": "userId",
+                "foreignField": "_id",
+                "as": "user_details",
+              }
+            },
+            {
+              "$unwind": {
+                "path":  "$user_details",
+                "preserveNullAndEmptyArrays": true,
+              }
+            },
+            {
+              "$project": {
+                "_id": 1,
+                "company_name": "$car_compnay.name",
+                "car_model": "$car_model.model_name",
+                "car_brand": "$car_brand.brand_name",
+                "isDeleted": 1,
+                "firts_name": "$user_details.first_name",
+                "last_name": "$user_details.last_name",
+                "from_time": 1,
+                "to_time": 1,
+                "Transaction_amount": 1,
+                "VAT": 1,
+                "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
+                "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
+                "car_receive_first_name": "$agent_for_receive.first_name",
+                "car_receive_last_name": "$agent_for_receive.last_name",
+                "booking_number": 1,
+                "deposite_amount": 1,
+                "coupon_code": 1,
+                "status": 1,
+              }
+            }
+          ];
+        if (req.body.selectFromDate && req.body.selectToDate) {
+            var From_date = moment(req.body.date).utc();
+            var To_date = moment(req.body.date).utc();
+            defaultQuery.push({
+                $match: {
+                    $and:[
+                        { "from_time": { $lte: To_date } },
+                        { "to_time": { $gte: From_date } },
+                    ]
+                },
+            })
+        }
+        console.log('defaultQuery', JSON.stringify(defaultQuery));
+        var totalrecords = await Transaction.aggregate(defaultQuery);
+
+        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+            if (req.body.search.value != undefined && req.body.search.value !== '') {
+                var regex = new RegExp(req.body.search.value);
+                var match = { $or: [] };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            console.log(typeof parseInt(req.body.search.value));
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            console.log('re.body.search==>', req.body.search.value);
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.push(searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
+        }
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            colname = '$' + colname;
+            var order = req.body.order[0].dir;
+            if (order == "asc") {
+                defaultQuery = defaultQuery.concat({
+                    $project: {
+                        "records": "$$ROOT",
+                        "sort_index": { "$toLower": [colname] }
+                    }
+                },
+                    {
+                        $sort: { "sort_index": 1 }
+                    },
+                    {
+                        $replaceRoot: { newRoot: "$records" }
+                    })
+            } else {
+                defaultQuery = defaultQuery.concat({
+                    $project: {
+                        "records": "$$ROOT",
+                        "sort_index": { "$toLower": [colname] }
+                    }
+                },
+                    {
+                        $sort: {
+                            "sort_index": -1
+                        }
+                    },
+                    {
+                        $replaceRoot: { newRoot: "$records" }
+                    })
+            }
+        }
+        if (req.body.start) {
+            defaultQuery.push({
+                "$skip": req.body.start
+            })
+        }
+        if (req.body.length) {
+            defaultQuery.push({
+                "$limit": req.body.length
+            })
+        }
+        console.log('defaultQuery===>', JSON.stringify(defaultQuery));
+        Transaction.aggregate(defaultQuery, function (err, data) {
+            console.log('data===>', data);
+            if (err) {
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: { data: data, recordsTotal: totalrecords.length }
+                });
+            }
+        })
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+/**
+ * @api {put} /admin/transaction/edit
+ * @apiName Edit Transaction
+ * @apiDescription Used to edit transaction
+ * @apiGroup Admin - Transaction
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} transaction_id Transaction Id
+ * @apiParam {String} status Status ["inprogress", "cancelled", "Successfull", "failed"]
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.put('/edit', (req, res, next) => {
+    var schema = {
+        'transaction_id': {
+            notEmpty: true,
+            errorMessage: "transaction_id is required"
+        },
+        'status':{
+            notEmpty: true,
+            errorMessage: "status is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        Transaction.update({
+            _id: new ObjectId(req.body.transaction_id)
+        }, {
+                $set: {
+                    'status': req.body.status
+                }
+            }, function (err, response) {
+                if (err) {
+                    return next(err);
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        message: "Status Changed successfully..",
+                    });
+                }
+            });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+module.exports = router;

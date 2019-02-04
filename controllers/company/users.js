@@ -116,41 +116,71 @@ router.post('/report_list', async (req, res, next) => {
                     "car_details.car_rental_company_id" : new ObjectId(req.body.company_id)
                 }
             }];
-            if (req.body.date) {
-                var date = moment(req.body.date).utc();
+            // if (req.body.date) {
+            //     var date = moment(req.body.date).utc();
+            //     defaultQuery.push({
+            //         $match: {
+            //             'from_time': { $lte: new Date(date) },
+            //             'to_time': { $gte: new Date(date) }
+            //         },
+            //     })
+            // }
+
+            defaultQuery.push(
+                {
+                    $project: {
+                        _id: 1,
+                        no_of_rented: 1,
+                        company_name: "$car_compnay.name",
+                        from_time: 1,
+                        to_time: 1,
+                        booking_rent: 1,
+                        isDeleted: 1,
+                        trip_status:1,
+                        first_name: "$user_details.first_name",
+                        last_name:"$user_details.last_name"
+                    }
+                });
+            // defaultQuery.push({
+            //     $group: {
+            //         "_id": "$carId",
+            //         "no_of_rented": { "$sum": 1 },
+            //         "company_name": { $first: "$car_compnay.name" },
+            //         "car_modal": { $first: "$car_model.model_name" },
+            //         "car_brand": { $first: "$car_brand.brand_name" },
+            //         "isDeleted": { $first: "$car_details.isDeleted" },
+            //         "totalrent": { "$sum": "$booking_rent" },
+            //         "first_name": { $first: "$user_details.first_name" },
+            //         "last_name": { $first: "$user_details.last_name" },
+            //     }
+            // },
+            // {
+            //     $project: {
+            //         _id: 1,
+            //         no_of_rented: 1,
+            //         company_name: 1,
+            //         car_modal: 1,
+            //         car_brand: 1,
+            //         isDeleted: 1,
+            //         totalrent: 1,
+            //         first_name: 1,
+            //         last_name:1
+            //     }
+            // });
+
+
+            if (req.body.selectFromDate && req.body.selectToDate) {
+                var From_date = moment(req.body.selectFromDate).utc();
+                var To_date = moment(req.body.selectToDate).utc();
                 defaultQuery.push({
                     $match: {
-                        'from_time': { $lte: new Date(date) },
-                        'to_time': { $gte: new Date(date) }
+                        $and:[
+                            { "from_time": { $lte: new Date(req.body.selectToDate) } },
+                            { "to_time": { $gte: new Date(req.body.selectFromDate) } },
+                        ]
                     },
                 })
             }
-            defaultQuery.push({
-                $group: {
-                    "_id": "$carId",
-                    "no_of_rented": { "$sum": 1 },
-                    "company_name": { $first: "$car_compnay.name" },
-                    "car_modal": { $first: "$car_model.model_name" },
-                    "car_brand": { $first: "$car_brand.brand_name" },
-                    "isDeleted": { $first: "$car_details.isDeleted" },
-                    "totalrent": { "$sum": "$booking_rent" },
-                    "first_name": { $first: "$user_details.first_name" },
-                    "last_name": { $first: "$user_details.last_name" },
-                }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    no_of_rented: 1,
-                    company_name: 1,
-                    car_modal: 1,
-                    car_brand: 1,
-                    isDeleted: 1,
-                    totalrent: 1,
-                    first_name: 1,
-                    last_name:1
-                }
-            });
 
         var totalrecords = await CarBooking.aggregate(defaultQuery);
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {

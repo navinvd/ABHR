@@ -16,11 +16,13 @@ var cars = require('./cars');
 var users = require('./users');
 var TNC = require('./terms_and_conditions');
 var dashboard = require('./dashboard');
+var Transaction = require('./transaction');
 
 router.use('/car', cars);
 router.use('/users', users);
 router.use('/terms_and_condition', TNC);
 router.use('/dashboard', dashboard);
+router.use('/transaction', Transaction);
 
 //models
 var Company = require('./../../models/car_company');
