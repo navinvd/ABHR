@@ -100,18 +100,6 @@ router.post('/report_list', async (req, res, next) => {
             {
                 $unwind: '$car_brand'
             }];
-        if (req.body.selectFromDate && req.body.selectToDate) {
-            var From_date = moment(req.body.date).utc();
-            var To_date = moment(req.body.date).utc();
-            defaultQuery.push({
-                $match: {
-                    $and:[
-                        { "from_time": { $lte: To_date } },
-                        { "to_time": { $gte: From_date } },
-                    ]
-                },
-            })
-        }
         defaultQuery.push(
         {
             $project: {
@@ -126,6 +114,19 @@ router.post('/report_list', async (req, res, next) => {
                 booking_rent:1
             }
         });
+
+        if (req.body.selectFromDate && req.body.selectToDate) {
+            var From_date = moment(req.body.date).utc();
+            var To_date = moment(req.body.date).utc();
+            defaultQuery.push({
+                $match: {
+                    $and:[
+                        { "from_time": { $lte: To_date } },
+                        { "to_time": { $gte: From_date } },
+                    ]
+                },
+            })
+        }
         // defaultQuery.push({
         //     $group: {
         //         "_id": "$carId",

@@ -519,7 +519,7 @@ router.post('/rented_list', (req, res, next) => {
  * @api {post} /company/cars/report_list create report list for cars
  * @apiName Listing of cars report
  * @apiDescription This is for listing car report
- * @apiGroup CompanyAdmin - Cars
+ * @apiGroup CompanyAdmin - Car
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
@@ -608,37 +608,65 @@ router.post('/report_list', async (req, res, next) => {
                     "car_details.car_rental_company_id" : new ObjectId(req.body.company_id)
                 }
             }];
-        if (req.body.date) {
-            var date = moment(req.body.date).utc();
-            defaultQuery.push({
-                $match: {
-                    'from_time': { $lte: new Date(date) },
-                    'to_time': { $gte: new Date(date) }
-                },
-            })
-        }
-        defaultQuery.push({
-            $group: {
-                "_id": "$carId",
-                "no_of_rented": { "$sum": 1 },
-                "company_name": { $first: "$car_compnay.name" },
-                "car_modal": { $first: "$car_model.model_name" },
-                "car_brand": { $first: "$car_brand.brand_name" },
-                "isDeleted": { $first: "$car_details.isDeleted" },
-                "totalrent": { "$sum": "$booking_rent" },
-            }
-        },
+        // if (req.body.date) {
+        //     var date = moment(req.body.date).utc();
+        //     defaultQuery.push({
+        //         $match: {
+        //             'from_time': { $lte: new Date(date) },
+        //             'to_time': { $gte: new Date(date) }
+        //         },
+        //     })
+        // }
+        // defaultQuery.push({
+        //     $group: {
+        //         "_id": "$carId",
+        //         "no_of_rented": { "$sum": 1 },
+        //         "company_name": { $first: "$car_compnay.name" },
+        //         "car_modal": { $first: "$car_model.model_name" },
+        //         "car_brand": { $first: "$car_brand.brand_name" },
+        //         "isDeleted": { $first: "$car_details.isDeleted" },
+        //         "totalrent": { "$sum": "$booking_rent" },
+        //     }
+        // },
+        //     {
+        //         $project: {
+        //             _id: 1,
+        //             no_of_rented: 1,
+        //             company_name: 1,
+        //             car_modal: 1,
+        //             car_brand: 1,
+        //             isDeleted: 1,
+        //             totalrent: 1,
+        //         }
+        //     });
+
+        defaultQuery.push(
             {
                 $project: {
                     _id: 1,
-                    no_of_rented: 1,
-                    company_name: 1,
-                    car_modal: 1,
-                    car_brand: 1,
-                    isDeleted: 1,
-                    totalrent: 1,
+                    company_name: "$car_compnay.name",
+                    car_modal: "$car_model.model_name",
+                    car_brand: "$car_brand.brand_name",
+                    isDeleted: "$car_details.isDeleted",
+                    from_time: 1,
+                    to_time: 1,
+                    trip_status:1,
+                    booking_rent:1
                 }
             });
+
+            if (req.body.selectFromDate && req.body.selectToDate) {
+                var From_date = moment(req.body.date).utc();
+                var To_date = moment(req.body.date).utc();
+                defaultQuery.push({
+                    $match: {
+                        $and:[
+                            { "from_time": { $lte: To_date } },
+                            { "to_time": { $gte: From_date } },
+                        ]
+                    },
+                })
+            }
         var totalrecords = await CarBooking.aggregate(defaultQuery);
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {

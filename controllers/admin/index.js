@@ -22,6 +22,7 @@ var car = require('./car');
 var terms_and_conditions = require('./terms_and_conditions');
 var coupon = require('./coupons');
 var dashboard = require('./dashboard');
+var transaction = require('./transaction');
 
 router.use('/user', users);
 router.use('/keyword', keywords);
@@ -32,6 +33,7 @@ router.use('/cars', car);
 router.use('/legal_settings', terms_and_conditions);
 router.use('/coupon', coupon);
 router.use('/dashboard', dashboard);
+router.use('/transaction', transaction);
 
 //models
 var User = require('./../../models/users');
