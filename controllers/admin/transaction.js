@@ -8,7 +8,7 @@ var _ = require('underscore');
 
 /**
  * @api {post} /admin/transaction/report_list create transaction report list for booking
- * @apiName Listing of booking transaction
+ * @apiName Listing of transaction reports
  * @apiDescription This is for listing booking transaction
  * @apiGroup Admin - Transaction
  * @apiVersion 0.0.0
@@ -304,11 +304,7 @@ router.post('/list', async (req, res, next) => {
         'length': {
             notEmpty: true,
             errorMessage: "length is required"
-        },
-        'company_id': {
-            notEmpty: true,
-            errorMessage: "company_id is required"
-        },
+        }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
