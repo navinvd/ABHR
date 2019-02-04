@@ -8,7 +8,7 @@ var _ = require('underscore');
 
 /**
  * @api {post} /company/transaction/report_list create transaction list for booking
- * @apiName Listing of booking transaction
+ * @apiName Listing of transaction booking
  * @apiDescription This is for listing booking transaction
  * @apiGroup CompanyAdmin - Transaction
  * @apiVersion 0.0.0
