@@ -941,6 +941,116 @@ carHelper.checkCarAvaibility = async function (car_id, fromDate, days) {
     }
 };
 
+
+// // check for car availbility on specific date v2
+
+carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
+    var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
+    console.log(toDate);
+
+    var defaultQuery = [
+        {
+            "$match" : { "_id" : new ObjectId(car_id) }
+        },
+        {
+            "$lookup": {
+                "from": "car_booking",
+                "foreignField": "carId",
+                "localField": "_id",
+                "as": "carBookingDetails"
+            }
+        },
+         {
+            "$project": {
+                "_id": 1,
+                "totalBooking": { $size: "$carBookingDetails" },
+                "booking": "$carBookingDetails",
+            }
+        },
+        {
+            "$unwind": {
+                "path": "$booking",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            "$match": {
+                $and: [
+                    {
+                        $or: [
+                            {
+                                "booking.from_time": {
+                                    $gt: new Date(toDate)
+
+                                }
+                            },
+                            {
+                                "booking.to_time": {
+                                    $lt: new Date(fromDate)
+                                }
+                            },
+                            { "booking": null },
+                        ]
+                    },
+                    {
+                        "booking.isDeleted": false
+                    }
+                ]
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id",
+                "data": { $first: "$$ROOT" },
+                "availableBooking": { $push: "$booking.booking_number" }
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id",
+                "car": {
+                    "$first": "$data"
+                },
+                "availableBooking": { "$first": "$availableBooking" }
+            }
+        }
+    ];
+
+    try {
+        let cars = await Car.aggregate(defaultQuery);
+
+        console.log('DATA=>',JSON.stringify(cars));
+
+        if (cars && cars.length > 0) {
+
+            var finalDaata = cars.filter((c) => {
+                if (c.car['totalBooking'] === c['availableBooking'].length) {
+                    return true;
+                }
+            });
+
+            // console.log('Final DATA=>',finalDaata);
+
+            if(finalDaata && finalDaata.length > 0){
+                finalDaata = finalDaata.map((d) => { return d.car })
+                return { status: 'success', message: "Car is available on this date"}
+                // return { status: 'success', message: "Car is available on this date", data : finalDaata }
+            }
+            else{
+                return { status: 'failed', message: "Car is not available on this date" }    
+            }
+            
+        } else {
+            return { status: 'failed', message: "Car is not available on this date" }
+        }
+    } catch (err) {
+        console.log("Err : ", err);
+        return { status: 'failed', message: "Error occured while finding car", err };
+    }
+};
+
+
+
 //carBook
 carHelper.carBook = async function (booking_data) {
     let car_booking = new CarBooking(booking_data);

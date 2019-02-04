@@ -889,7 +889,7 @@ router.post('/booking/history', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/checkCarAvailability', async (req, res) => {
+router.post('/checkCarAvailability-v2', async (req, res) => {
     var schema = {
         'car_id': {
             notEmpty: true,
@@ -918,7 +918,8 @@ router.post('/checkCarAvailability', async (req, res) => {
         let car_id = req.body.car_id;
         let fromDate = req.body.fromDate;
         let days = req.body.days;
-        const carResp = await carHelper.checkCarAvaibility(car_id, fromDate, days);
+        // const carResp = await carHelper.checkCarAvaibility(car_id, fromDate, days);
+        const carResp = await carHelper.checkCarAvaibility_v2(car_id, fromDate, days);
         if (carResp.status === 'success') {
             res.status(config.OK_STATUS).json(carResp);
         }
