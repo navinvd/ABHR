@@ -575,6 +575,20 @@ router.post('/car/rental_list', (req, res, next) => {
             },
             {
                 $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$user_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
                     from: 'car_brand',
                     localField: 'car_details.car_brand_id',
                     foreignField: '_id',
@@ -599,7 +613,8 @@ router.post('/car/rental_list', (req, res, next) => {
             {
                 "$project": {
                     "_id": 1,
-                    "userId": 1,
+                    "userId": "$user_details",
+                    "booking_rent":1,
                     "booking_number": 1,
                     "from_time": 1,
                     "to_time": 1,
