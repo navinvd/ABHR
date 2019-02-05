@@ -1,10 +1,26 @@
 var FCM = require('fcm-node');
+var apn = require('apn'); // for ios
+
 var config = require('./../config');
-var serverKey = config.ANDROID_SERVER_KEY; // ask for mobile dev
+var serverKey = config.ANDROID_SERVER_KEY; // ask for mobile dev Android
+
+var ioskey = 'AuthKey_Y4T4B4SFZB.p8'
 
 var fcm = new FCM(serverKey);
 
 var push_notification_helper = {};
+
+var options = {
+    token: {
+      key: ioskey,
+      keyId: "Y4T4B4SFZB",
+      teamId: "H7KK72LLTC"
+    },
+    production: false
+  };
+
+var apnProvider = new apn.Provider(options); // IOS
+
 
 // send notification to all agent when new car has been booked or return request from user app
 push_notification_helper.sendToAndroid = async (device_token, car_booking_number, notificationFor) => {
@@ -64,6 +80,26 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
 
     } catch (err) {
         return { status: 'failed', "message": "Error occured while sending push notification to android device", err }
+    }
+}
+
+
+
+// Send push notification to user IOS APP when new car book
+push_notification_helper.sendToIOS = async (device_token, car_booking_number, notificationType) => {
+    try {
+        var note = new apn.Notification();
+
+        note.alert =  "Your car has been booked";
+        note.payload = {"booking_number":car_booking_number,"notification_type":notificationType};
+        note.topic = "com.Abhr";
+        let result = await apnProvider.send(note, device_token);
+
+        console.log('RESULT for user APP Notification =>',JSON.stringify(result));
+
+        return { status: 'success', message: 'Notification has been sent successfully', data: result }
+    } catch (err) {
+        return { status: 'failed', "message": "Error occured while sending push notification to IOS device", err }
     }
 }
 
