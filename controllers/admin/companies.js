@@ -6,6 +6,7 @@ var Company = require('./../../models/car_company');
 var CarTermsAndCondition = require('./../../models/company_terms_and_condition');
 var Place = require('./../../models/places');
 var CarBooking = require('./../../models/car_booking');
+var Coupon = require('./../../models/coupon');
 var Car = require('./../../models/cars');
 var path = require('path');
 var async = require("async");
@@ -296,20 +297,18 @@ router.put('/delete', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Company.update({
-            _id: {
-                $eq: req.body.company_id
-            }
-        }, {
-                $set: {
-                    'isDeleted': true
-                }
-            }, function (err, response) {
+        Company.update({ "_id": new ObjectId(req.body.company_id)}, {$set: {'isDeleted': true}}, function (err, response) {
                 if (err) {
                     return next(err);
                 } else {
-                    res.status(config.OK_STATUS).json({
-                        message: "Company Deleted successfully..",
+                    Coupon.updateMany({"car_rental_company_id" : new ObjectId(req.body.company_id)}, {$set: {'isDeleted': true}}, function (err, res){
+                        if (err) {
+                            return next(err);
+                        } else {
+                            res.status(config.OK_STATUS).json({
+                                message: "Company Deleted successfully..",
+                            });
+                        }
                     });
                 }
             });

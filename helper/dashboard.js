@@ -15,7 +15,7 @@ dashboardHelper.NoOfCompaines = async () => {
             return { status: 'success', message: "Companies data found", data: companies}
         }
         else {
-            return { status: 'failed', message: "Error occured while fetching coupon" };
+            return { status: 'success', message: "No Company Data found", data:companies};
         }
     } catch(e){
         return { status: 'failed', message: "Error occured while fetching coupon" };
@@ -30,7 +30,7 @@ dashboardHelper.NoOfCars = async () => {
             return { status: 'success', message: "Cars data found", data: cars}
         }
         else {
-            return { status: 'failed', message: "Error occured while fetching coupon" };
+            return { status: 'success', message: "No car Data found" };
         }
     } catch(e){
         return { status: 'failed', message: "Error occured while fetching coupon" };
@@ -45,7 +45,7 @@ dashboardHelper.NoOfRentals = async () => {
             return { status: 'success', message: "Rental data found", data: rentals}
         }
         else {
-            return { status: 'failed', message: "Error occured while fetching coupon" };
+            return { status: 'success', message: "No rental data found" };
         }
     } catch(e){
         return { status: 'failed', message: "Error occured while fetching coupon" };
@@ -60,7 +60,7 @@ dashboardHelper.companyNoOfCars = async (company_id) => {
             return { status: 'success', message: "Cars data found", data: cars}
         }
         else {
-            return { status: 'failed', message: "Error occured while fetching coupon" };
+            return { status: 'success', message: "No Car data found" };
         }
     } catch(e){
         return { status: 'failed', message: "Error occured while fetching coupon" };
@@ -100,7 +100,7 @@ dashboardHelper.companyNoOfRentals = async (company_id) => {
             return { status: 'success', message: "Rental data found", data: rentals[0].total}
         }
         else {
-            return { status: 'failed', message: "No rental data found" };
+            return { status: 'success', message: "No rental data found" };
         }
     } catch(e){
         return { status: 'failed', message: "Error occured while fetching coupon" , err:e};
