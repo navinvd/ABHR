@@ -457,20 +457,19 @@ router.post('/list', async (req, res, next) => {
               }
             }
           ];
-        if (req.body.selectFromDate && req.body.selectToDate) {
-            var From_date = moment(req.body.date).utc();
-            var To_date = moment(req.body.date).utc();
+          if (req.body.selectFromDate && req.body.selectToDate) {
+            var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+            var To_date = moment(req.body.selectToDate).utc().startOf('day');
             defaultQuery.push({
                 $match: {
-                    $and:[
-                        { "from_time": { $lte: To_date } },
-                        { "to_time": { $gte: From_date } },
-                    ]
-                },
+                      $and: [
+                                { "from_time": { $gte: new Date(From_date) } },
+                                { "to_time": { $lte: new Date(To_date) } },
+                            ]
+                        }
             })
         }
         console.log('defaultQuery', JSON.stringify(defaultQuery));
-        var totalrecords = await Transaction.aggregate(defaultQuery);
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -534,6 +533,7 @@ router.post('/list', async (req, res, next) => {
                     })
             }
         }
+        var totalrecords = await Transaction.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start

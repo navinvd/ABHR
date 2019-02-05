@@ -9,6 +9,7 @@ var fs = require('fs');
 var path = require('path');
 var async = require("async");
 const carHelper = require('./../../helper/car');
+var moment = require('moment');
 
 /**
  * @api {post} /company/car/add Add car
@@ -608,37 +609,6 @@ router.post('/report_list', async (req, res, next) => {
                     "car_details.car_rental_company_id" : new ObjectId(req.body.company_id)
                 }
             }];
-        // if (req.body.date) {
-        //     var date = moment(req.body.date).utc();
-        //     defaultQuery.push({
-        //         $match: {
-        //             'from_time': { $lte: new Date(date) },
-        //             'to_time': { $gte: new Date(date) }
-        //         },
-        //     })
-        // }
-        // defaultQuery.push({
-        //     $group: {
-        //         "_id": "$carId",
-        //         "no_of_rented": { "$sum": 1 },
-        //         "company_name": { $first: "$car_compnay.name" },
-        //         "car_modal": { $first: "$car_model.model_name" },
-        //         "car_brand": { $first: "$car_brand.brand_name" },
-        //         "isDeleted": { $first: "$car_details.isDeleted" },
-        //         "totalrent": { "$sum": "$booking_rent" },
-        //     }
-        // },
-        //     {
-        //         $project: {
-        //             _id: 1,
-        //             no_of_rented: 1,
-        //             company_name: 1,
-        //             car_modal: 1,
-        //             car_brand: 1,
-        //             isDeleted: 1,
-        //             totalrent: 1,
-        //         }
-        //     });
 
         defaultQuery.push(
             {
@@ -656,18 +626,17 @@ router.post('/report_list', async (req, res, next) => {
             });
 
             if (req.body.selectFromDate && req.body.selectToDate) {
-                var From_date = moment(req.body.selectFromDate).utc();
-                var To_date = moment(req.body.selectToDate).utc();
+                var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+                var To_date = moment(req.body.selectToDate).utc().startOf('day');
                 defaultQuery.push({
                     $match: {
-                        $and:[
-                            { "from_time": { $lte: new Date(req.body.selectToDate) } },
-                            { "to_time": { $gte: new Date(req.body.selectFromDate) } },
-                        ]
-                    },
+                          $and: [
+                                    { "from_time": { $gte: new Date(From_date) } },
+                                    { "to_time": { $lte: new Date(To_date) } },
+                                ]
+                            }
                 })
             }
-        var totalrecords = await CarBooking.aggregate(defaultQuery);
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -731,6 +700,7 @@ router.post('/report_list', async (req, res, next) => {
                     })
             }
         }
+        var totalrecords = await CarBooking.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
