@@ -116,19 +116,21 @@ couponHelper.applyCoupon = async (user_id, coupon_code) => {
             }
             else {
                 // coupon applied successfully
-                let data = {
-                    "couponId": coupon[0]._id,
-                    "userId": user_id
-                }
-                let add_user_coupon = new UserCoupon(data);
-                let apply = await add_user_coupon.save();
-                if (apply.is_coupon_applied) {
-                    console.log('APPLY===>', apply);
-                    return { status: 'success', message: "Coupon has been applied successfully", data: { discount: coupon[0].discount_rate } }
-                }
-                else {
-                    return { status: 'failed', message: "Error occured while applying coupon" };
-                }
+                // let data = {
+                //     "couponId": coupon[0]._id,
+                //     "userId": user_id
+                // }
+                // let add_user_coupon = new UserCoupon(data);
+                // let apply = await add_user_coupon.save();
+                // if (apply.is_coupon_applied) {
+                //     console.log('APPLY===>', apply);
+                //     return { status: 'success', message: "Coupon has been applied successfully", data: { discount: coupon[0].discount_rate } }
+                // }
+                // else {
+                //     return { status: 'failed', message: "Error occured while applying coupon" };
+                // }
+
+                return { status: 'success', message: "Coupon has been applied successfully", data: { discount: coupon[0].discount_rate } }
             }
         }
         else {

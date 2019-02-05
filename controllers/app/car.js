@@ -9,6 +9,8 @@ const CarBooking = require('./../../models/car_booking');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const Users = require('./../../models/users');
+const Coupon = require('./../../models/coupon');
+const UserCoupon = require('./../../models/user_coupon');
 const CarNotification = require('./../../models/car_notification');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
@@ -1121,8 +1123,20 @@ router.post('/book', async (req, res) => {
                 console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
                 var car_booking_number = bookingResp.data.booking_data['booking_number'];
 
-                // after booking change car avaibility status to false // no need now
-                // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : false } } );              
+                /*store coupon entry in user_coupon collection*/
+                if (bookingResp.data.booking_data.coupon_code !== null || bookingResp.data.booking_data.coupon_code !== undefined) {
+                    // make entry
+                    var findCoupon = await Coupon.find({ 'coupon_code': bookingResp.data.booking_data.coupon_code });
+                    if (findCoupon && findCoupon.length > 0) {
+                        let data = {
+                            "couponId": findCoupon[0]._id,
+                            "userId": bookingResp.data.booking_data.userId 
+                        }
+                        let add_user_coupon = new UserCoupon(data);
+                        let apply = await add_user_coupon.save();
+                    }
+                }
+                /* coupon over */
 
                 // after car booking need to send push notification to all agent
                 /** push notification process to all agent start */
@@ -2986,7 +3000,7 @@ router.post('/filter-v4', async (req, res) => {
 
 
 // Send Notification form user to agent app when user click in return button in user app
-router.post('/return-request',async(req,res)=>{
+router.post('/return-request', async (req, res) => {
     var schema = {
         'booking_number': {
             notEmpty: true,
@@ -2998,40 +3012,40 @@ router.post('/return-request',async(req,res)=>{
     if (!errors) {
 
         var booking_number = req.body.booking_number;
-        
-        const updateStatusResp = await CarBooking.updateOne({'booking_number':booking_number},{$set:{'trip_status':'return'}});
+
+        const updateStatusResp = await CarBooking.updateOne({ 'booking_number': booking_number }, { $set: { 'trip_status': 'return' } });
         if (updateStatusResp && updateStatusResp.n > 0) {
             // send notification to all agent
 
             var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
 
-                var agentDeviceTokenArray = [];
-                agentList.map((agent, index) => {
-                    if (agent.deviceToken !== undefined) {
-                        if (agent.deviceToken !== null) {
-                            if (agent.deviceToken.length > 10) { // temp condition
-                                agentDeviceTokenArray.push(agent.deviceToken);
-                            }
+            var agentDeviceTokenArray = [];
+            agentList.map((agent, index) => {
+                if (agent.deviceToken !== undefined) {
+                    if (agent.deviceToken !== null) {
+                        if (agent.deviceToken.length > 10) { // temp condition
+                            agentDeviceTokenArray.push(agent.deviceToken);
                         }
                     }
-                });
-
-                var notificationFor = "return-process";
-                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor);
-
-                console.log('Not Status =>',sendNotification);
-
-                if (sendNotification.status === 'success') {
-                    console.log('Notification send Success==>')
-                    // res.status(config.OK_STATUS).json(sendNotification);
-                    res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
                 }
-                else {
-                    console.log('Notification not send failure', sendNotification)
-                    // res.status(config.BAD_REQUEST).json(sendNotification);
-                    // res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Your request for return car has not been placed" });
-                    res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
-                }
+            });
+
+            var notificationFor = "return-process";
+            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor);
+
+            console.log('Not Status =>', sendNotification);
+
+            if (sendNotification.status === 'success') {
+                console.log('Notification send Success==>')
+                // res.status(config.OK_STATUS).json(sendNotification);
+                res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
+            }
+            else {
+                console.log('Notification not send failure', sendNotification)
+                // res.status(config.BAD_REQUEST).json(sendNotification);
+                // res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Your request for return car has not been placed" });
+                res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
+            }
         }
         else {
             res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Your request for return car has not been placed" })
