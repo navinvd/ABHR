@@ -1120,10 +1120,13 @@ router.post('/book', async (req, res) => {
 
             if (bookingResp.status === 'success') {
 
+                console.log('DATTA==>', data);
+
                 console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
                 var car_booking_number = bookingResp.data.booking_data['booking_number'];
 
                 /*store coupon entry in user_coupon collection*/
+                
                 if (bookingResp.data.booking_data.coupon_code !== null || bookingResp.data.booking_data.coupon_code !== undefined) {
                     // make entry
                     var findCoupon = await Coupon.find({ 'coupon_code': bookingResp.data.booking_data.coupon_code });
@@ -1136,11 +1139,32 @@ router.post('/book', async (req, res) => {
                         let apply = await add_user_coupon.save();
                     }
                 }
+                
                 /* coupon over */
+
+
+                // after car booking need to send push notification ther user on IOS APP 
+                /** push notification process to user app start */
+
+                var userDeviceToken = await Users.find({'_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
+                var deviceToken = '';
+                console.log('User token =>',userDeviceToken);
+                if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+                    if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+                        // agentDeviceTokenArray.push(agent.deviceToken);
+                        deviceToken = userDeviceToken[0].deviceToken;
+                    }
+                }
+
+                var notificationType = 1; // means notification for booking 
+                console.log('Dev Token=>',deviceToken);
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType);
+
+                /** Push notofication for user app over */
+
 
                 // after car booking need to send push notification to all agent
                 /** push notification process to all agent start */
-
                 var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
@@ -1156,8 +1180,8 @@ router.post('/book', async (req, res) => {
 
                 var notificationFor = "new-booking";
                 var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor);
-
-
+                
+                /** Notification over for agent */
                 if (sendNotification.status === 'success') {
                     console.log('Notification send Success==>')
                     // res.status(config.OK_STATUS).json(sendNotification);
@@ -1168,9 +1192,6 @@ router.post('/book', async (req, res) => {
                     // res.status(config.BAD_REQUEST).json(sendNotification);
                     res.status(config.OK_STATUS).json(bookingResp);
                 }
-
-                /**  ------------Over push notification--------- */
-                // res.status(config.OK_STATUS).json(bookingResp);
             }
             else {
                 res.status(config.BAD_REQUEST).json(bookingResp);
