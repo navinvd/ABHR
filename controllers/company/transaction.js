@@ -180,18 +180,19 @@ router.post('/report_list', async (req, res, next) => {
               }
             }
           ];
-        if (req.body.selectFromDate && req.body.selectToDate) {
+          if (req.body.selectFromDate && req.body.selectToDate) {
+            var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+            var To_date = moment(req.body.selectToDate).utc().startOf('day');
             defaultQuery.push({
                 $match: {
-                    $and:[
-                        { "from_time": { $lte: new Date(req.body.selectToDate) } },
-                        { "to_time": { $gte: new Date(req.body.selectFromDate) } },
-                    ]
-                },
+                      $and: [
+                                { "from_time": { $gte: new Date(From_date) } },
+                                { "to_time": { $lte: new Date(To_date) } },
+                            ]
+                        }
             })
         }
         console.log('defaultQuery', JSON.stringify(defaultQuery));
-        var totalrecords = await Transaction.aggregate(defaultQuery);
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -255,6 +256,7 @@ router.post('/report_list', async (req, res, next) => {
                     })
             }
         }
+        var totalrecords = await Transaction.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
