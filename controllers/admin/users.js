@@ -563,7 +563,7 @@ router.get('/details/:id', (req, res, next) => {
 });
 
 /**
- * @api {post} /admin/users/report_list create report list for cars
+ * @api {post} /admin/user/report_list create report list for cars
  * @apiName Listing of users report
  * @apiDescription This is for listing user report
  * @apiGroup Admin - Users
@@ -594,11 +594,11 @@ router.post('/report_list', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         var defaultQuery = [
-            {
-                $match: {
-                    "isDeleted": false
-                },
-            },
+            // {
+            //     $match: {
+            //         "isDeleted": false
+            //     },
+            // },
             {
                 $lookup: {
                     from: 'cars',
@@ -658,46 +658,19 @@ router.post('/report_list', async (req, res, next) => {
             {
                 $unwind: '$car_brand'
             }];
-            if (req.body.selectFromDate && req.body.selectToDate) {
-                var From_date = moment(req.body.selectFromDate);
-                var To_date = moment(req.body.selectToDate);
-                defaultQuery.push({
-                    $match: {
-                        $and:[
-                            { "from_time": { $lte: new Date(req.body.selectToDate) } },
-                            { "to_time": { $gte: new Date(req.body.selectFromDate) } },
-                        ]
-                    },
-                })
-            }
-            // defaultQuery.push({
-            //     $group: {
-            //         "_id": "$carId",
-            //         "no_of_rented": { "$sum": 1 },
-            //         "company_name": { $first: "$car_compnay.name" },
-            //         "car_modal": { $first: "$car_model.model_name" },
-            //         "car_brand": { $first: "$car_brand.brand_name" },
-            //         "isDeleted": { $first: "$car_details.isDeleted" },
-            //         "totalrent": { "$sum": "$booking_rent" },
-            //         "first_name": { $first: "$user_details.first_name" },
-            //         "last_name": { $first: "$user_details.last_name" },
-            //     }
-            // },
-            // {
-            //     $project: {
-            //         _id: 1,
-            //         no_of_rented: 1,
-            //         company_name: 1,
-            //         car_modal: 1,
-            //         car_brand: 1,
-            //         isDeleted: 1,
-            //         totalrent: 1,
-            //         first_name: 1,
-            //         last_name:1
-            //     }
-            // });
-
-            defaultQuery.push(
+        if (req.body.selectFromDate && req.body.selectToDate) {
+            var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+            var To_date = moment(req.body.selectToDate).utc().startOf('day');
+            defaultQuery.push({
+                $match: {
+                      $and: [
+                                { "from_time": { $gte: new Date(From_date) } },
+                                { "to_time": { $lte: new Date(To_date) } },
+                            ]
+                        }
+            })
+        }
+        defaultQuery.push(
             {
                 $project: {
                     _id: 1,
@@ -707,12 +680,11 @@ router.post('/report_list', async (req, res, next) => {
                     to_time: 1,
                     booking_rent: 1,
                     isDeleted: 1,
-                    trip_status:1,
+                    trip_status: 1,
                     first_name: "$user_details.first_name",
-                    last_name:"$user_details.last_name"
+                    last_name: "$user_details.last_name"
                 }
             });
-        var totalrecords = await CarBooking.aggregate(defaultQuery);
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
@@ -732,12 +704,10 @@ router.post('/report_list', async (req, res, next) => {
                     }
                 });
             }
-            console.log('re.body.search==>', req.body.search.value);
             var searchQuery = {
                 $match: match
             }
             defaultQuery.push(searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
         }
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
@@ -774,6 +744,7 @@ router.post('/report_list', async (req, res, next) => {
                     })
             }
         }
+        var totalrecords = await CarBooking.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
@@ -784,9 +755,9 @@ router.post('/report_list', async (req, res, next) => {
                 "$limit": req.body.length
             })
         }
-        console.log('defaultQuery===>', JSON.stringify(defaultQuery));
+        // console.log('defaultQuery===>', JSON.stringify(defaultQuery));
         CarBooking.aggregate(defaultQuery, function (err, data) {
-            console.log('data===>', data);
+            // console.log('data===>', data);
             if (err) {
                 return next(err);
             } else {
@@ -835,11 +806,11 @@ router.post('/verify', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         var updateData = {};
-        if(req.body.driving_license_verification) {
-            updateData = Object.assign({}, {"driving_license_verification" : 2});
+        if (req.body.driving_license_verification) {
+            updateData = Object.assign({}, { "driving_license_verification": 2 });
         }
-        if(req.body.id_card_verification) {
-            updateData = Object.assign(updateData, {"id_card_verification" : 2});
+        if (req.body.id_card_verification) {
+            updateData = Object.assign(updateData, { "id_card_verification": 2 });
         }
         User.update({ _id: { $eq: req.body.user_id } }, { $set: updateData }, function (err, response) {
             if (err) {
@@ -849,9 +820,9 @@ router.post('/verify', async (req, res, next) => {
                     error: err
                 });
             } else {
-                res.status(config.OK_STATUS).json({ 
+                res.status(config.OK_STATUS).json({
                     status: "success",
-                    message: "Document Verified successfully!!!" 
+                    message: "Document Verified successfully!!!"
                 });
             }
         });
