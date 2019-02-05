@@ -236,9 +236,6 @@ router.post('/report_list', async (req, res, next) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/export_report_list', async (req, res, next) => {
-    req.checkBody(schema);
-    var errors = req.validationErrors();
-    if (!errors) {
         var defaultQuery = [
             {
                 $match: {
@@ -382,11 +379,6 @@ router.post('/export_report_list', async (req, res, next) => {
             }
         }
         var totalrecords = await CarBooking.aggregate(defaultQuery);
-        if (req.body.start) {
-            defaultQuery.push({
-                "$skip": req.body.start
-            })
-        }
         console.log('defaultQuery===>', JSON.stringify(defaultQuery));
         CarBooking.aggregate(defaultQuery, function (err, data) {
             console.log('data===>', data);
@@ -399,12 +391,6 @@ router.post('/export_report_list', async (req, res, next) => {
                 });
             }
         })
-    } else {
-        res.status(config.BAD_REQUEST).json({
-            message: "Validation Error",
-            error: errors
-        });
-    }
 });
 
 
