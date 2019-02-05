@@ -9,6 +9,7 @@ var fs = require('fs');
 var path = require('path');
 var async = require("async");
 const carHelper = require('./../../helper/car');
+var moment = require('moment');
 
 /**
  * @api {post} /company/car/add Add car
