@@ -57,9 +57,9 @@ termsandconditionHelper.updateCompanyData = async function (companyId, updateDat
         let companyadmin = await CompanyTemrsAndCondition.update({"CompanyId": new ObjectId(companyId), "isDeleted":false},{ $set: updateData});
         console.log(companyadmin);
         if (typeof companyadmin !== 'undefined' && companyadmin !== null) {
-            return { status: 'success', message: "Terms & Condition data updated successfully", data: companyadmin }
+            return { status: 'success', message: "Record updated successfully", data: companyadmin }
         } else {
-            return { status: 'failed', message: "No Terms & Condition data found" }
+            return { status: 'failed', message: "No Record found" }
         }
     } catch (err) {
         return { status: 'failed', message: "Error occured while finding data", err };

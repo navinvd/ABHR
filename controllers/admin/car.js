@@ -196,10 +196,18 @@ router.post('/report_list', async (req, res, next) => {
                 "$skip": req.body.start
             })
         }
-        if (req.body.length) {
-            defaultQuery.push({
-                "$limit": req.body.length
-            })
+        if(req.body.isExport){
+            if (req.body.length) {
+                defaultQuery.push({
+                    "$limit": 999999999
+                })
+            }
+        }else{
+            if (req.body.length) {
+                defaultQuery.push({
+                    "$limit": req.body.length
+                })
+            }
         }
         console.log('defaultQuery===>', JSON.stringify(defaultQuery));
         CarBooking.aggregate(defaultQuery, function (err, data) {

@@ -131,13 +131,11 @@ router.post('/add', (req, res, next) => {
                                 to: userData.email,
                                 subject: 'ABHR - Agent Account Notification'
                             }
-                            var loginURL = config.FRONT_END_URL + '#/admin/login';
                             var data = {
                                 first_name: userData.first_name,
                                 last_name: userData.last_name,
                                 email: userData.email,
-                                password: generatepassword,
-                                link: loginURL
+                                password: generatepassword
                             }
                             mailHelper.send('/agents/add_agent', option, data, function (err, res) {
                                 if (err) {
