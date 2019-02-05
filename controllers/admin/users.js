@@ -216,7 +216,6 @@ router.post('/list', async (req, res, next) => {
                 }
             }
         ]);
-        totalRecords = await User.aggregate(defaultQuery);
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
@@ -280,6 +279,7 @@ router.post('/list', async (req, res, next) => {
                     })
             }
         }
+        totalRecords = await User.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
