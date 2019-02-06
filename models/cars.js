@@ -80,8 +80,7 @@ var CarSchema = new Schema({
         enum: ["economy", "luxury", "suv", "family"]
     },
     driving_eligibility_criteria: {
-        type: Number,
-        default: 18,
+        type: String,
     },
     is_available: [AvaibilitySchema],
     is_delieverd: {

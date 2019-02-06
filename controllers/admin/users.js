@@ -269,16 +269,17 @@ router.post('/list', async (req, res, next) => {
                         "sort_index": { "$toLower": [colname] }
                     }
                 },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
+                {
+                    $sort: {
+                        "sort_index": -1
+                    }
+                },
+                {
+                    $replaceRoot: { newRoot: "$records" }
+                })
             }
         }
+        console.log('defaultQuery===>',defaultQuery);
         totalRecords = await User.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({

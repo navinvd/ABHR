@@ -24,7 +24,7 @@
     <%= title %>
   </p> -->
   <script>
-    var user = io();
+    var user = io('http://localhost:4000');
     user.emit('myowntest',{"name":"riddhi","long":"564.56345653"});
 
     function JoinSocket() {
