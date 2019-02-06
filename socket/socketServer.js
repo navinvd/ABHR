@@ -7,7 +7,7 @@ socketFunction.socketStartUp = function (server) {
         io.on('connection', function (client) {
             console.log('New user is connected with socket:');
             client.on('myowntest', function (data) {
-                console.log("data => myowntest ",data.name + " " + data.long);
+                console.log("data => myowntest ",data);
             });
         
             client.on('sendTrakingObject', function (data) {
