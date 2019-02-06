@@ -9,16 +9,61 @@
 </head>
 
 <body>
+    <input type="text" id="ride_id" name="ride_id" value="" placeholder="Enter ride id"><br/>
+    <input type="text" id="user_id" name="user_id" value="" placeholder="Enter user id"><br/>
+    <input type="text" id="message" name="message" placeholder="Enter message"/>
+    <br/><br/>
+    <button type="button" onclick="SendMessage()">Send</button>
+    <button type="button" onclick="JoinSocket()">Join</button>
   <script src="/socket.io/socket.io.js"></script>
-  <h1>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <!-- <h1>
     <%= title %>
   </h1>
   <p>Welcome to
     <%= title %>
-  </p>
+  </p> -->
   <script>
-    var user = io();
+    var user = io('http://localhost:4000');
     user.emit('myowntest',{"name":"riddhi","long":"564.56345653"});
+
+    function JoinSocket() {
+      user.emit('JoinSocket', {user_id: "2"}, function (responseData) {
+            console.log('data', responseData);
+
+        });
+    }
+
+    function SendMessage() {
+        var ride_id = document.getElementById("ride_id").value;
+        var user_id = document.getElementById("user_id").value;
+        var message = document.getElementById("message").value;
+        var test={ride_id:ride_id, user_id:user_id, message:message};
+
+        user.emit('myowntest',test, function (responseData) {
+            //console.log('nirav');
+            console.log('data', responseData);
+        });
+
+    }
+    function JoinSocket() {
+        var ride_id = document.getElementById("ride_id").value;
+        var user_id = document.getElementById("user_id").value;
+
+        var test={ride_id:ride_id, user_id:user_id};
+
+        user.emit('JoinSocketGroup',test, function (responseData) {
+            //console.log('nirav');
+            console.log('data', responseData);
+        });
+
+    }
+
+    user.on('ReceiveMessage', function (msg) {
+        console.log('Response:', msg);
+        $('#messages').append($('<li>').text(msg['message']));
+
+    });
   </script>
 </body>
 </html>
