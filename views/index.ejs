@@ -40,7 +40,7 @@
         var message = document.getElementById("message").value;
         var test={ride_id:ride_id, user_id:user_id, message:message};
 
-        user.emit('SendNewMessage',test, function (responseData) {
+        user.emit('myowntest',test, function (responseData) {
             //console.log('nirav');
             console.log('data', responseData);
         });
