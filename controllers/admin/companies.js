@@ -300,17 +300,17 @@ router.put('/delete', (req, res, next) => {
         Company.update({ "_id": new ObjectId(req.body.company_id)}, {$set: {'isDeleted': true}}, function (err, response) {
                 if (err) {
                     res.status(config.BAD_REQUEST).json({
-                        message: "Something Went Wrong Please Try Again..",
+                        message: "Something Went Wrong Please Try Again.."
                     });
                 } else {
-                    Coupon.updateMany({"car_rental_company_id" : new ObjectId(req.body.company_id)}, {$set: {'isDeleted': true}}, function (err, res){
+                    Coupon.updateMany({"car_rental_company_id" : new ObjectId(req.body.company_id)}, {$set: {'isDeleted': true}}, function (err, data){
                         if (err) {
                             res.status(config.BAD_REQUEST).json({
-                                message: "Something Went Wrong Please Try Again..",
+                                message: "Something Went Wrong Please Try Again.."
                             });
                         } else {
                             res.status(config.OK_STATUS).json({
-                                message: "Company Deleted successfully..",
+                                message: "Company Deleted successfully.."
                             });
                         }
                     });
