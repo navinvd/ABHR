@@ -410,7 +410,7 @@ router.post('/export_report_list', async (req, res, next) => {
                 "car_model": "$car_model.model_name",
                 "car_brand": "$car_brand.brand_name",
                 "isDeleted": 1,
-                "firts_name": "$user_details.first_name",
+                "first_name": "$user_details.first_name",
                 "last_name": "$user_details.last_name",
                 "from_time": 1,
                 "to_time": 1,
