@@ -13,6 +13,18 @@ socketFunction.socketStartUp = function (server) {
             client.on('sendTrakingObject', function (data) {
                 console.log("data => sendTrakingObject ",data.UserId + " " + data.BookingNumber + " " + data.Latitude + " " + data.Longitude + " " + data.AgentId);
             });
+
+            client.on('JoinSocketGroup', function (data) {
+                console.log('joinsocket group==>', data);
+            });
+
+            client.on('SendNewMessage', function (data) {
+                console.log('SendNewMessage group==>', data);
+            });
+
+            client.on('JoinSocket', function (data) {
+                console.log('JoinSocket group==>', data);
+            });
         });
 
     } catch(e){
