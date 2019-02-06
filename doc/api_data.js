@@ -1038,6 +1038,83 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/admin/tracking/returning",
+    "title": "List of car which is in delivering process",
+    "name": "Car_Delivering_List",
+    "description": "<p>To display cars which is in delivering process</p>",
+    "group": "Admin___Car_Tracking",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/car_tracking.js",
+    "groupTitle": "Admin___Car_Tracking"
+  },
+  {
+    "type": "post",
     "url": "/admin/tracking/delivering",
     "title": "List of car which is in delivering process",
     "name": "Car_Delivering_List",
@@ -1365,6 +1442,63 @@ define({ "api": [
         ]
       }
     },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/car.js",
+    "groupTitle": "Admin___Cars"
+  },
+  {
+    "type": "post",
+    "url": "/admin/cars/export_report_list",
+    "title": "create report list for cars",
+    "name": "Listing_of_export_cars_report",
+    "description": "<p>This is for listing car report</p>",
+    "group": "Admin___Cars",
+    "version": "0.0.0",
     "header": {
       "fields": {
         "Header": [
@@ -3142,7 +3276,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/dashboard.js",
+    "filename": "controllers/company/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -3199,7 +3333,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/company/dashboard.js",
+    "filename": "controllers/admin/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -4074,6 +4208,83 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/admin/transaction/export_report_list",
+    "title": "create transaction export report list for booking",
+    "name": "Listing_of_transaction_export_reports",
+    "description": "<p>This is for listing export booking transaction</p>",
+    "group": "Admin___Transaction",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/transaction.js",
+    "groupTitle": "Admin___Transaction"
+  },
+  {
+    "type": "post",
     "url": "/admin/transaction/report_list",
     "title": "create transaction report list for booking",
     "name": "Listing_of_transaction_reports",
@@ -4151,9 +4362,9 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/admin/users/report_list",
+    "url": "/admin/user/export_report_list",
     "title": "create report list for cars",
-    "name": "Listing_of_users_report",
+    "name": "Listing_of_export_users_list",
     "description": "<p>This is for listing user report</p>",
     "group": "Admin___Users",
     "version": "0.0.0",
@@ -4224,6 +4435,90 @@ define({ "api": [
       }
     },
     "filename": "controllers/admin/users.js",
+    "groupTitle": "Admin___Users"
+  },
+  {
+    "type": "post",
+    "url": "/company/users/export_report_list",
+    "title": "create report list for cars",
+    "name": "Listing_of_users_export_report_list",
+    "description": "<p>This is for listing user export report</p>",
+    "group": "Admin___Users",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "company_id",
+            "description": "<p>companyId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/users.js",
     "groupTitle": "Admin___Users"
   },
   {
@@ -4308,6 +4603,83 @@ define({ "api": [
       }
     },
     "filename": "controllers/company/users.js",
+    "groupTitle": "Admin___Users"
+  },
+  {
+    "type": "post",
+    "url": "/admin/user/report_list",
+    "title": "create report list for cars",
+    "name": "Listing_of_users_report",
+    "description": "<p>This is for listing user report</p>",
+    "group": "Admin___Users",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/users.js",
     "groupTitle": "Admin___Users"
   },
   {
@@ -8920,6 +9292,90 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/company/cars/export_report_list",
+    "title": "create report list for cars",
+    "name": "Listing_of_cars_export_report_list",
+    "description": "<p>This is for listing car report</p>",
+    "group": "CompanyAdmin___Car",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "company_id",
+            "description": "<p>companyId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/cars.js",
+    "groupTitle": "CompanyAdmin___Car"
+  },
+  {
+    "type": "post",
     "url": "/company/cars/report_list",
     "title": "create report list for cars",
     "name": "Listing_of_cars_report",
@@ -9081,6 +9537,69 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/company/car/details",
+    "title": "Add car",
+    "name": "add_Car",
+    "description": "<p>Used for Display details Car</p>",
+    "group": "CompanyAdmin___Car",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "car_id",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>id of Car</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/cars.js",
+    "groupTitle": "CompanyAdmin___Car"
+  },
+  {
+    "type": "post",
     "url": "/company/car/add",
     "title": "Add car",
     "name": "add_Car",
@@ -9201,69 +9720,6 @@ define({ "api": [
             "optional": false,
             "field": "deposit",
             "description": "<p>deposit for car</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/company/cars.js",
-    "groupTitle": "CompanyAdmin___Car"
-  },
-  {
-    "type": "post",
-    "url": "/company/car/details",
-    "title": "Add car",
-    "name": "add_Car",
-    "description": "<p>Used for Display details Car</p>",
-    "group": "CompanyAdmin___Car",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "car_id",
-            "optional": false,
-            "field": "car_id",
-            "description": "<p>id of Car</p>"
           }
         ]
       }
@@ -9732,6 +10188,70 @@ define({ "api": [
             "optional": false,
             "field": "x-access-token",
             "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/transaction.js",
+    "groupTitle": "CompanyAdmin___Transaction"
+  },
+  {
+    "type": "post",
+    "url": "/company/transaction/export_report_list",
+    "title": "create transaction list for booking",
+    "name": "Listing_of_transaction_export_booking",
+    "description": "<p>This is for listing export booking transaction</p>",
+    "group": "CompanyAdmin___Transaction",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "company_id",
+            "description": "<p>CompanyId</p>"
           }
         ]
       }

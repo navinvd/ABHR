@@ -4,6 +4,7 @@ var express = require('express');
 var path = require('path');
 var async = require("async");
 var User = require('./../../models/users');
+var Company = require('./../../models/car_company');
 var config = require('./../../config');
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcrypt');
@@ -91,67 +92,68 @@ router.post('/registration', async (req, res, next) => {
             type: req.body.user_type,
             app_user_status: "only registered"
         };
-        User.findOne({email: req.body.email, isDeleted: false}, function (err, data) {
-            if (err) {
-                res.status(config.BAD_REQUEST).json({
+        var usercheck  = await User.findOne({email: req.body.email, isDeleted: false});
+        console.log('usercheck====>', usercheck);
+        if(usercheck){
+            res.status(config.OK_STATUS).json({
+                status: 'failed',
+                message: "Email is already exist!!"
+            });
+        }else{
+            var companycheck = await Company.findOne({email: req.body.email});
+            if(companycheck){
+                res.status(config.OK_STATUS).json({
                     status: 'failed',
-                    message: "could not register user please try again!!"
+                    message: "Email is already exist!!"
                 });
-            } else {
-                if (data) {
-                    res.status(config.OK_STATUS).json({
-                        status: 'failed',
-                        message: "Email is already exist!!"
-                    });
-                } else {
+            }else{
                     var userModel = new User(Data);
-                    userModel.save(function (err, userData) {
-                        userData = JSON.parse(JSON.stringify(userData));
-                        console.log("data:", userData);
-                        if (err) {
-                            res.status(config.BAD_REQUEST).json({
-                                status: 'failed',
-                                message: "could not register user please try again!!"
-                            });
-                        } else {
-                            var token = jwt.sign({id: userData._id, type: userData.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-                                expiresIn: 60 * 60 * 24 // expires in 24 hours
-                            });
-                            delete userData.password;
-                            delete userData.otp_email;
-                            delete userData.otp;
-                            delete userData.isDeleted;
+                        userModel.save(function (err, userData) {
+                            userData = JSON.parse(JSON.stringify(userData));
+                            console.log("data:", userData);
+                            if (err) {
+                                res.status(config.BAD_REQUEST).json({
+                                    status: 'failed',
+                                    message: "could not register user please try again!!"
+                                });
+                            } else {
+                                var token = jwt.sign({id: userData._id, type: userData.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                                    expiresIn: 60 * 60 * 24 // expires in 24 hours
+                                });
+                                delete userData.password;
+                                delete userData.otp_email;
+                                delete userData.otp;
+                                delete userData.isDeleted;
 
-                            console.log('userdata===>',userData);
-                            const u = userData;
+                                console.log('userdata===>',userData);
+                                const u = userData;
 
-                            var option = {
-                                to: userData.email,
-                                subject: 'ABHR - Registration Notification'
-                            }
-                            var data = {
-                                first_name: userData.first_name,
-                                last_name: userData.last_name
-                            }
-                            mailHelper.send('/welcome_email', option, data, function (err, res) {
-                                if (err) {
-                                    console.log('Mail Err:');
-                                } else {
-                                    console.log('Mail Success:');
+                                var option = {
+                                    to: userData.email,
+                                    subject: 'ABHR - Registration Notification'
                                 }
-                            })
-                            var result = {
-                                status: 'success',
-                                message: "User registered successfully.",
-                                data: {user : userData},
-                                token: token
-                            };
-                            res.status(config.OK_STATUS).json(result);
-                        }
-                    });
-                }
+                                var data = {
+                                    first_name: userData.first_name,
+                                    last_name: userData.last_name
+                                }
+                                mailHelper.send('/welcome_email', option, data, function (err, res) {
+                                    if (err) {
+                                        console.log('Mail Err:');
+                                    } else {
+                                        console.log('Mail Success:');
+                                    }
+                                })
+                                var result = {
+                                    status: 'success',
+                                    message: "User registered successfully.",
+                                    data: {user : userData},
+                                    token: token
+                                };
+                                res.status(config.OK_STATUS).json(result);
+                            }
+                        });
             }
-        })
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
