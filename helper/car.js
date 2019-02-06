@@ -1696,7 +1696,7 @@ carHelper.car_report_list = async (user_id) => {
             return { status: 'success', message: "Car Reported list", data: { car_report_list: data } }
         }
         else {
-            return { status: 'failed', message: "No car reported yet", data: data }
+            return { status: 'failed', message: "No car reported yet"}
         }
 
     } catch (err) {
