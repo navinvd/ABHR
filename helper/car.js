@@ -1221,7 +1221,7 @@ carHelper.cancelBooking = async function (data) {
         /* calculate cancellation charge START */
 
         
-        /*
+        
         var default_query = [
             {
                 $match: { "booking_number": { $eq: data.booking_number } }
@@ -1261,6 +1261,8 @@ carHelper.cancelBooking = async function (data) {
                     "userId": 1,
                     "from_time": 1,
                     "to_time": 1,
+                    "booking_rent" : 1,
+                    "days" : 1,
                     "booking_number": 1,
                     "companyId": "$car_company_terms_and_condition_details.CompanyId",
                     "cancellation_policy_criteria": "$car_company_terms_and_condition_details.cancellation_policy_criteria"
@@ -1268,12 +1270,12 @@ carHelper.cancelBooking = async function (data) {
             }
         ];
 
-
-
-
         var cancelletion_rates = await CarBooking.aggregate(default_query);
+        
         console.log('DATA==>', cancelletion_rates);
-
+        var total_booking_amount = cancelletion_rates[0].total_booking_amount;
+        var booking_rate = cancelletion_rates[0].booking_rent;
+        var no_of_days = cancelletion_rates[0].days;
 
         var cancel_date = new Date(data.cancel_date);
         var cnl_date = cancel_date.toISOString();
@@ -1284,48 +1286,60 @@ carHelper.cancelBooking = async function (data) {
         var Cancel_date1 = moment(cnl_date); // user paasing date
 
         var diff_hours = Db_from_date.diff(Cancel_date1, 'hours');
+        // var diff_hours = 12;
+        var cancel_charge;
+        var amount_return_to_user;
 
         console.log('Hours Diffrence : ', diff_hours);
 
         var cancellation_rates_list = cancelletion_rates[0].cancellation_policy_criteria;
-        var rate_array = [];
 
-        console.log('CHARGES==>', cancellation_rates_list);
-        cancellation_rates_list.map((rate, index) => {
-            if (rate.hours >= diff_hours) {
-                console.log('coming');
-                rate_array.push(rate.rate);
-                
-            }
-            else{
-                console.log('not cmg')
+        console.log('Cancel rate list=>',cancellation_rates_list);
+    
+        var final_rate_percentage = null;
+        var flagGot = false;
+        cancellation_rates_list.forEach(rate => {
+            if (rate.hours >= diff_hours && !flagGot) {
+                flagGot=true;
+                final_rate_percentage = rate.rate;
             }
         });
+        console.log("final_rate_percentage",final_rate_percentage);
+        
+        if(final_rate_percentage !== null){   
 
-        console.log('Nikal ja ra');
-        console.log("final rate =>", rate_array.pop())
-
+            cancel_charge = (total_booking_amount * final_rate_percentage) / 100;
+            amount_return_to_user = total_booking_amount - cancel_charge;
+            
+            console.log('CANCAL CHARGE : ',cancel_charge);
+            console.log('Amount return to user  : ',amount_return_to_user);
+        }
+        else{
+            final_rate_percentage = null;
+            cancel_charge = 0; 
+            amount_return_to_user = booking_rate * no_of_days; 
+            console.log('CANCAL CHARGE : ',cancel_charge);
+            console.log('Amount return to user  : ',amount_return_to_user);
+        }
+            
+        // return { "status": "success", data: cancelletion_rates }
         
 
-
-
-
-
-
-
-
-        return { "status": "success", data: cancelletion_rates }
-        */
-
-        /* charge over */
-
-
-        // /** temp comment 
+        /* ---------cancellation charge over-------------- */
 
         var condition = { 'booking_number': data.booking_number }
         var update_data = { $set: { cancel_date: data.cancel_date, cancel_reason: data.cancel_reason, trip_status: data.trip_status } };
+        var update_data2 = { $set: { 
+                                    cancel_date: data.cancel_date, 
+                                    cancel_reason: data.cancel_reason, 
+                                    trip_status: data.trip_status, 
+                                    cancellation_rate : final_rate_percentage,
+                                    cancellation_charge : cancel_charge,
+                                    amount_return_to_user : amount_return_to_user
+                                } 
+                        };
 
-        var datta = await CarBooking.update(condition, update_data);
+        var datta = await CarBooking.update(condition, update_data2);
         if (datta && datta.n > 0) {
 
             var update_carAssign = await CarAssign.updateOne(condition, update_data);
@@ -1340,8 +1354,6 @@ carHelper.cancelBooking = async function (data) {
         else {
             return { status: 'failed', message: "Error occured while cancelling your car booking" }
         }
-        // */
-
     }
     catch (err) {
         return { status: 'failed', message: "Error occured while cancelling your car booking" }
