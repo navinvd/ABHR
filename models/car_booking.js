@@ -87,6 +87,15 @@ var BookingSchema = new Schema({
     cancel_date: {
         type: Date
     },
+    cancellation_rate:{
+        type: Number
+    },
+    cancellation_charge:{
+        type: Number
+    },
+    amount_return_to_user:{
+        type: Number
+    },
     isRate: {
         type: Boolean,
         default: false

@@ -2533,7 +2533,7 @@ router.post('/test-not-ios', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         console.log('D T=>', req.body.device_token);
-        var sendNotification = await pushNotificationHelper.sendToIOS(req.body.device_token,'abcd',1);
+        var sendNotification = await pushNotificationHelper.sendToIOS(req.body.device_token,'abcd','test');
         console.log('Response =>', sendNotification);
         // res.send('ok')
         if (sendNotification.status === 'success') {

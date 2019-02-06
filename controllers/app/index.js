@@ -242,7 +242,7 @@ router.post('/login', (req, res, next) => {
                                     token: token
                                 });
                         } else {
-                            res.status(config.OK_STATUS).json({
+                            res.status(config.BAD_REQUEST).json({
                                 status: "failed",
                                 message: "Password is wrong",
                             });
