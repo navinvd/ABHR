@@ -621,7 +621,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                     'from_time': {
                         $gt: new Date(),
                     },
-                    'trip_status' : { $nin: [ 'cancelled', 'finished' ]}
+                    'trip_status': { $nin: ['cancelled', 'finished'] }
                 }
                 // $match: {
                 //     'isDeleted': false,
@@ -789,9 +789,9 @@ carHelper.history = async (user_id, history_type) => {
                 // add later
                 'from_time': {
                     // $eq: new Date("2019-02-04"),
-                    $eq: new Date(moment().utcOffset(0).set({hour:0,minute:0,second:0,millisecond:0}).toISOString())
+                    $eq: new Date(moment().utcOffset(0).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISOString())
                 },
-                'trip_status' : { $nin: [ 'cancelled', 'finished' ]}
+                'trip_status': { $nin: ['cancelled', 'finished'] }
             }
         }
     }
@@ -1013,27 +1013,32 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
         },
         {
             "$match": {
-                $and: [
+                "$or": [
                     {
-                        $or: [
+                        $and: [
                             {
-                                "booking.from_time": {
-                                    $gt: new Date(toDate)
+                                $or: [
+                                    {
+                                        "booking.from_time": {
+                                            $gt: new Date(toDate)
+                                        }
+                                    },
+                                    {
+                                        "booking.to_time": {
+                                            $lt: new Date(fromDate)
+                                        }
+                                    },
 
-                                }
+                                ]
                             },
                             {
-                                "booking.to_time": {
-                                    $lt: new Date(fromDate)
-                                }
-                            },
-                            { "booking": null },
+                                "booking.isDeleted": false
+                            }
                         ]
-                    },
-                    {
-                        "booking.isDeleted": false
-                    }
+                    }, 
+                    { "booking": null }
                 ]
+
             }
         },
         {
@@ -1054,8 +1059,12 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
         }
     ];
 
+    console.log('AQUEEYEYEEY =>', JSON.stringify(defaultQuery));
+
     try {
         let cars = await Car.aggregate(defaultQuery);
+
+
 
         console.log('DATA=>', JSON.stringify(cars));
 
@@ -1110,6 +1119,102 @@ carHelper.cancelBooking = async function (data) {
         //     ]
         // }
 
+        /* calculate cancellation charge START */
+
+        /*
+
+        var default_query = [
+            {
+                $match: { "booking_number": { $eq: data.booking_number } }
+            },
+            {
+                $lookup: {
+                    from: 'cars',
+                    foreignField: '_id',
+                    localField: 'carId',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_company_terms_and_condition',
+                    foreignField: 'CompanyId',
+                    localField: 'car_details.car_rental_company_id',
+                    as: 'car_company_terms_and_condition_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_company_terms_and_condition_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $project: {
+                    "total_booking_amount": 1,
+                    "carId": 1,
+                    "userId": 1,
+                    "from_time": 1,
+                    "to_time": 1,
+                    "booking_number": 1,
+                    "companyId": "$car_company_terms_and_condition_details.CompanyId",
+                    "cancellation_policy_criteria": "$car_company_terms_and_condition_details.cancellation_policy_criteria"
+                }
+            }
+        ];
+
+
+
+
+        var cancelletion_rates = await CarBooking.aggregate(default_query);
+        console.log('DATA==>', cancelletion_rates);
+
+
+        var cancel_date = new Date(data.cancel_date);
+        var cnl_date = cancel_date.toISOString();
+
+        // hours diff
+
+        var Db_from_date = moment(cancelletion_rates[0].from_time); // db date 
+        var Cancel_date1 = moment(cnl_date); // user paasing date
+
+        var diff_hours = Db_from_date.diff(Cancel_date1, 'hours');
+
+        console.log('Hours Diffrence : ', diff_hours);
+
+        var cancellation_rates_list = cancelletion_rates[0].cancellation_policy_criteria;
+        var rate_array = [];
+
+        console.log('CHARGES==>', cancellation_rates_list);
+        cancellation_rates_list.map((rate, index) => {
+            if (rate.hours >= diff_hours) {
+                console.log('coming');
+                rate_array.push(rate.rate);
+            }
+        });
+
+        console.log("final rate =>", rate_array.pop())
+
+        */
+
+
+
+
+
+
+
+
+        // return { "status": "success", data: cancelletion_rates }
+
+        /* charge over */
+        
+
         var condition = { 'booking_number': data.booking_number }
         var update_data = { $set: { cancel_date: data.cancel_date, cancel_reason: data.cancel_reason, trip_status: data.trip_status } };
 
@@ -1128,6 +1233,8 @@ carHelper.cancelBooking = async function (data) {
         else {
             return { status: 'failed', message: "Error occured while cancelling your car booking" }
         }
+        
+
     }
     catch (err) {
         return { status: 'failed', message: "Error occured while cancelling your car booking" }
@@ -1696,7 +1803,7 @@ carHelper.car_report_list = async (user_id) => {
             return { status: 'success', message: "Car Reported list", data: { car_report_list: data } }
         }
         else {
-            return { status: 'failed', message: "No car reported yet"}
+            return { status: 'failed', message: "No car reported yet" }
         }
 
     } catch (err) {
