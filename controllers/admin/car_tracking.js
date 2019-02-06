@@ -211,8 +211,8 @@ router.post('/delivering', (req, res, next) => {
 
 /**
  * @api {post} /admin/tracking/returning List of car which is in delivering process
- * @apiName Car Delivering List
- * @apiDescription To display cars which is in delivering process
+ * @apiName Car Returning List
+ * @apiDescription To display cars which is in returning process
  * @apiGroup Admin - Car-Tracking
  * @apiVersion 0.0.0
  * 

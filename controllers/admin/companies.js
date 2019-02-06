@@ -1005,7 +1005,7 @@ router.post('/car/details', async (req, res) => {
  * @apiParam {Enum} transmission ["manual", "automatic"]
  * @apiParam {Enum} milage ["open","limited"]
  * @apiParam {Enum} car_class ["economy", "luxury", "suv", "family"]
- * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
+ * @apiParam {String} [driving_eligibility_criteria] age for driving criteria
  * @apiParam {Number} deposit deposit for car
  * @apiParam {Array} is_available avaibility for car
  * 
@@ -1141,7 +1141,7 @@ router.post('/car/add', (req, res, next) => {
  * @apiParam {Enum} [transmission] ["manual", "automatic"]
  * @apiParam {Enum} [milage] ["open","limited"]
  * @apiParam {Enum} [car_class] ["economy", "luxury", "suv", "family"]
- * @apiParam {Number} [driving_eligibility_criteria] age for driving criteria
+ * @apiParam {String} [driving_eligibility_criteria] age for driving criteria
  * 
  * 
  * @apiHeader {String}  Content-Type application/json    
