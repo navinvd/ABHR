@@ -1038,7 +1038,7 @@
   },
   {
     "type": "post",
-    "url": "/admin/tracking/returning",
+    "url": "/admin/tracking/delivering",
     "title": "List of car which is in delivering process",
     "name": "Car_Delivering_List",
     "description": "<p>To display cars which is in delivering process</p>",
@@ -1115,10 +1115,10 @@
   },
   {
     "type": "post",
-    "url": "/admin/tracking/delivering",
+    "url": "/admin/tracking/returning",
     "title": "List of car which is in delivering process",
-    "name": "Car_Delivering_List",
-    "description": "<p>To display cars which is in delivering process</p>",
+    "name": "Car_Returning_List",
+    "description": "<p>To display cars which is in returning process</p>",
     "group": "Admin___Car_Tracking",
     "version": "0.0.0",
     "parameter": {
@@ -1659,7 +1659,7 @@
           },
           {
             "group": "Parameter",
-            "type": "Number",
+            "type": "String",
             "optional": true,
             "field": "driving_eligibility_criteria",
             "description": "<p>age for driving criteria</p>"
@@ -1911,7 +1911,7 @@
           },
           {
             "group": "Parameter",
-            "type": "Number",
+            "type": "String",
             "optional": true,
             "field": "driving_eligibility_criteria",
             "description": "<p>age for driving criteria</p>"

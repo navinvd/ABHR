@@ -5,8 +5,9 @@ socketFunction.socketStartUp = function (server) {
     try{
         io.attach(server);
         io.on('connection', function (client) {
-            console.log('New user is connected with socket:');
+            console.log('New user is connected with socket:', client.id);
             client.on('myowntest', function (data) {
+                // console.log('socket_id===>',socket);
                 console.log("data => myowntest ",data);
             });
         
