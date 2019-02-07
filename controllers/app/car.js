@@ -3230,10 +3230,19 @@ router.post('/booking-details-ios', async (req, res) => {
                 });
             } else {
                 if (data && data.length > 0) {
+
+                    var currentDate = moment().toDate().toISOString(Date.now());
+                    if (moment(currentDate) >= moment(data[0].from_time)) {
+                        data[0].call_or_not = 'yes' // place manual call
+                    }
+                    else {
+                        data[0].call_or_not = 'no' // not call 
+                    }
+
                     res.status(config.OK_STATUS).json({
                         status: "success",
                         message: "Car booking details has been found",
-                        data: { booking_details: data[0] },
+                        data: { booking_details: data },
                     });
                 }
                 else {
