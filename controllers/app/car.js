@@ -1126,29 +1126,29 @@ router.post('/book', async (req, res) => {
                 var car_booking_number = bookingResp.data.booking_data['booking_number'];
 
                 /*store coupon entry in user_coupon collection*/
-                
+
                 if (bookingResp.data.booking_data.coupon_code !== null || bookingResp.data.booking_data.coupon_code !== undefined) {
                     // make entry
                     var findCoupon = await Coupon.find({ 'coupon_code': bookingResp.data.booking_data.coupon_code });
                     if (findCoupon && findCoupon.length > 0) {
                         let data = {
                             "couponId": findCoupon[0]._id,
-                            "userId": bookingResp.data.booking_data.userId 
+                            "userId": bookingResp.data.booking_data.userId
                         }
                         let add_user_coupon = new UserCoupon(data);
                         let apply = await add_user_coupon.save();
                     }
                 }
-                
+
                 /* coupon over */
 
 
                 // after car booking need to send push notification ther user on IOS APP 
                 /** push notification process to user app start */
 
-                var userDeviceToken = await Users.find({'_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
                 var deviceToken = '';
-                console.log('User token =>',userDeviceToken);
+                console.log('User token =>', userDeviceToken);
                 if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
                     if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
                         // agentDeviceTokenArray.push(agent.deviceToken);
@@ -1157,7 +1157,7 @@ router.post('/book', async (req, res) => {
                 }
 
                 var notificationType = 1; // means notification for booking 
-                console.log('Dev Token=>',deviceToken);
+                console.log('Dev Token=>', deviceToken);
                 var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType);
 
                 /** Push notofication for user app over */
@@ -1180,7 +1180,7 @@ router.post('/book', async (req, res) => {
 
                 var notificationFor = "new-booking";
                 var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor);
-                
+
                 /** Notification over for agent */
                 if (sendNotification.status === 'success') {
                     console.log('Notification send Success==>')
@@ -3264,6 +3264,164 @@ router.post('/booking-details-ios', async (req, res) => {
 
 });
 
+
+
+
+router.post('/calculate-cancellation-charge', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking id to view details"
+        },
+        'cancel_date': {
+            notEmpty: true,
+            errorMessage: "Please enter cancel date",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var default_query = [
+            {
+                $match: { "booking_number": { $eq: req.body.booking_number } }
+            },
+            {
+                $lookup: {
+                    from: 'cars',
+                    foreignField: '_id',
+                    localField: 'carId',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_company_terms_and_condition',
+                    foreignField: 'CompanyId',
+                    localField: 'car_details.car_rental_company_id',
+                    as: 'car_company_terms_and_condition_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_company_terms_and_condition_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $project: {
+                    "total_booking_amount": 1,
+                    "carId": 1,
+                    "userId": 1,
+                    "from_time": {
+                        $dateToString: {
+                            date: "$from_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    "to_time": {
+                        $dateToString: {
+                            date: "$to_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    "booking_rent": 1,
+                    "days": 1,
+                    "booking_number": 1,
+                    "companyId": "$car_company_terms_and_condition_details.CompanyId",
+                    "cancellation_policy_criteria": "$car_company_terms_and_condition_details.cancellation_policy_criteria"
+                }
+            }
+        ];
+
+        var cancelletion_rates = await CarBooking.aggregate(default_query);
+
+        console.log('DATA==>', cancelletion_rates);
+
+        var total_booking_amount = cancelletion_rates[0].total_booking_amount;
+        var booking_rate = cancelletion_rates[0].booking_rent;
+        var no_of_days = cancelletion_rates[0].days;
+
+        var cancel_date = new Date(req.body.cancel_date);
+        var cnl_date = cancel_date.toISOString();
+
+        // hours diff
+
+        var Db_from_date = moment(cancelletion_rates[0].from_time); // db date 
+        var Cancel_date1 = moment(cnl_date); // user paasing date
+
+
+        console.log('Db_from_date =>', Db_from_date)
+        console.log('Cancel_date1 =>', Cancel_date1)
+
+        var diff_hours = Db_from_date.diff(Cancel_date1, 'hours');
+        // var diff_hours = 12;
+        var cancel_charge;
+        var amount_return_to_user;
+
+        console.log('Hours Diffrence : ', diff_hours);
+
+        var cancellation_rates_list = cancelletion_rates[0].cancellation_policy_criteria;
+
+        console.log('Cancel rate list=>', cancellation_rates_list);
+
+        var final_rate_percentage = null;
+        var flagGot = false;
+        cancellation_rates_list.forEach(rate => {
+            if (rate.hours >= diff_hours && !flagGot) {
+                flagGot = true;
+                final_rate_percentage = rate.rate;
+            }
+        });
+        console.log("final_rate_percentage", final_rate_percentage);
+
+        if (final_rate_percentage !== null) {
+
+            cancel_charge = (total_booking_amount * final_rate_percentage) / 100;
+            amount_return_to_user = total_booking_amount - cancel_charge;
+
+            console.log('CANCAL CHARGE : ', cancel_charge);
+            console.log('Amount return to user  : ', amount_return_to_user);
+        }
+        else {
+            final_rate_percentage = null;
+            cancel_charge = 0;
+            amount_return_to_user = booking_rate * no_of_days;
+            console.log('CANCAL CHARGE : ', cancel_charge);
+            console.log('Amount return to user  : ', amount_return_to_user);
+        }
+
+        var final_data = {
+            total_booking_amount : cancelletion_rates[0].total_booking_amount,
+            cancel_date: req.body.cancel_date,
+            cancellation_rate: final_rate_percentage,
+            cancellation_charge: cancel_charge,
+            amount_return_to_user: amount_return_to_user,
+            need_to_pay_charges: final_rate_percentage === null ? 'no' : 'yes'
+        }
+
+        cancelletion_rates[0].charge_calculation = final_data;
+
+        res.status(config.OK_STATUS).json({ "status": "success", "message": "Cancellation Charge has been calculated", data: cancelletion_rates[0] })
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
 
 
 
