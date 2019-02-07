@@ -654,7 +654,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                     c['call_or_not'] = 'no' // not call 
                 }
                 if (c['phone_number'] === undefined) {
-                    c['phone_number'] = ""
+                    c['phone_number'] = "9876543210" // dummy
                 }
 
                 // delete c.model_details;
@@ -832,7 +832,7 @@ carHelper.history = async (user_id, history_type) => {
                     c['call_or_not'] = 'no' // not call 
                 }
                 if (c['phone_number'] === undefined) {
-                    c['phone_number'] = ""
+                    c['phone_number'] = "9876543210" // dummy super admin
                 }
 
                 // delete c.model_details;
