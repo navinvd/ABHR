@@ -1081,12 +1081,24 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
           {
               $match : 
               {
-                  "$or":[
-                    {"carBookingDetails.isDeleted": false},
-                    {"carBookingDetails":null}
-                  ]
+                //   "$or":[
+                //     {"carBookingDetails.isDeleted": false},
+                //     {"carBookingDetails":null}
+                //   ]
+                "$or" : [
+                    { "carBookingDetails": null},
+                    {
+                        "$and": [
+                                   {
+                                     "carBookingDetails.isDeleted": false
+                                   },
+                                   {
+                                      "carBookingDetails.trip_status" : { $ne : "cancelled" }
+                                   }
+                                ]
+                    }
+               ]
               }
-              
           },
           {
             "$group": {
@@ -1151,8 +1163,6 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
 
     try {
         let cars = await Car.aggregate(defaultQuery2);
-
-
 
         console.log('DATA=>', JSON.stringify(cars));
 

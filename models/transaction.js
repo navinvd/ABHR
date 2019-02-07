@@ -26,16 +26,14 @@ var TransactionSchema = new Schema({
         required: true
     },
     VAT: {
-        type: Number,
-        required: true
+        type: Number
     },
     deposite_amount: {
         type: Number,
         required: true
     },
     defect_amount: {
-        type: Number,
-        required: true
+        type: Number
     },
     status: {
         type: String,

@@ -6,6 +6,7 @@ const carHelper = require('./../../helper/car');
 const pushNotificationHelper = require('./../../helper/push_notification');
 const Car = require('./../../models/cars');
 const CarBooking = require('./../../models/car_booking');
+const Transaction = require('./../../models/transaction');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const Users = require('./../../models/users');
@@ -1116,14 +1117,33 @@ router.post('/book', async (req, res) => {
                 "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
                 "trip_status": "upcoming"
             }
+
+            
             const bookingResp = await carHelper.carBook(data);
 
             if (bookingResp.status === 'success') {
 
+                const deposit = await Car.findOne({ "_id": new ObjectId(req.body.car_id)});
+                var car_booking_number = bookingResp.data.booking_data['booking_number'];
+
+                const transactionData = {
+                        "userId" : req.body.user_id,
+                        "carId" : req.body.car_id,
+                        "from_time" : req.body.fromDate,
+                        "to_time" : toDate,
+                        "Transaction_amount" :req.body.total_booking_amount, //
+                        "deposite_amount" : deposit.deposit,
+                        "coupon_code" : req.body.coupon_code ? req.body.coupon_code : null,
+                        "status" : "inprogress",
+                        "booking_number" : car_booking_number
+                }
+
+                let transaction = new Transaction(transactionData);
+                await transaction.save();
+
                 console.log('DATTA==>', data);
 
                 console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
-                var car_booking_number = bookingResp.data.booking_data['booking_number'];
 
                 /*store coupon entry in user_coupon collection*/
 
@@ -3422,6 +3442,7 @@ router.post('/calculate-cancellation-charge', async (req, res) => {
         });
     }
 });
+
 
 
 
