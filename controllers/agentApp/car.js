@@ -1879,7 +1879,7 @@ router.post('/car-list-v3', async (req, res) => {
     if (req.body.return) { // when customer apply for return car 
         apply_filter = 1
         // match_object.push({ 'trip_status': req.body.return })
-        match_object.push({ 'trip_status': { $in: [req.body.return, 'returning'] } })
+        match_object.push({ 'trip_status': { $in: [req.body.return, 'returning', 'finished'] } })
     }
 
     if (req.body.today) {

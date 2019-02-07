@@ -6,6 +6,7 @@ const carHelper = require('./../../helper/car');
 const pushNotificationHelper = require('./../../helper/push_notification');
 const Car = require('./../../models/cars');
 const CarBooking = require('./../../models/car_booking');
+const Transaction = require('./../../models/transaction');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const Users = require('./../../models/users');
@@ -1116,39 +1117,58 @@ router.post('/book', async (req, res) => {
                 "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
                 "trip_status": "upcoming"
             }
+
+            
             const bookingResp = await carHelper.carBook(data);
 
             if (bookingResp.status === 'success') {
 
+                const deposit = await Car.findOne({ "_id": new ObjectId(req.body.car_id)});
+                var car_booking_number = bookingResp.data.booking_data['booking_number'];
+
+                const transactionData = {
+                        "userId" : req.body.user_id,
+                        "carId" : req.body.car_id,
+                        "from_time" : req.body.fromDate,
+                        "to_time" : toDate,
+                        "Transaction_amount" :req.body.total_booking_amount, //
+                        "deposite_amount" : deposit.deposit,
+                        "coupon_code" : req.body.coupon_code ? req.body.coupon_code : null,
+                        "status" : "inprogress",
+                        "booking_number" : car_booking_number
+                }
+
+                let transaction = new Transaction(transactionData);
+                await transaction.save();
+
                 console.log('DATTA==>', data);
 
                 console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
-                var car_booking_number = bookingResp.data.booking_data['booking_number'];
 
                 /*store coupon entry in user_coupon collection*/
-                
+
                 if (bookingResp.data.booking_data.coupon_code !== null || bookingResp.data.booking_data.coupon_code !== undefined) {
                     // make entry
                     var findCoupon = await Coupon.find({ 'coupon_code': bookingResp.data.booking_data.coupon_code });
                     if (findCoupon && findCoupon.length > 0) {
                         let data = {
                             "couponId": findCoupon[0]._id,
-                            "userId": bookingResp.data.booking_data.userId 
+                            "userId": bookingResp.data.booking_data.userId
                         }
                         let add_user_coupon = new UserCoupon(data);
                         let apply = await add_user_coupon.save();
                     }
                 }
-                
+
                 /* coupon over */
 
 
                 // after car booking need to send push notification ther user on IOS APP 
                 /** push notification process to user app start */
 
-                var userDeviceToken = await Users.find({'_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
                 var deviceToken = '';
-                console.log('User token =>',userDeviceToken);
+                console.log('User token =>', userDeviceToken);
                 if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
                     if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
                         // agentDeviceTokenArray.push(agent.deviceToken);
@@ -1157,7 +1177,7 @@ router.post('/book', async (req, res) => {
                 }
 
                 var notificationType = 1; // means notification for booking 
-                console.log('Dev Token=>',deviceToken);
+                console.log('Dev Token=>', deviceToken);
                 var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType);
 
                 /** Push notofication for user app over */
@@ -1180,7 +1200,7 @@ router.post('/book', async (req, res) => {
 
                 var notificationFor = "new-booking";
                 var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor);
-                
+
                 /** Notification over for agent */
                 if (sendNotification.status === 'success') {
                     console.log('Notification send Success==>')
@@ -2533,7 +2553,7 @@ router.post('/test-not-ios', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         console.log('D T=>', req.body.device_token);
-        var sendNotification = await pushNotificationHelper.sendToIOS(req.body.device_token,'abcd','test');
+        var sendNotification = await pushNotificationHelper.sendToIOS(req.body.device_token, 10, 1);
         console.log('Response =>', sendNotification);
         // res.send('ok')
         if (sendNotification.status === 'success') {
@@ -2695,6 +2715,7 @@ router.post('/filter-v4', async (req, res) => {
                     "preserveNullAndEmptyArrays": true
                 }
             },
+            
             {
                 "$match": {
                     $and: [
@@ -3114,6 +3135,320 @@ router.post('/return-request', async (req, res) => {
     }
 
 });
+
+
+
+// Get car booking details form booking number
+
+router.post('/booking-details-ios', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking id to view details"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        // req.body.booking_number
+
+        var defaultQuery = [
+            {
+                $match: {
+                    "booking_number": { $eq: req.body.booking_number }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'cars',
+                    localField: 'carId',
+                    foreignField: '_id',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_details.car_model_id',
+                    as: 'model_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$model_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_details.car_brand_id',
+                    as: 'brand_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brand_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_company',
+                    localField: 'car_details.car_rental_company_id',
+                    foreignField: '_id',
+                    as: 'companyDetails'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$companyDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_company_terms_and_condition',
+                    localField: 'car_details.car_rental_company_id',
+                    foreignField: 'CompanyId',
+                    as: 'car_company_terms_and_condition_Details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_company_terms_and_condition_Details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $addFields: {
+                    "car_details.car_brand": "$brand_details.brand_name",
+                    "car_details.car_model": "$model_details.model_name",
+                    "car_details.car_model_number": "$model_details.model_number",
+                    "car_details.car_model_release_year": "$model_details.release_year",
+                    "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
+                    "car_details.cancellation_policy": "$car_company_terms_and_condition_Details.cancellation_policy_criteria",
+                    "phone_number": "$companyDetails.phone_number"
+                }
+            }
+        ];
+        console.log('Default Query========>', JSON.stringify(defaultQuery));
+
+        CarBooking.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "error in accured while fetching booking car details by booking number",
+                    err
+                });
+            } else {
+                if (data && data.length > 0) {
+
+                    var currentDate = moment().toDate().toISOString(Date.now());
+                    if (moment(currentDate) >= moment(data[0].from_time)) {
+                        data[0].call_or_not = 'yes' // place manual call
+                    }
+                    else {
+                        data[0].call_or_not = 'no' // not call 
+                    }
+
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message: "Car booking details has been found",
+                        data: { booking_details: data },
+                    });
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({
+                        status: "failed",
+                        message: "No car booking details found"
+                    });
+                }
+            }
+        });
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+
+});
+
+
+
+
+router.post('/calculate-cancellation-charge', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking id to view details"
+        },
+        'cancel_date': {
+            notEmpty: true,
+            errorMessage: "Please enter cancel date",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var default_query = [
+            {
+                $match: { "booking_number": { $eq: req.body.booking_number } }
+            },
+            {
+                $lookup: {
+                    from: 'cars',
+                    foreignField: '_id',
+                    localField: 'carId',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_company_terms_and_condition',
+                    foreignField: 'CompanyId',
+                    localField: 'car_details.car_rental_company_id',
+                    as: 'car_company_terms_and_condition_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_company_terms_and_condition_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $project: {
+                    "total_booking_amount": 1,
+                    "carId": 1,
+                    "userId": 1,
+                    "from_time": {
+                        $dateToString: {
+                            date: "$from_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    "to_time": {
+                        $dateToString: {
+                            date: "$to_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    "booking_rent": 1,
+                    "days": 1,
+                    "booking_number": 1,
+                    "companyId": "$car_company_terms_and_condition_details.CompanyId",
+                    "cancellation_policy_criteria": "$car_company_terms_and_condition_details.cancellation_policy_criteria"
+                }
+            }
+        ];
+
+        var cancelletion_rates = await CarBooking.aggregate(default_query);
+
+        console.log('DATA==>', cancelletion_rates);
+
+        var total_booking_amount = cancelletion_rates[0].total_booking_amount;
+        var booking_rate = cancelletion_rates[0].booking_rent;
+        var no_of_days = cancelletion_rates[0].days;
+
+        var cancel_date = new Date(req.body.cancel_date);
+        var cnl_date = cancel_date.toISOString();
+
+        // hours diff
+
+        var Db_from_date = moment(cancelletion_rates[0].from_time); // db date 
+        var Cancel_date1 = moment(cnl_date); // user paasing date
+
+
+        console.log('Db_from_date =>', Db_from_date)
+        console.log('Cancel_date1 =>', Cancel_date1)
+
+        var diff_hours = Db_from_date.diff(Cancel_date1, 'hours');
+        // var diff_hours = 12;
+        var cancel_charge;
+        var amount_return_to_user;
+
+        console.log('Hours Diffrence : ', diff_hours);
+
+        var cancellation_rates_list = cancelletion_rates[0].cancellation_policy_criteria;
+
+        console.log('Cancel rate list=>', cancellation_rates_list);
+
+        var final_rate_percentage = null;
+        var flagGot = false;
+        cancellation_rates_list.forEach(rate => {
+            if (rate.hours >= diff_hours && !flagGot) {
+                flagGot = true;
+                final_rate_percentage = rate.rate;
+            }
+        });
+        console.log("final_rate_percentage", final_rate_percentage);
+
+        if (final_rate_percentage !== null) {
+
+            cancel_charge = (total_booking_amount * final_rate_percentage) / 100;
+            amount_return_to_user = total_booking_amount - cancel_charge;
+
+            console.log('CANCAL CHARGE : ', cancel_charge);
+            console.log('Amount return to user  : ', amount_return_to_user);
+        }
+        else {
+            final_rate_percentage = null;
+            cancel_charge = 0;
+            amount_return_to_user = booking_rate * no_of_days;
+            console.log('CANCAL CHARGE : ', cancel_charge);
+            console.log('Amount return to user  : ', amount_return_to_user);
+        }
+
+        var final_data = {
+            total_booking_amount : cancelletion_rates[0].total_booking_amount,
+            cancel_date: req.body.cancel_date,
+            cancellation_rate: final_rate_percentage,
+            cancellation_charge: cancel_charge,
+            amount_return_to_user: amount_return_to_user,
+            need_to_pay_charges: final_rate_percentage === null ? 'no' : 'yes'
+        }
+
+        cancelletion_rates[0].charge_calculation = final_data;
+
+        res.status(config.OK_STATUS).json({ "status": "success", "message": "Cancellation Charge has been calculated", data: cancelletion_rates[0] })
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+
+
+
 
 
 module.exports = router;

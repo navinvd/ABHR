@@ -642,8 +642,8 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
             console.log('C Date=>', currentDate);
             console.log('C Date IOS=>', moment().toDate().toISOString(Date.now()))
 
-            console.log('MOment Db Date = >', moment("2019-01-28T05:19:50.975Z"))
-            console.log('MOment Current Date = >', moment());
+            // console.log('MOment Db Date = >', moment("2019-01-28T05:19:50.975Z"))
+            // console.log('MOment Current Date = >', moment());
 
             var data1 = data.map((c) => {
                 // if(moment().diff(moment(c['from_time'])) > 0)
@@ -654,7 +654,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                     c['call_or_not'] = 'no' // not call 
                 }
                 if (c['phone_number'] === undefined) {
-                    c['phone_number'] = ""
+                    c['phone_number'] = "9876543210" // dummy
                 }
 
                 // delete c.model_details;
@@ -832,7 +832,7 @@ carHelper.history = async (user_id, history_type) => {
                     c['call_or_not'] = 'no' // not call 
                 }
                 if (c['phone_number'] === undefined) {
-                    c['phone_number'] = ""
+                    c['phone_number'] = "9876543210" // dummy super admin
                 }
 
                 // delete c.model_details;
@@ -1059,25 +1059,133 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
         }
     ];
 
-    console.log('AQUEEYEYEEY =>', JSON.stringify(defaultQuery));
+    var defaultQuery2 = [
+          {
+            "$match": { "_id": new ObjectId(car_id) }
+          },
+          {
+            "$lookup": {
+              "from": "car_booking",
+              "foreignField": "carId",
+              "localField": "_id",
+              "as": "carBookingDetails"
+            }
+          },
+          
+          {
+            "$unwind": {
+              "path": "$carBookingDetails",
+              "preserveNullAndEmptyArrays": true
+            }
+          },
+          {
+              $match : 
+              {
+                //   "$or":[
+                //     {"carBookingDetails.isDeleted": false},
+                //     {"carBookingDetails":null}
+                //   ]
+                "$or" : [
+                    { "carBookingDetails": null},
+                    {
+                        "$and": [
+                                   {
+                                     "carBookingDetails.isDeleted": false
+                                   },
+                                   {
+                                      "carBookingDetails.trip_status" : { $ne : "cancelled" }
+                                   }
+                                ]
+                    }
+               ]
+              }
+          },
+          {
+            "$group": {
+              "_id": "$_id",
+              "data": {
+                "$push": "$$ROOT"
+              },
+              "totalBooking": {$push:
+                  "$carBookingDetails.booking_number"
+                 
+              }
+            }
+          },
+          {
+            "$unwind": {
+              "path": "$data",
+              "preserveNullAndEmptyArrays": true
+            }
+          },
+          
+          {
+            "$match": {
+              "$or": [
+                {
+                    "data.carBookingDetails.from_time": {
+                        "$gt": new Date(toDate)
+                    }
+                },
+                {
+                    "data.carBookingDetails.to_time": {
+                        "$lt": new Date(fromDate)
+                    }
+                },
+                {
+                  "data.carBookingDetails": null
+                }        
+              ]
+            }
+          },
+          {
+            "$group": {
+              "_id": "$_id",
+              "data": {
+                "$first": "$$ROOT"
+              },
+              "availableBooking": {
+                "$push": "$data.carBookingDetails.booking_number"
+              }
+            }
+          },
+          {
+              "$project":{
+                  "_id":1,
+                  "totalBooking":{$size:"$data.totalBooking"},
+                  "availableBooking":{$size:"$availableBooking"}
+               }
+          }
+    ]
+
+
+    console.log('Default Query =>', JSON.stringify(defaultQuery2));
 
     try {
-        let cars = await Car.aggregate(defaultQuery);
-
-
+        let cars = await Car.aggregate(defaultQuery2);
 
         console.log('DATA=>', JSON.stringify(cars));
 
         if (cars && cars.length > 0) {
 
-            var finalDaata = cars.filter((c) => {
-                if (c.car['totalBooking'] === c['availableBooking'].length) {
-                    return true;
-                }
-            });
+            // return {"status":"success"}
+
+            if (cars[0].totalBooking === cars[0].availableBooking) {
+                return { status: 'success', message: "Car is available on this date" }
+            }
+            else {
+                return { status: 'failed', message: "Car is not available on this date" }
+            }
+
+            // var finalDaata = cars.filter((c) => {
+            //     if (c.car['totalBooking'] === c['availableBooking'].length) {
+            //         return true;
+            //     }
+            // });
 
             // console.log('Final DATA=>',finalDaata);
 
+            /*
             if (finalDaata && finalDaata.length > 0) {
                 finalDaata = finalDaata.map((d) => { return d.car })
                 return { status: 'success', message: "Car is available on this date" }
@@ -1086,6 +1194,7 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
             else {
                 return { status: 'failed', message: "Car is not available on this date" }
             }
+            */
 
         } else {
             return { status: 'failed', message: "Car is not available on this date" }
@@ -1121,8 +1230,8 @@ carHelper.cancelBooking = async function (data) {
 
         /* calculate cancellation charge START */
 
-        /*
-
+        
+        
         var default_query = [
             {
                 $match: { "booking_number": { $eq: data.booking_number } }
@@ -1162,6 +1271,8 @@ carHelper.cancelBooking = async function (data) {
                     "userId": 1,
                     "from_time": 1,
                     "to_time": 1,
+                    "booking_rent" : 1,
+                    "days" : 1,
                     "booking_number": 1,
                     "companyId": "$car_company_terms_and_condition_details.CompanyId",
                     "cancellation_policy_criteria": "$car_company_terms_and_condition_details.cancellation_policy_criteria"
@@ -1169,12 +1280,12 @@ carHelper.cancelBooking = async function (data) {
             }
         ];
 
-
-
-
         var cancelletion_rates = await CarBooking.aggregate(default_query);
+        
         console.log('DATA==>', cancelletion_rates);
-
+        var total_booking_amount = cancelletion_rates[0].total_booking_amount;
+        var booking_rate = cancelletion_rates[0].booking_rent;
+        var no_of_days = cancelletion_rates[0].days;
 
         var cancel_date = new Date(data.cancel_date);
         var cnl_date = cancel_date.toISOString();
@@ -1185,40 +1296,60 @@ carHelper.cancelBooking = async function (data) {
         var Cancel_date1 = moment(cnl_date); // user paasing date
 
         var diff_hours = Db_from_date.diff(Cancel_date1, 'hours');
+        // var diff_hours = 12;
+        var cancel_charge;
+        var amount_return_to_user;
 
         console.log('Hours Diffrence : ', diff_hours);
 
         var cancellation_rates_list = cancelletion_rates[0].cancellation_policy_criteria;
-        var rate_array = [];
 
-        console.log('CHARGES==>', cancellation_rates_list);
-        cancellation_rates_list.map((rate, index) => {
-            if (rate.hours >= diff_hours) {
-                console.log('coming');
-                rate_array.push(rate.rate);
+        console.log('Cancel rate list=>',cancellation_rates_list);
+    
+        var final_rate_percentage = null;
+        var flagGot = false;
+        cancellation_rates_list.forEach(rate => {
+            if (rate.hours >= diff_hours && !flagGot) {
+                flagGot=true;
+                final_rate_percentage = rate.rate;
             }
         });
-
-        console.log("final rate =>", rate_array.pop())
-
-        */
-
-
-
-
-
-
-
-
-        // return { "status": "success", data: cancelletion_rates }
-
-        /* charge over */
+        console.log("final_rate_percentage",final_rate_percentage);
         
+        if(final_rate_percentage !== null){   
+
+            cancel_charge = (total_booking_amount * final_rate_percentage) / 100;
+            amount_return_to_user = total_booking_amount - cancel_charge;
+            
+            console.log('CANCAL CHARGE : ',cancel_charge);
+            console.log('Amount return to user  : ',amount_return_to_user);
+        }
+        else{
+            final_rate_percentage = null;
+            cancel_charge = 0; 
+            amount_return_to_user = booking_rate * no_of_days; 
+            console.log('CANCAL CHARGE : ',cancel_charge);
+            console.log('Amount return to user  : ',amount_return_to_user);
+        }
+            
+        // return { "status": "success", data: cancelletion_rates }
+        
+
+        /* ---------cancellation charge over-------------- */
 
         var condition = { 'booking_number': data.booking_number }
         var update_data = { $set: { cancel_date: data.cancel_date, cancel_reason: data.cancel_reason, trip_status: data.trip_status } };
+        var update_data2 = { $set: { 
+                                    cancel_date: data.cancel_date, 
+                                    cancel_reason: data.cancel_reason, 
+                                    trip_status: data.trip_status, 
+                                    cancellation_rate : final_rate_percentage,
+                                    cancellation_charge : cancel_charge,
+                                    amount_return_to_user : amount_return_to_user
+                                } 
+                        };
 
-        var datta = await CarBooking.update(condition, update_data);
+        var datta = await CarBooking.update(condition, update_data2);
         if (datta && datta.n > 0) {
 
             var update_carAssign = await CarAssign.updateOne(condition, update_data);
@@ -1233,8 +1364,6 @@ carHelper.cancelBooking = async function (data) {
         else {
             return { status: 'failed', message: "Error occured while cancelling your car booking" }
         }
-        
-
     }
     catch (err) {
         return { status: 'failed', message: "Error occured while cancelling your car booking" }
