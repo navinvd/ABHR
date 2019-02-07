@@ -3116,4 +3116,150 @@ router.post('/return-request', async (req, res) => {
 });
 
 
+
+// Get car booking details form booking number
+
+router.post('/booking-details-ios', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking id to view details"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        // req.body.booking_number
+
+        var defaultQuery = [
+            {
+                $match: {
+                    "booking_number": { $eq: req.body.booking_number }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'cars',
+                    localField: 'carId',
+                    foreignField: '_id',
+                    as: 'car_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_details.car_model_id',
+                    as: 'model_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$model_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_details.car_brand_id',
+                    as: 'brand_details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brand_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_company',
+                    localField: 'car_details.car_rental_company_id',
+                    foreignField: '_id',
+                    as: 'companyDetails'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$companyDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'car_company_terms_and_condition',
+                    localField: 'car_details.car_rental_company_id',
+                    foreignField: 'CompanyId',
+                    as: 'car_company_terms_and_condition_Details'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$car_company_terms_and_condition_Details",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $addFields: {
+                    "car_details.car_brand": "$brand_details.brand_name",
+                    "car_details.car_model": "$model_details.model_name",
+                    "car_details.car_model_number": "$model_details.model_number",
+                    "car_details.car_model_release_year": "$model_details.release_year",
+                    "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
+                    "car_details.cancellation_policy": "$car_company_terms_and_condition_Details.cancellation_policy_criteria",
+                    "phone_number": "$companyDetails.phone_number"
+                }
+            }
+        ];
+        console.log('Default Query========>', JSON.stringify(defaultQuery));
+
+        CarBooking.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "error in accured while fetching booking car details by booking number",
+                    err
+                });
+            } else {
+                if (data && data.length > 0) {
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message: "Car booking details has been found",
+                        data: { booking_details: data[0] },
+                    });
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({
+                        status: "failed",
+                        message: "No car booking details found"
+                    });
+                }
+            }
+        });
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+
+});
+
+
+
+
+
+
+
+
 module.exports = router;

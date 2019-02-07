@@ -642,8 +642,8 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
             console.log('C Date=>', currentDate);
             console.log('C Date IOS=>', moment().toDate().toISOString(Date.now()))
 
-            console.log('MOment Db Date = >', moment("2019-01-28T05:19:50.975Z"))
-            console.log('MOment Current Date = >', moment());
+            // console.log('MOment Db Date = >', moment("2019-01-28T05:19:50.975Z"))
+            // console.log('MOment Current Date = >', moment());
 
             var data1 = data.map((c) => {
                 // if(moment().diff(moment(c['from_time'])) > 0)
