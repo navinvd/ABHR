@@ -15,10 +15,6 @@ socketFunction.socketStartUp = function (server) {
         io.attach(server);
         io.on('connection', function (client) {
 
-            client.emit('myowntest',{"name":"riddhi"}, function (responseData) {
-                console.log('data', responseData);
-            });
-
             client.on('message', (msg)=>{
                 console.log('msg==>',msg);
             });
@@ -55,6 +51,8 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Agentsocket.socketIds.push(client.id);
                     }
+                    var location = [ data.Longitude, data.Latitude ];
+                    var update = CarBooking.update({ "_id": new ObjectId(BookingId)}, { $set : { "source_location": location}});
                 } else if( type === 'user'){
                     if (typeof Booking['userId'] === 'undefined' || Booking['userId'] === null) { 
                         let obj = { ...Booking, userId: user_id }
@@ -69,6 +67,8 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Usersocket.socketIds.push(client.id);
                     }
+                    var location = CarBooking.findOne({ "_id": new ObjectId(BookingId)}, { "source_location": 1, "latitude":1,"longitude":1});
+                    return location;
                 } else if( type === 'admin'){
                     if (typeof Booking['adminId'] === 'undefined' || Booking['adminId'] === null) { 
                         let obj = { ...Booking, adminId: user_id }
@@ -83,6 +83,8 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Adminsocket.socketIds.push(client.id);
                     }
+                    var location = CarBooking.findOne({ "_id": new ObjectId(BookingId)}, { "source_location": 1, "latitude":1,"longitude":1});
+                    return location;
                 }
             } else {
                 if (type === 'agent') {
@@ -98,6 +100,8 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Agentsocket.socketIds.push(client.id);
                     }
+                    var location = [ data.Longitude, data.Latitude ];
+                    var update = CarBooking.update({ "_id": new ObjectId(BookingId)}, { $set : { "source_location": location}});
                 } else if (type === 'user') {
                     let obj = { userId: user_id }
                     Groups.set(BookingId, obj);
@@ -110,6 +114,8 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Usersocket.socketIds.push(client.id);
                     }
+                    var location = CarBooking.findOne({ "_id": new ObjectId(BookingId)}, { "source_location": 1, "latitude":1,"longitude":1});
+                    return location;
                 } else if (type === 'admin') {
                     let obj = { adminId: user_id }
                     Groups.set(BookingId, obj);
@@ -122,8 +128,15 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Adminsocket.socketIds.push(client.id);
                     }
+                    var location = CarBooking.findOne({ "_id": new ObjectId(BookingId)}, { "source_location": 1, "latitude":1,"longitude":1});
+                    return location;
                 }
             }
+            console.log('joinsocket group==>', Groups);
+            console.log('user Sockets===>', UsersSockets);
+            console.log('admin Sockets===>', AdminSockets);
+            console.log('agent Sockets===>', AgentsSockets);
+            console.log('all Sockets===>', allSockets);
         });
 
         client.on('sendTrakingObject', async function (data) {
@@ -137,8 +150,8 @@ socketFunction.socketStartUp = function (server) {
                     var checkadmin = AdminSockets.get(checkBooking['adminId']);
                     if(checkadmin){
                         var checkadmins = checkadmin && checkadmin.socketIds && checkadmin.socketIds.length > 0 ? checkadmin.socketIds : [];
-                        if(checkadmins.length >0){
-                            checkadmins.forEach((value)=>{
+                        if(checkadmins.socketIds.length >0){
+                            checkadmins.socketIds.forEach((value)=>{
                                 client.to(value).emit("recieveTrackingObjest", data);
                             });
                         }
@@ -146,8 +159,8 @@ socketFunction.socketStartUp = function (server) {
                     var checkuser = UsersSockets.get(checkBooking['userId']);
                     if(checkuser){
                         var checkusers = checkuser && checkuser.socketIds && checkuser.socketIds.length > 0 ? checkuser.socketIds : [];
-                        if(checkusers.length >0){
-                            checkusers.forEach((value)=>{
+                        if(checkusers.socketIds.length >0){
+                            checkusers.socketIds.forEach((value)=>{
                                 client.to(value).emit("recieveTrackingObjest", data);
                             });
                         }
@@ -156,16 +169,27 @@ socketFunction.socketStartUp = function (server) {
             } catch(e){
                 console.log('err==>', e);
             }
+
+            console.log('joinsocket group==>', Groups);
+            console.log('user Sockets===>', UsersSockets);
+            console.log('admin Sockets===>', AdminSockets);
+            console.log('agent Sockets===>', AgentsSockets);
+            console.log('all Sockets===>', allSockets);
         });
 
         client.on('LeftGroup', function () {
             var socketId = this.id;
+            console.log(socketId);
             var user = allSockets.get(socketId);
             if(user){
                 if(user.type === 'admin'){
                     var checkadmin = AdminSockets.get(user.user_id);
                     if(checkadmin.socketIds.length !== 0){
-                        checkadmin = checkadmin.filter(item => item !== socketId);
+                        checkadmin = checkadmin.socketIds.filter(item => item !== socketId);
+                        let obj = {
+                            socketIds: checkadmin
+                        }
+                        AdminSockets.set(user.user_id, obj);
                         if(checkadmin.length === 0){
                             AdminSockets.delete(user.user_id);
                         }
@@ -173,7 +197,11 @@ socketFunction.socketStartUp = function (server) {
                 } else if(user.type === 'agent'){
                     var checkagent = AgentsSockets.get(user.user_id);
                     if(checkagent.socketIds.length !== 0){
-                        checkagent = checkagent.filter(item => item !== socketId);
+                        checkagent = checkagent.socketIds.filter(item => item !== socketId);
+                        let obj = {
+                            socketIds: checkagent
+                        }
+                        AgentsSockets.set(user.user_id, obj);
                         if(checkagent.length === 0){
                             AgentsSockets.delete(user.user_id);
                         }
@@ -181,7 +209,11 @@ socketFunction.socketStartUp = function (server) {
                 } else if(user.type === 'user'){
                     var checkuser = UsersSockets.get(user.user_id);
                     if(checkuser.socketIds.length !== 0){
-                        checkuser = checkuser.filter(item => item !== socketId);
+                        checkuser = checkuser.socketIds.filter((item) =>  {return item !== socketId});
+                        let obj = {
+                            socketIds: checkuser
+                        }
+                        UsersSockets.set(user.user_id, obj);
                         if(checkuser.length === 0){
                             UsersSockets.delete(user.user_id);
                         }
@@ -189,22 +221,27 @@ socketFunction.socketStartUp = function (server) {
                 }
                 allSockets.delete(socketId);
             }
+            console.log('joinsocket group==>', Groups);
+            console.log('user Sockets===>', UsersSockets);
+            console.log('admin Sockets===>', AdminSockets);
+            console.log('agent Sockets===>', AgentsSockets);
+            console.log('all Sockets===>', allSockets);
         });
 
-        client.on('recieveTrackingObjest', (data)=> {
-            console.log('in recieve===>', data);
-        });
+        // client.on('recieveTrackingObjest', (data)=> {
+        //     console.log('in recieve===>', data);
+        // });
 
-            client.on('myowntest', function (data) {
-                // console.log('socket_id===>',socket);
-                console.log("data => myowntest ", data);
-            });
+        //     client.on('myowntest', function (data) {
+        //         // console.log('socket_id===>',socket);
+        //         console.log("data => myowntest ", data);
+        //     });
 
             
 
-            client.on('JoinSocket', function (data) {
-                console.log('JoinSocket group==>', data);
-            });
+        //     client.on('JoinSocket', function (data) {
+        //         console.log('JoinSocket group==>', data);
+        //     });
         });
 
     } catch (e) {

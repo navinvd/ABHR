@@ -107,7 +107,8 @@ router.post('/delivering', (req, res, next) => {
                     "trip_status": 1,
                     "model_name": "$car_model.model_name",
                     "brand_name": "$car_brand.brand_name",
-                    "agent_assign_for_handover": 1
+                    "agent_assign_for_handover": 1,
+                    "createdAt":1
                 }
             },
             {
@@ -312,7 +313,8 @@ router.post('/returning', (req, res, next) => {
                     "trip_status": 1,
                     "model_name": "$car_model.model_name",
                     "brand_name": "$car_brand.brand_name",
-                    "agent_assign_for_handover": 1
+                    "agent_assign_for_handover": 1,
+                    "createdAt":1
                 }
             },
             {
