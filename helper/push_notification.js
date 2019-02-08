@@ -96,7 +96,7 @@ push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, 
             to: device_token,  // single device
             // registration_ids: device_token,// one or more device token,
             priority: 'high',
-            notification: {  //you can send only notification or only data(or include both)
+            data: {  //you can send only notification or only data(or include both)
                 booking_number: car_booking_number,
                 title: 'ABHR',
                 message: message_text,
