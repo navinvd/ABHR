@@ -25,6 +25,7 @@ socketFunction.socketStartUp = function (server) {
 		 * @apiParam {JSON} data Data of user
 		 */
         client.on('JoinGroup', function (data) {
+            console.log(data);
             var BookingId = data.booking_id;
             var user_id = data.user_id;
             var type = data.type;
@@ -179,7 +180,7 @@ socketFunction.socketStartUp = function (server) {
 
         client.on('LeftGroup', function () {
             var socketId = this.id;
-            console.log(socketId);
+            console.log('leftgrp===>',socketId);
             var user = allSockets.get(socketId);
             if(user){
                 if(user.type === 'admin'){
