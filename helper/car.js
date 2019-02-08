@@ -1308,12 +1308,14 @@ carHelper.cancelBooking = async function (data) {
     
         var final_rate_percentage = null;
         var flagGot = false;
-        cancellation_rates_list.forEach(rate => {
-            if (rate.hours >= diff_hours && !flagGot) {
-                flagGot=true;
-                final_rate_percentage = rate.rate;
-            }
-        });
+        if(cancellation_rates_list.length > 0){
+            cancellation_rates_list.forEach(rate => {
+                if (rate.hours >= diff_hours && !flagGot) {
+                    flagGot=true;
+                    final_rate_percentage = rate.rate;
+                }
+            });
+        }
         console.log("final_rate_percentage",final_rate_percentage);
         
         if(final_rate_percentage !== null){   
