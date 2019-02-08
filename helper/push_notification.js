@@ -83,6 +83,55 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
     }
 }
 
+// send notification to user when new car has been booked 
+push_notification_helper.sendToAndroidUser = async (device_token, car_booking_number, notificationFor) => {
+    console.log('Token ARRAY =>>>>', device_token);
+    console.log('Notification For =>>>>', notificationFor);
+
+    try {
+
+        var message = {
+            to: device_token,  // single device
+            // registration_ids: device_token,// one or more device token,
+            priority: 'high',
+            data: {  //you can send only notification or only data(or include both)
+                booking_number: car_booking_number,
+                title: 'Your car has been booked',
+                message: 'Your car has been booked',
+                body: 'Your car has been booked'
+            }
+        };
+
+
+        // fcm.send(message, async function(err, response){
+        //     if (err) {
+        //         return {status : 'failed', message : 'Notification has not been sent', data : err }
+        //     } else {
+        //         return {status : 'success', message : 'Notification has been sent successfully', data : response}
+        //     }
+        // });
+
+        const promise = new Promise(((resolve) => {
+
+            fcm.send(message, async (err, result) => {
+                if (err) {
+                    console.log('Not Send =>', err);
+                    resolve({ status: 'failed', message: 'Notification has not been sent', data: err })
+                } else {
+                    console.log('Send =>', result);
+                    resolve({ status: 'success', message: 'Notification has been sent successfully', data: result })
+                }
+            });
+
+        }));
+
+        return promise;
+
+    } catch (err) {
+        return { status: 'failed', "message": "Error occured while sending push notification to android device", err }
+    }
+}
+
 
 
 // Send push notification to user IOS APP when new car book

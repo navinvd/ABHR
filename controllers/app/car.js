@@ -1036,7 +1036,6 @@ router.post('/book', async (req, res) => {
         var carData = await CarBooking.find(
             {
 
-
                 // $match : {
                 $and: [
                     { "carId": new ObjectId(req.body.car_id) },
@@ -1166,7 +1165,7 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification ther user on IOS APP 
                 /** push notification process to user app start */
 
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
                 var deviceToken = '';
                 console.log('User token =>', userDeviceToken);
                 if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
@@ -1178,10 +1177,14 @@ router.post('/book', async (req, res) => {
 
                 var notificationType = 1; // means notification for booking 
                 console.log('Dev Token=>', deviceToken);
-                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType);
+                if(userDeviceToken[0].deviceType === 'ios'){
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType);
+                }else if(userDeviceToken[0].deviceType === 'android'){
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, notificationType);
+                }
+                
 
                 /** Push notofication for user app over */
-
 
                 // after car booking need to send push notification to all agent
                 /** push notification process to all agent start */
