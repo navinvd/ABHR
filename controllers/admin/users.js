@@ -279,7 +279,7 @@ router.post('/list', async (req, res, next) => {
                 })
             }
         }
-        console.log('defaultQuery===>',defaultQuery);
+        console.log('defaultQuery===>', JSON.stringify(defaultQuery));
         totalRecords = await User.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
@@ -683,7 +683,8 @@ router.post('/report_list', async (req, res, next) => {
                     isDeleted: 1,
                     trip_status: 1,
                     first_name: "$user_details.first_name",
-                    last_name: "$user_details.last_name"
+                    last_name: "$user_details.last_name",
+                    createdAt:1
                 }
             });
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {

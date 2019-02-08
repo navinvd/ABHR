@@ -111,7 +111,8 @@ router.post('/report_list', async (req, res, next) => {
                 from_time: 1,
                 to_time: 1,
                 trip_status:1,
-                booking_rent:1
+                booking_rent:1,
+                createdAt:1
             }
         });
 

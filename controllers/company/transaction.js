@@ -177,6 +177,7 @@ router.post('/report_list', async (req, res, next) => {
                 "deposite_amount": 1,
                 "coupon_code": 1,
                 "status": 1,
+                "createdAt":1
               }
             }
           ];
@@ -720,6 +721,7 @@ router.post('/list', async (req, res, next) => {
                 "coupon_rate": "$coupon_details.discount_rate",
                 "coupon_code": 1,
                 "status": 1,
+                "createdAt":1
               }
             }
           ];

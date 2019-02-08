@@ -37,7 +37,7 @@ var TransactionSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["inprogress", "cancelled", "Successfull", "failed"]
+        enum: ["inprogress", "cancelled", "successfull", "failed"]
     },
     coupon_code: {
         type:  String,

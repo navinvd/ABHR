@@ -595,8 +595,8 @@ router.post('/rental_list', (req, res, next) => {
             console.log('sort===>',sortableQuery);
             defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
         }
-        if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
-            if (req.body.search.value) {
+        if (req.body.search != undefined) {
+            if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
                 var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
@@ -613,12 +613,11 @@ router.post('/rental_list', (req, res, next) => {
                         match['$or'].push(json)
                     }
                 });
-                var searchQuery = {
-                    $match: match
-                }
-                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-                console.log("==>", JSON.stringify(searchQuery));
             }
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery = defaultQuery.concat(searchQuery);
         }
         CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {

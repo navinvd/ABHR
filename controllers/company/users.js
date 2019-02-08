@@ -128,7 +128,8 @@ router.post('/report_list', async (req, res, next) => {
                         isDeleted: 1,
                         trip_status:1,
                         first_name: "$user_details.first_name",
-                        last_name:"$user_details.last_name"
+                        last_name:"$user_details.last_name",
+                        createdAt:1
                     }
                 });
             if (req.body.selectFromDate && req.body.selectToDate) {

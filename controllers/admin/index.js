@@ -39,6 +39,7 @@ router.use('/tracking', tracking);
 
 //models
 var User = require('./../../models/users');
+var Company = require('./../../models/car_company');
 
 /**
  * @api {post} /admin/login Login
@@ -404,10 +405,18 @@ router.post('/checkemail', async (req, res, next) => {
                     message: "Record found"
                 });
             }else{
-                res.status(config.OK_STATUS).json({
-                    status: "failed",
-                    message: "record not found"
-                });
+                var CompanyCheck = await Company.findOne({ "email": req.body.email, "isDeleted": false });
+                if (CompanyCheck !== null && CompanyCheck !== '') {
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message: "Record found"
+                    });
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        status: "failed",
+                        message: "record not found"
+                    });
+                }
             }
         } catch (error) {
             res.status(config.BAD_REQUEST).json({

@@ -396,6 +396,138 @@ router.post('/social_login', async (req, res, next) => {
     }
 });
 
+
+/**
+ * @api {post} /app/social_login-v2 Facebook Login
+ * @apiName Facebook Login
+ * @apiDescription Used for user facebook login
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} email User email address
+ * @apiParam {String} socialmediaID User socialmediaID
+ * @apiParam {String} socialmediaType User socialmediaType ["facebook","google"]
+ * @apiParam {String} user_type Type of User ["user", "agent"] 
+ * 
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/social_login-v2', async (req, res, next) => {
+    var schema = {
+        'email': {
+            notEmpty: true,
+            errorMessage: "Email is required"
+        },
+        'socialmediaID': {
+            notEmpty: true,
+            errorMessage: "socialmediaID is required"
+        },
+        'socialmediaType': {
+            notEmpty: true,
+            errorMessage: "socialMediaType is required"
+        },
+        'user_type': {
+            notEmpty: true,
+            errorMessage: "user_type is required"
+        },
+        'deviceType': {
+            notEmpty: true,
+            errorMessage: "deviceType is required"
+        },
+        'deviceToken': {
+            notEmpty: true,
+            errorMessage: "deviceToken is required"
+        }
+    };
+    
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, type: req.body.user_type, email:req.body.email}).exec();
+        console.log('user=====>',user);
+        if (user) {
+            var updateArray = {
+                "deviceType":req.body.deviceType,
+                "deviceToken": req.body.deviceToken,
+            };
+            user.deviceToken =  req.body.deviceToken;
+            user.deviceType = req.body.deviceType;
+            var updaterecord = await User.update({"_id": user._id}, { $set: updateArray});
+            var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                expiresIn: 60 * 60 * 24 // expires in 24 hours
+            });
+
+            user = JSON.parse(JSON.stringify(user));
+
+            delete user.password;
+            delete user.otp_email;
+            delete user.otp;
+            delete user.isDeleted;
+
+            var result = {
+                status: 'success',
+                message: "Login Successfully",
+                data: {user : user, first_time_register : false},
+                token: token
+            };
+            res.status(config.OK_STATUS).json(result);
+        } else {
+            var Data = {
+                first_name: req.body.first_name,
+                last_name: req.body.last_name,
+                socialmediaID: req.body.socialmediaID,
+                socialmediaType: req.body.socialmediaType,
+                email: req.body.email,
+                deviceType: req.body.device_type,
+                deviceToken:req.body.deviceToken,
+                type: req.body.user_type
+            };
+            var userModel = new User(Data);
+            userModel.save(function (err, data) {
+                if (err) {
+                    var result = {
+                        status: 'failed',
+                        message: err
+                    };   
+                } else {
+                    var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                        expiresIn: 60 * 60 * 24 // expires in 24 hours
+                    });
+                    // var option = {
+                    //     to: data.email,
+                    //     subject: 'ABHR - Registration Notification'
+                    // }
+                    // var emailData = {
+                    //     first_name: data.first_name,
+                    //     last_name: data.last_name
+                    // }
+                    // mailHelper.send('/welcome_email', option, emailData, function (err, res) {
+                    //     if (err) {
+                    //         console.log('Mail Err:');
+                    //     } else {
+                    //         console.log('Mail Success:');
+                    //     }
+                    // })
+                    // var result = {
+                    //     status: 'success',
+                    //     message: "Login Successfully",
+                    //     data: {user : data, first_time_register : true},
+                    //     token: token
+                    // };
+                    res.status(config.OK_STATUS).json(result);
+                }
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error"
+        });
+    }
+});
+
 /**
  * @api {post} /app/forget_password Forgot Password
  * @apiDescription Used to send email for forgot password

@@ -2,11 +2,15 @@ var FCM = require('fcm-node');
 var apn = require('apn'); // for ios
 
 var config = require('./../config');
-var serverKey = config.ANDROID_SERVER_KEY; // ask for mobile dev Android
+var user_serverKey = config.USER_ANDROID_SERVER_KEY; // ask for mobile dev Android
+
+var agent_serverKey = config.AGENT_ANDROID_SERVER_KEY; // ask for mobile dev Android
 
 var ioskey = 'AuthKey_Y4T4B4SFZB.p8'
 
-var fcm = new FCM(serverKey);
+var fcm_user = new FCM(user_serverKey);
+
+var fcm_agent = new FCM(agent_serverKey);
 
 var push_notification_helper = {};
 
@@ -64,7 +68,7 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
 
         const promise = new Promise(((resolve) => {
 
-            fcm.send(message, async (err, result) => {
+            fcm_agent.send(message, async (err, result) => {
                 if (err) {
                     console.log('Not Send =>', err);
                     resolve({ status: 'failed', message: 'Notification has not been sent', data: err })
@@ -77,6 +81,59 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
         }));
 
         return promise;
+
+    } catch (err) {
+        return { status: 'failed', "message": "Error occured while sending push notification to android device", err }
+    }
+}
+
+// send notification to user when new car has been booked 
+push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, message_text) => {
+    console.log('Token ARRAY =>>>>', device_token);
+
+    try {
+        var message = {
+            to: device_token,  // single device
+            // registration_ids: device_token,// one or more device token,
+            priority: 'high',
+            data: {  //you can send only notification or only data(or include both)
+                booking_number: car_booking_number,
+                title: 'ABHR',
+                message: message_text,
+                body: message_text
+            }
+        };
+
+        const promise = new Promise(((resolve) => {
+            fcm_user.send(message, function(err, response){
+            console.log('res===>',err, 'response==>',response);
+            if (err) {
+                console.log('err===>',err);
+                resolve({status : 'failed', message : 'Notification has not been sent', data : err });
+            } else {
+                console.log('response===>',response);
+                resolve({status : 'success', message : 'Notification has been sent successfully', data : response});
+            }
+        });
+    }));
+
+    return promise;
+
+        // const promise = new Promise(((resolve) => {
+
+        //     fcm.send(message, async (err, result) => {
+        //         if (err) {
+        //             console.log('Not Send =>', err);
+        //             resolve({ status: 'failed', message: 'Notification has not been sent', data: err })
+        //         } else {
+        //             console.log('Send =>', result);
+        //             resolve({ status: 'success', message: 'Notification has been sent successfully', data: result })
+        //         }
+        //     });
+
+        // }));
+
+        // return promise;
 
     } catch (err) {
         return { status: 'failed', "message": "Error occured while sending push notification to android device", err }

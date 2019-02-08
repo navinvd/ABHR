@@ -120,6 +120,8 @@ var BookingSchema = new Schema({
         type: Date,
         default: Date.now
     },
+    last_location: [Number], // [<longitude>, <latitude>]
+    source_location : [Number], // [<longitude>, <latitude>]
     modifiedAt: {type: Date, default: Date.now}
 }, {versionKey: false});
 // Compile model from schema
