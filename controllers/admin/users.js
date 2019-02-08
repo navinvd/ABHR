@@ -224,7 +224,7 @@ router.post('/list', async (req, res, next) => {
                     if (obj.name) {
                         var json = {};
                         if (obj.isNumber) {
-                            json[obj.name] = { "$eq": parseInt(req.body.search.value)}
+                            json[obj.name] = parseInt(req.body.search.value)
                         } else {
                             json[obj.name] = {
                                 "$regex": regex,

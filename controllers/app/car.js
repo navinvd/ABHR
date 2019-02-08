@@ -1180,7 +1180,7 @@ router.post('/book', async (req, res) => {
                 if(userDeviceToken[0].deviceType === 'ios'){
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType);
                 }else if(userDeviceToken[0].deviceType === 'android'){
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, notificationType);
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your car has been booked');
                 }
                 
 
@@ -2524,6 +2524,40 @@ router.post('/test-not-android', async (req, res) => {
     if (!errors) {
         console.log('D T=>', req.body.device_token);
         var sendNotification = await pushNotificationHelper.sendToAndroid(req.body.device_token);
+        console.log('jdkjksjsdjsj=>', sendNotification);
+        // res.send('ok')
+        if (sendNotification.status === 'success') {
+            console.log('Success==>', sendNotification)
+            res.status(config.OK_STATUS).json(sendNotification);
+        }
+        else {
+            console.log('failure', sendNotification)
+            res.status(config.BAD_REQUEST).json(sendNotification);
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+// test notification route for android
+
+router.post('/test-not-androidsingle', async (req, res) => {
+    var schema = {
+        'device_token': {
+            notEmpty: true,
+            errorMessage: "Please enter device token",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        console.log('D T=>', req.body.device_token);
+        var sendNotification = await pushNotificationHelper.sendToAndroidUser(req.body.device_token, 1234, 'Your car has been booked');
         console.log('jdkjksjsdjsj=>', sendNotification);
         // res.send('ok')
         if (sendNotification.status === 'success') {
