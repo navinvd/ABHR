@@ -24,7 +24,7 @@ socketFunction.socketStartUp = function (server) {
 		 * @apiGroup  Sokets
 		 * @apiParam {JSON} data Data of user
 		 */
-        client.on('JoinGroup', function (data) {
+        client.on('JoinGroup', async function (data) {
             console.log(data);
             var BookingId = data.booking_id;
             var user_id = data.user_id;
@@ -36,6 +36,7 @@ socketFunction.socketStartUp = function (server) {
             }
             allSockets.set(client.id, allsocketobj);
             var Booking = Groups.get(BookingId);
+            var location = await CarBooking.findOne({ "_id": new ObjectId(BookingId)});
             console.log(Booking);
             if (Booking) {
                 if (type === 'agent') {
@@ -52,8 +53,6 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Agentsocket.socketIds.push(client.id);
                     }
-                    var location = [ data.Longitude, data.Latitude ];
-                    var update = CarBooking.update({ "_id": new ObjectId(BookingId)}, { $set : { "source_location": location}});
                 } else if( type === 'user'){
                     if (typeof Booking['userId'] === 'undefined' || Booking['userId'] === null) { 
                         let obj = { ...Booking, userId: user_id }
@@ -68,8 +67,20 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Usersocket.socketIds.push(client.id);
                     }
-                    var location = CarBooking.findOne({ "_id": new ObjectId(BookingId)}, { "source_location": 1, "latitude":1,"longitude":1});
-                    return location;
+                    if(location.trip_status === "delivering"){
+                        var obj = {
+                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                            "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
+                        }
+                        return obj;
+                    }
+                    if(location.trip_status === "returning"){
+                        var obj = {
+                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                            "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
+                        }
+                        return obj;
+                    }
                 } else if( type === 'admin'){
                     if (typeof Booking['adminId'] === 'undefined' || Booking['adminId'] === null) { 
                         let obj = { ...Booking, adminId: user_id }
@@ -84,8 +95,20 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Adminsocket.socketIds.push(client.id);
                     }
-                    var location = CarBooking.findOne({ "_id": new ObjectId(BookingId)}, { "source_location": 1, "latitude":1,"longitude":1});
-                    return location;
+                    if(location.trip_status === "delivering"){
+                        var obj = {
+                            "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                            "source_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
+                        }
+                        return obj;
+                    }
+                    if(location.trip_status === "returning"){
+                        var obj = {
+                            "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                            "source_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
+                        }
+                        return obj;
+                    }
                 }
             } else {
                 if (type === 'agent') {
