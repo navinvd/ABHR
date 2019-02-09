@@ -862,6 +862,57 @@ router.post('/addresses/delete', async (req, res) => {
 });
 
 /**
+ * @api {post} /app/user/addresses/delete-v2 Delete user addresses
+ * @apiName Delete user addresses for version 2
+ * @apiDescription Used to delete user signle or multiple addresses at a time
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {Number} user_id User Id
+ * @apiParam {Array} addresses_id array of address ids (eg. ["5c31cc44ee8cb81ef4d66b87","5c3469462d159a027718aea9"])
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// Delete address of users multiple
+router.post('/addresses/delete-v2', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'addresses_id': {
+            notEmpty: true,
+            errorMessage: "Please enter addresses ids"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var user_id = req.body.user_id;
+        var address_ids = req.body.addresses_id;
+        const addressResp = await userHelper.deleteAddress(user_id, addresses_id);
+
+        if (addressResp.status === 'success') {
+            res.status(config.OK_STATUS).json(addressResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(addressResp);
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+/**
  * @api {post} /app/user/addresses/update Update user address 
  * @apiName  Update user address
  * @apiDescription Used to Update user address one at a time
