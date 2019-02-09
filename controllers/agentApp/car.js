@@ -1079,6 +1079,65 @@ router.post('/returning', async (req, res) => {
         //     notEmpty: true,
         //     errorMessage: "Enter type eg( delivering or returning)"
         // }
+        // 'lattitude' : {
+        //     notEmpty: true,
+        //     errorMessage: "Enter current latitude"
+        // },
+        // 'longitude': {
+        //     notEmpty: true,
+        //     errorMessage: "Enter current longitude"
+        // }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        // pending  (socket event receive from ANDROID and emit to IOS )
+        try {
+            // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
+            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: {'trip_status': 'returning'} });
+
+            if (booking_details && booking_details.n > 0) {
+                var cond = { 'booking_number': req.body.booking_number , 'assign_for_receive' : true }
+                var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
+
+                if (CarAssignData && CarAssignData.n > 0) {
+
+                    res.status(config.OK_STATUS).json({ status: 'success', message: "Car returning process has been started" })
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car returning process has not been started" })
+                }
+
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car returning process has not been started" })
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while start returning process", err })
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+// car returning version 2 process only chang trip status to returning
+router.post('/returning_v2', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Enter booking number"
+        },
+        // 'type': {
+        //     notEmpty: true,
+        //     errorMessage: "Enter type eg( delivering or returning)"
+        // }
         'lattitude' : {
             notEmpty: true,
             errorMessage: "Enter current latitude"
@@ -2162,6 +2221,83 @@ router.post('/delivering', async (req, res) => {
         'booking_number': {
             notEmpty: true,
             errorMessage: "Please enter car booking number"
+        }
+
+    };
+    req.checkBody(schema);
+    // car_defects_gallery
+    // notes
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var hand_over_data = {
+            'user_id': req.body.user_id,
+            'car_id': req.body.car_id,
+            'agent_id': req.body.agent_id,
+            'car_rental_company_id': req.body.car_rental_company_id,
+            'defected_points': req.body.defected_points,
+            'milage': req.body.milage,
+            'petrol_tank': req.body.petrol_tank,
+            'notes': req.body.notes ? req.body.notes : null,
+            'booking_number': req.body.booking_number
+            // 'signature' : req.body.signature ?  req.body.signature : null,
+            // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
+        }
+
+        const carHandOverResp = await CarHelper.car_delivering(req, hand_over_data);
+        console.log('RESP=>', carHandOverResp);
+
+
+        if (carHandOverResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carHandOverResp)
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carHandOverResp)
+        }
+        // res.json(carHandOverResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+// car Delivering process (change trip_status to delivering & make entry in car handover collection)
+router.post('/delivering_v2', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
+        },
+        'agent_id': {
+            notEmpty: true,
+            errorMessage: "Please enter agent id"
+        },
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter rental company id"
+        },
+        'defected_points': {
+            notEmpty: true,
+            errorMessage: "Please enter car defecets points"
+        },
+        'milage': {
+            notEmpty: true,
+            errorMessage: "Please enter car milage"
+        },
+        'petrol_tank': {
+            notEmpty: true,
+            errorMessage: "Please enter car petrol tank fuel"
+        },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number"
         },
         'lattitude' : {
             notEmpty: true,
@@ -2197,7 +2333,7 @@ router.post('/delivering', async (req, res) => {
             'deliever_source_location': [ req.body.longitude, req.body.lattitude]
         }
 
-        const carHandOverResp = await CarHelper.car_delivering(req, hand_over_data, locationData);
+        const carHandOverResp = await CarHelper.car_delivering_v2(req, hand_over_data, locationData);
         console.log('RESP=>', carHandOverResp);
 
 

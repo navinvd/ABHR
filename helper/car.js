@@ -1568,7 +1568,107 @@ carHelper.car_handover = async (req, car_handover_data) => {
 
 // car delivering process
 
-carHelper.car_delivering = async (req, car_handover_data, locationData) => {
+carHelper.car_delivering = async (req, car_handover_data) => {
+    try {
+
+        let car_hand_over_data = {
+            'user_id': car_handover_data.user_id,
+            'car_id': car_handover_data.car_id,
+            'car_rental_company_id': car_handover_data.car_rental_company_id,//
+            'agent_id': car_handover_data.agent_id,
+            'defected_points': JSON.parse(car_handover_data.defected_points),
+            'milage': car_handover_data.milage,
+            'petrol_tank': car_handover_data.petrol_tank,
+            'notes': car_handover_data.notes ? car_handover_data.notes : null,
+            'booking_number': car_handover_data.booking_number
+        }
+        // console.log('HElper =>', req.files)
+
+        var gallaryArray = [];
+        var makeEntry = 1;
+        if (req.files) {
+            if (req.files.car_defects_gallery) {
+                // console.log('Gallary=>',req.files)
+                var gallary = [];
+                // var gallaryArray = [];
+                var gallary = req.files.car_defects_gallery;
+                // var makeEntry = 1;
+                if (!Array.isArray(gallary)) {
+                    gallary = [gallary];
+                    console.log('DATATAT=>', gallary);
+                }
+                console.log('DATATAT=>', gallary);
+                var dir = "./upload/car_defect";
+                async.each(gallary, function (gal) {
+                    var extention = paths.extname(gal.name);
+                    var filename = "car_defect" + Date.now() + extention;
+                    var filepath = dir + '/' + filename;
+
+                    if (fs.existsSync(filepath)) {
+                        filename = "car_defect" + Date.now() + 1 + extention;
+                        filepath = dir + '/' + filename;
+                    }
+                    var json_gal = { name: filename, type: gal['mimetype'] }
+                    gallaryArray.push(json_gal);
+
+                    gal.mv(filepath, function (err) {
+                        if (err) {
+                            makeEntry = 0;
+                            return { status: "failed", message: "Error accured while uplaod car defected images" };
+                        }
+                    });
+
+                })
+
+            }
+
+            /** Save data ith signature */
+            // Signature save
+        }
+
+        if (makeEntry == 1) {
+            // car_hand_over_data.signature = savefilename;
+            car_hand_over_data.car_defects_gallery = gallaryArray;
+
+            let car_hand_over = new CarHandOver(car_hand_over_data);
+            let data = await car_hand_over.save();
+
+            // after car handnover we need to change car booking status to -> in-progress
+            let booking_number = { booking_number: car_hand_over_data.booking_number };
+            let trip_status = { $set: { trip_status: 'delivering' } };
+
+            var bookingUpdate = await CarBooking.updateOne(booking_number, trip_status);
+
+            if (bookingUpdate && bookingUpdate.n > 0) {
+                // update data in car_assign_agent table as well
+                var car_assign_agent_Update = await CarAssign.updateOne(booking_number, trip_status);
+
+                if (car_assign_agent_Update && car_assign_agent_Update.n > 0) {
+                    return { status: "success", message: "Start car delivering process" };
+                }
+                else {
+                    return { status: "failed", message: "Error accured while update car_agent_assign collection" };
+                }
+            }
+            else {
+                return { status: "failed", message: "Error accured while update car booking collection" };
+            }
+
+            // return { status: "success", message: "Car hand over successfully" };
+        }
+        else {
+            return { status: "failed", message: "Error accured while upload car defected images to server" };
+        }
+
+    }
+    catch (err) {
+        return { status: 'failed', message: "Error accured while car delivering", err }
+    }
+};
+
+// car delivering process
+
+carHelper.car_delivering_v2 = async (req, car_handover_data, locationData) => {
     try {
 
         let car_hand_over_data = {
