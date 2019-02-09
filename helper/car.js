@@ -1568,7 +1568,7 @@ carHelper.car_handover = async (req, car_handover_data) => {
 
 // car delivering process
 
-carHelper.car_delivering = async (req, car_handover_data) => {
+carHelper.car_delivering = async (req, car_handover_data, locationData) => {
     try {
 
         let car_hand_over_data = {
@@ -1635,7 +1635,7 @@ carHelper.car_delivering = async (req, car_handover_data) => {
 
             // after car handnover we need to change car booking status to -> in-progress
             let booking_number = { booking_number: car_hand_over_data.booking_number };
-            let trip_status = { $set: { trip_status: 'delivering' } };
+            let trip_status = { $set: locationData };
 
             var bookingUpdate = await CarBooking.updateOne(booking_number, trip_status);
 

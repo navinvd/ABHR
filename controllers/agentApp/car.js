@@ -1074,27 +1074,31 @@ router.post('/returning', async (req, res) => {
         'booking_number': {
             notEmpty: true,
             errorMessage: "Enter booking number"
-        }
+        },
         // 'type': {
         //     notEmpty: true,
         //     errorMessage: "Enter type eg( delivering or returning)"
         // }
-        // 'lattitude' : {
-        //     notEmpty: true,
-        //     errorMessage: "Enter current latitude"
-        // },
-        // 'longitude': {
-        //     notEmpty: true,
-        //     errorMessage: "Enter current longitude"
-        // }
+        'lattitude' : {
+            notEmpty: true,
+            errorMessage: "Enter current latitude"
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Enter current longitude"
+        }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
         // pending  (socket event receive from ANDROID and emit to IOS )
         try {
+            var obj = {
+                'trip_status': 'returning',
+                'return_source_location': [ req.body.longitude, req.body.lattitude]
+            }
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
-            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'returning' } });
+            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj });
 
             if (booking_details && booking_details.n > 0) {
                 var cond = { 'booking_number': req.body.booking_number , 'assign_for_receive' : true }
@@ -2158,7 +2162,16 @@ router.post('/delivering', async (req, res) => {
         'booking_number': {
             notEmpty: true,
             errorMessage: "Please enter car booking number"
+        },
+        'lattitude' : {
+            notEmpty: true,
+            errorMessage: "Enter current latitude"
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Enter current longitude"
         }
+
     };
     req.checkBody(schema);
     // car_defects_gallery
@@ -2179,8 +2192,12 @@ router.post('/delivering', async (req, res) => {
             // 'signature' : req.body.signature ?  req.body.signature : null,
             // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
         }
+        var locationData = {
+            'trip_status': 'delivering',
+            'deliever_source_location': [ req.body.longitude, req.body.lattitude]
+        }
 
-        const carHandOverResp = await CarHelper.car_delivering(req, hand_over_data);
+        const carHandOverResp = await CarHelper.car_delivering(req, hand_over_data, locationData);
         console.log('RESP=>', carHandOverResp);
 
 

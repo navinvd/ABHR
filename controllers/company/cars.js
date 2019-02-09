@@ -460,7 +460,6 @@ router.post('/rented_list', (req, res, next) => {
                     $match: match
                 }
                 defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
-                console.log("==>", JSON.stringify(defaultQuery));
             }
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
@@ -497,7 +496,7 @@ router.post('/rented_list', (req, res, next) => {
                     })    
                 }
             }
-            console.log('defaultQuery===>',defaultQuery);
+            console.log('defaultQuery===>',JSON.stringify(defaultQuery));
         CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
