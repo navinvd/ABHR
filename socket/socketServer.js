@@ -174,8 +174,8 @@ socketFunction.socketStartUp = function (server) {
                     var checkadmin = AdminSockets.get(checkBooking['adminId']);
                     if(checkadmin){
                         var checkadmins = checkadmin && checkadmin.socketIds && checkadmin.socketIds.length > 0 ? checkadmin.socketIds : [];
-                        if(checkadmins.socketIds.length >0){
-                            checkadmins.socketIds.forEach((value)=>{
+                        if(checkadmins.length !==0){
+                            checkadmins.forEach((value)=>{
                                 client.to(value).emit("recieveTrackingObjest", data);
                             });
                         }
@@ -183,8 +183,8 @@ socketFunction.socketStartUp = function (server) {
                     var checkuser = UsersSockets.get(checkBooking['userId']);
                     if(checkuser){
                         var checkusers = checkuser && checkuser.socketIds && checkuser.socketIds.length > 0 ? checkuser.socketIds : [];
-                        if(checkusers.socketIds.length >0){
-                            checkusers.socketIds.forEach((value)=>{
+                        if(checkusers.length >0){
+                            checkusers.forEach((value)=>{
                                 client.to(value).emit("recieveTrackingObjest", data);
                             });
                         }
