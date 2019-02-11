@@ -1096,7 +1096,7 @@ router.post('/book', async (req, res) => {
 
         // var carData = await Car.find({_id : ObjectId(req.body.car_id)},{is_available : 1}).lean().exec();
 
-        var updateUserStatus = await Users.updateOne({"_id" : new ObjectId(req.body.user_id)}, {$set : { "app_user_status": "rented"}});
+        var updateUserStatus = await Users.updateOne({ "_id": new ObjectId(req.body.user_id) }, { $set: { "app_user_status": "rented" } });
 
         var carData = await CarBooking.find(
             {
@@ -1242,12 +1242,12 @@ router.post('/book', async (req, res) => {
 
                 var notificationType = 1; // means notification for booking 
                 console.log('Dev Token=>', deviceToken);
-                if(userDeviceToken[0].deviceType === 'ios'){
+                if (userDeviceToken[0].deviceType === 'ios') {
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, 'Your car has been booked');
-                }else if(userDeviceToken[0].deviceType === 'android'){
+                } else if (userDeviceToken[0].deviceType === 'android') {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your car has been booked');
                 }
-                
+
 
                 /** Push notofication for user app over */
 
@@ -1421,7 +1421,7 @@ router.post('/cancel-booking', async (req, res) => {
 
         if (cancelBookingResp.status === 'success') {
 
-            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number}, {_id: 0, userId: 1}).lean().exec();
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
             var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
             var deviceToken = '';
             console.log('User token =>', userDeviceToken);
@@ -1434,9 +1434,9 @@ router.post('/cancel-booking', async (req, res) => {
 
             var notificationType = 1; // means notification for booking 
             console.log('Dev Token=>', deviceToken);
-            if(userDeviceToken[0].deviceType === 'ios'){
+            if (userDeviceToken[0].deviceType === 'ios') {
                 var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your booking is cancelled successfully");
-            }else if(userDeviceToken[0].deviceType === 'android'){
+            } else if (userDeviceToken[0].deviceType === 'android') {
                 var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your booking is cancelled successfully');
             }
 
@@ -3521,7 +3521,7 @@ router.post('/calculate-cancellation-charge', async (req, res) => {
 
         var final_rate_percentage = null;
         var flagGot = false;
-        if(cancellation_rates_list.length > 0){
+        if (cancellation_rates_list.length > 0) {
             cancellation_rates_list.forEach(rate => {
                 if (rate.hours >= diff_hours && !flagGot) {
                     flagGot = true;
@@ -3606,9 +3606,9 @@ router.post('/filter-v5', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         var fromDate = moment(req.body.fromDate).utc().startOf('days');
-        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').startOf('days');
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').utc().startOf('days');
 
-        var fromDateMonth = new Date(fromDate).getMonth() + 1; 
+        var fromDateMonth = new Date(fromDate).getMonth() + 1;
         var toDateMonth = new Date(toDate).getMonth() + 1;
 
         // var fromDateMonth = fmonth > 9 ? fmonth : ("0" + fmonth);
@@ -3746,7 +3746,7 @@ router.post('/filter-v5', async (req, res) => {
                         },
                         {
                             "isDeleted": false,
-                            "is_available": { $ne: true}
+                            "is_available": { $ne: true }
                         }
                     ]
                 }
@@ -3982,26 +3982,25 @@ router.post('/filter-v5', async (req, res) => {
 
                     availableArray = [];
                     var okData = finalDaata.map((available, index) => {
-                        if(available.is_available){
-                            available.is_available.map((data,index)=>{
+                        if (available.is_available) {
+                            available.is_available.map((data, index) => {
                                 var cnt = 0;
                                 // console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
                                 if (data.month === fromDateMonth || data.month === toDateMonth) {
                                     data.availability.map((av, i) => {
                                         let date = moment(av).utc().startOf('days');
-                                        console.log('date====>', date, 'todate===>', toDate, 'fromDate===>', fromDate);
-                                        console.log('condition====>',moment(date).isBetween(fromDate, toDate, null, '[]'));
                                         if (moment(date).isBetween(fromDate, toDate, null, '[]')) {
-                                            cnt = cnt+1;
+                                            cnt++
                                         }
                                         // u can push match data in one array & return it
                                     });
-                                    console.log('cnt======>,', cnt, req.body.days);
-                                    if(cnt >= req.body.days){
+                                    // console.log('cnt======>,', cnt, req.body.days);
+                                    if (cnt >= req.body.days) {
                                         availableArray.push(available);
                                     }
                                 }
                             });
+                            console.log('availableArray => ', JSON.stringify(availableArray));
                         }
                     })
 
