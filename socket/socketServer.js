@@ -202,7 +202,7 @@ socketFunction.socketStartUp = function (server) {
                         if(checkadmins.length !==0){
                             console.log('check admins===>', checkadmins);
                             checkadmins.forEach((value)=>{
-                                io.to(value).emit("recieveTrackingObjest", data);
+                                io.to(value).emit("recieveTrackingObject", data);
                             });
                         }
                     }
@@ -212,7 +212,8 @@ socketFunction.socketStartUp = function (server) {
                         if(checkusers.length >0){
                             console.log('check users===>', checkusers);
                             checkusers.forEach((value)=>{
-                                io.to(value).emit("recieveTrackingObjest", data);
+                                console.log('emitting data====>',data);
+                                io.to(value).emit("recieveTrackingObject", data);
                             });
                         }
                     }
