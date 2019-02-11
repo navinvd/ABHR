@@ -71,6 +71,7 @@ socketFunction.socketStartUp = function (server) {
                             "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
                             "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
                         }
+                        console.log('obj====>',obj);
                         io.to(client.id).emit("Joined", obj);
                     }
                     if(location.trip_status === "returning"){
@@ -78,6 +79,7 @@ socketFunction.socketStartUp = function (server) {
                             "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
                             "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
                         }
+                        console.log('obj====>',obj);
                         io.to(client.id).emit("Joined", obj);
                     }
                 } else if( type === 'admin'){
@@ -139,6 +141,7 @@ socketFunction.socketStartUp = function (server) {
                             "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
                             "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
                         }
+                        console.log('obj====>',obj);
                         io.to(client.id).emit("Joined", obj);
                     }
                     if(location.trip_status === "returning"){
@@ -146,6 +149,7 @@ socketFunction.socketStartUp = function (server) {
                             "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
                             "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
                         }
+                        console.log('obj====>',obj);
                         io.to(client.id).emit("Joined", obj);
                     }
                 } else if (type === 'admin') {
