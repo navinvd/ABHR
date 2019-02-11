@@ -141,7 +141,6 @@ push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, 
 }
 
 
-
 // Send push notification to user IOS APP when new car book
 push_notification_helper.sendToIOS = async (device_token, car_booking_number, notificationType, message) => {
     try {

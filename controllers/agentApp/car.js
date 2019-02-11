@@ -1190,6 +1190,88 @@ router.post('/returning_v2', async (req, res) => {
 });
 
 
+// car returning version 3 process only chang trip status to returning
+router.post('/returning_v3', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Enter booking number"
+        },
+        // 'type': {
+        //     notEmpty: true,
+        //     errorMessage: "Enter type eg( delivering or returning)"
+        // }
+        'lattitude' : {
+            notEmpty: true,
+            errorMessage: "Enter current latitude"
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Enter current longitude"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        // pending  (socket event receive from ANDROID and emit to IOS )
+        try {
+            var obj = {
+                'trip_status': 'returning',
+                'return_source_location': [ req.body.longitude, req.body.lattitude]
+            }
+            // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
+            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj });
+
+            if (booking_details && booking_details.n > 0) {
+                var cond = { 'booking_number': req.body.booking_number , 'assign_for_receive' : true }
+                var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
+
+                var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number}, {_id: 0, userId: 1}).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
+                var deviceToken = '';
+                console.log('User token =>', userDeviceToken);
+                if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+                    if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+                        // agentDeviceTokenArray.push(agent.deviceToken);
+                        deviceToken = userDeviceToken[0].deviceToken;
+                    }
+                }
+
+                var notificationType = 1; // means notification for booking 
+                console.log('Dev Token=>', deviceToken);
+                if(userDeviceToken[0].deviceType === 'ios'){
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your agent is on returning track");
+                }else if(userDeviceToken[0].deviceType === 'android'){
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your agent is on returning track');
+                }
+
+                if (CarAssignData && CarAssignData.n > 0) {
+
+                    res.status(config.OK_STATUS).json({ status: 'success', message: "Car returning process has been started" })
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car returning process has not been started" })
+                }
+
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Car returning process has not been started" })
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while start returning process", err })
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
 
 
 // Booking Details v2 [IOS] 
@@ -2338,6 +2420,113 @@ router.post('/delivering_v2', async (req, res) => {
 
 
         if (carHandOverResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carHandOverResp)
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carHandOverResp)
+        }
+        // res.json(carHandOverResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+// car Delivering process (change trip_status to delivering & make entry in car handover collection)
+router.post('/delivering_v3', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id"
+        },
+        'agent_id': {
+            notEmpty: true,
+            errorMessage: "Please enter agent id"
+        },
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter rental company id"
+        },
+        'defected_points': {
+            notEmpty: true,
+            errorMessage: "Please enter car defecets points"
+        },
+        'milage': {
+            notEmpty: true,
+            errorMessage: "Please enter car milage"
+        },
+        'petrol_tank': {
+            notEmpty: true,
+            errorMessage: "Please enter car petrol tank fuel"
+        },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number"
+        },
+        'lattitude' : {
+            notEmpty: true,
+            errorMessage: "Enter current latitude"
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Enter current longitude"
+        }
+
+    };
+    req.checkBody(schema);
+    // car_defects_gallery
+    // notes
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var hand_over_data = {
+            'user_id': req.body.user_id,
+            'car_id': req.body.car_id,
+            'agent_id': req.body.agent_id,
+            'car_rental_company_id': req.body.car_rental_company_id,
+            'defected_points': req.body.defected_points,
+            'milage': req.body.milage,
+            'petrol_tank': req.body.petrol_tank,
+            'notes': req.body.notes ? req.body.notes : null,
+            'booking_number': req.body.booking_number
+            // 'signature' : req.body.signature ?  req.body.signature : null,
+            // 'car_defects_gallery' : req.body.car_defects_gallery ? req.body.car_defects_gallery : null,
+        }
+        var locationData = {
+            'trip_status': 'delivering',
+            'deliever_source_location': [ req.body.longitude, req.body.lattitude]
+        }
+
+        const carHandOverResp = await CarHelper.car_delivering_v2(req, hand_over_data, locationData);
+        console.log('RESP=>', carHandOverResp);
+
+
+        if (carHandOverResp.status === 'success') {
+
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
+            var deviceToken = '';
+            console.log('User token =>', userDeviceToken);
+            if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+                if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+                    // agentDeviceTokenArray.push(agent.deviceToken);
+                    deviceToken = userDeviceToken[0].deviceToken;
+                }
+            }
+
+            var notificationType = 1; // means notification for booking 
+            console.log('Dev Token=>', deviceToken);
+            if(userDeviceToken[0].deviceType === 'ios'){
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your agent is on delivering track");
+            }else if(userDeviceToken[0].deviceType === 'android'){
+                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your agent is on delivering track');
+            }
             res.status(config.OK_STATUS).json(carHandOverResp)
         }
         else {
