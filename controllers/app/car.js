@@ -940,6 +940,70 @@ router.post('/checkCarAvailability-v2', async (req, res) => {
 });
 
 /**
+ * @api {post} /app/car/checkCarAvailability-v3 Checking is car available on specific date?
+ * @apiName Check availability car varsion 3
+ * @apiDescription Check whether car is available or not on some specific date
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Number} car_id Id of car
+ * @apiParam {Date} fromDate Available from date
+ * @apiParam {Number} days Number of days car needed
+
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/checkCarAvailability-v3', async (req, res) => {
+    var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please speficy car id for which you are cheking avaibility",
+        },
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify date from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you needed car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        let car_id = req.body.car_id;
+        let fromDate = req.body.fromDate;
+        let days = req.body.days;
+        // const carResp = await carHelper.checkCarAvaibility(car_id, fromDate, days);
+        const carResp = await carHelper.checkCarAvaibility_v3(car_id, fromDate, days);
+        if (carResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carResp);
+        }
+        // res.json(carResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+/**
  * @api {post} /app/car/book Book Car
  * @apiName Car Booking
  * @apiDescription Booking the car
@@ -1179,7 +1243,7 @@ router.post('/book', async (req, res) => {
                 var notificationType = 1; // means notification for booking 
                 console.log('Dev Token=>', deviceToken);
                 if(userDeviceToken[0].deviceType === 'ios'){
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType);
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, 'Your car has been booked');
                 }else if(userDeviceToken[0].deviceType === 'android'){
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your car has been booked');
                 }

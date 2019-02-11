@@ -1206,6 +1206,184 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
 };
 
 
+// // check for car availbility on specific date v2
+
+carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
+    var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
+
+    var fromDate = moment(fromDate).format("YYYY-MM-DD");
+    var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
+
+    var fromDateMonth = new Date(fromDate).getMonth() + 1; 
+    var toDateMonth = new Date(toDate).getMonth() + 1;
+    console.log(toDate);
+    var defaultQuery2 = [
+          {
+            "$match": { "_id": new ObjectId(car_id) }
+          },
+          {
+            "$lookup": {
+              "from": "car_booking",
+              "foreignField": "carId",
+              "localField": "_id",
+              "as": "carBookingDetails"
+            }
+          },
+          
+          {
+            "$unwind": {
+              "path": "$carBookingDetails",
+              "preserveNullAndEmptyArrays": true
+            }
+          },
+          {
+              $match : 
+              {
+                //   "$or":[
+                //     {"carBookingDetails.isDeleted": false},
+                //     {"carBookingDetails":null}
+                //   ]
+                "$or" : [
+                    { "carBookingDetails": null},
+                    {
+                        "$and": [
+                                   {
+                                     "carBookingDetails.isDeleted": false
+                                   },
+                                   {
+                                      "carBookingDetails.trip_status" : { $ne : "cancelled" }
+                                   }
+                                ]
+                    }
+               ]
+              }
+          },
+          {
+            "$group": {
+              "_id": "$_id",
+              "data": {
+                "$push": "$$ROOT"
+              },
+              "totalBooking": {$push:
+                  "$carBookingDetails.booking_number"
+                 
+              }
+            }
+          },
+          {
+            "$unwind": {
+              "path": "$data",
+              "preserveNullAndEmptyArrays": true
+            }
+          },
+          
+          {
+            "$match": {
+              "$or": [
+                {
+                    "data.carBookingDetails.from_time": {
+                        "$gt": new Date(toDate)
+                    }
+                },
+                {
+                    "data.carBookingDetails.to_time": {
+                        "$lt": new Date(fromDate)
+                    }
+                },
+                {
+                  "data.carBookingDetails": null
+                }        
+              ]
+            }
+          },
+          {
+            "$group": {
+              "_id": "$_id",
+              "data": {
+                "$first": "$$ROOT"
+              },
+              "availableBooking": {
+                "$push": "$data.carBookingDetails.booking_number"
+              }
+            }
+          },
+          {
+              "$project":{
+                  "_id":1,
+                  "is_available":"$data.data.is_available",
+                  "totalBooking":{$size:"$data.totalBooking"},
+                  "availableBooking":{$size:"$availableBooking"}
+               }
+          }
+    ]
+
+
+    // console.log('Default Query =>', JSON.stringify(defaultQuery2));
+
+    try {
+        let cars = await Car.aggregate(defaultQuery2);
+
+        console.log('DATA=>', JSON.stringify(cars));
+
+        if (cars && cars.length > 0) {
+
+            // return {"status":"success"}
+
+            if (cars[0].totalBooking === cars[0].availableBooking) {
+                var cnt = 0;
+                cars[0].is_available.map((data,index)=>{
+                    // console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
+                    if (data.month === fromDateMonth || data.month === toDateMonth) {
+                        data.availability.map((av, i) => {
+                            let date = moment(av).format("YYYY-MM-DD");
+                            console.log('date====>', date, 'todate===>', toDate, 'fromDate===>', fromDate);
+                            if (date >= fromDate && date <= toDate) {
+                                cnt = cnt+1;
+                            }
+                            // u can push match data in one array & return it
+                        });
+                    }
+                });
+                if(cnt >= days){
+                    return { status: 'success', message: "Car is available on this date" }
+                } else {
+                    return { status: 'failed', message: "Car is not available on this date" }
+                }
+            }
+            else {
+                return { status: 'failed', message: "Car is not available on this date" }
+            }
+
+            // var finalDaata = cars.filter((c) => {
+            //     if (c.car['totalBooking'] === c['availableBooking'].length) {
+            //         return true;
+            //     }
+            // });
+
+            // console.log('Final DATA=>',finalDaata);
+
+            /*
+            if (finalDaata && finalDaata.length > 0) {
+                finalDaata = finalDaata.map((d) => { return d.car })
+                return { status: 'success', message: "Car is available on this date" }
+                // return { status: 'success', message: "Car is available on this date", data : finalDaata }
+            }
+            else {
+                return { status: 'failed', message: "Car is not available on this date" }
+            }
+            */
+
+        } else {
+            return { status: 'failed', message: "Car is not available on this date" }
+        }
+    } catch (err) {
+        console.log("Err : ", err);
+        return { status: 'failed', message: "Error occured while finding car", err };
+    }
+};
+
+
+
 
 //carBook
 carHelper.carBook = async function (booking_data) {
