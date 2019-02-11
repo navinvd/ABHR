@@ -26,9 +26,9 @@
   <script>
     // var user = io('http://18.219.16.50:4000');
     var user = io();
-    // user.emit('myowntest',{"name":"riddhi","long":"564.56345653"});
+    user.emit('myowntest',{"name":"riddhi","long":"564.56345653"});
 
-    user.emit('JoinGroup', {booking_id: "1", user_id:"111", type: "admin"});
+    user.emit('JoinGroup', {booking_id: "5c5e648a0176bd60fad21fe0", user_id:"5c1485b2c6143978fa01d948", type: "user"});
 
     function SendMessage() {
         var ride_id = document.getElementById("ride_id").value;

@@ -1032,6 +1032,7 @@ router.post('/book', async (req, res) => {
 
         // var carData = await Car.find({_id : ObjectId(req.body.car_id)},{is_available : 1}).lean().exec();
 
+        var updateUserStatus = await Users.updateOne({"_id" : new ObjectId(req.body.user_id)}, {$set : { "app_user_status": "rented"}});
 
         var carData = await CarBooking.find(
             {
@@ -3540,7 +3541,7 @@ router.post('/filter-v5', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var fromDate = moment(req.body.fromDate).format("YYY-MM-DD");
+        var fromDate = moment(req.body.fromDate).format("YYYY-MM-DD");
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
 
         var fromDateMonth = new Date(fromDate).getMonth() + 1; 
@@ -3913,17 +3914,18 @@ router.post('/filter-v5', async (req, res) => {
                     });
 
                     finalDaata = finalDaata.map((d) => { return d.car })
-                    console.log('cars list==>', finalDaata);
+                    // console.log('cars list==>', finalDaata);
 
                     availableArray = [];
                     var okData = finalDaata.map((available, index) => {
                         if(available.is_available){
                             available.is_available.map((data,index)=>{
                                 var cnt = 0;
-                                
+                                // console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
                                 if (data.month === fromDateMonth || data.month === toDateMonth) {
                                     data.availability.map((av, i) => {
                                         let date = moment(av).format("YYYY-MM-DD");
+                                        console.log('date====>', date, 'todate===>', toDate, 'fromDate===>', fromDate);
                                         if (date >= fromDate && date <= toDate) {
                                             cnt = cnt+1;
                                         }
