@@ -3605,8 +3605,8 @@ router.post('/filter-v5', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var fromDate = moment(req.body.fromDate).format("YYYY-MM-DD");
-        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
+        var fromDate = moment(req.body.fromDate).utc().format("YYYY-MM-DD");
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').utc().format("YYYY-MM-DD");
 
         var fromDateMonth = new Date(fromDate).getMonth() + 1; 
         var toDateMonth = new Date(toDate).getMonth() + 1;
@@ -3988,7 +3988,7 @@ router.post('/filter-v5', async (req, res) => {
                                 // console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
                                 if (data.month === fromDateMonth || data.month === toDateMonth) {
                                     data.availability.map((av, i) => {
-                                        let date = moment(av).format("YYYY-MM-DD");
+                                        let date = moment(av).utc().format("YYYY-MM-DD");
                                         console.log('date====>', date, 'todate===>', toDate, 'fromDate===>', fromDate);
                                         if (date >= fromDate && date <= toDate) {
                                             cnt = cnt+1;
@@ -3999,7 +3999,7 @@ router.post('/filter-v5', async (req, res) => {
                                         availableArray.push(available);
                                     }
                                 }
-                            })
+                            });
                         }
                     })
 
