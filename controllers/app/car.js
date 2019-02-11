@@ -3605,8 +3605,8 @@ router.post('/filter-v5', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var fromDate = moment(req.body.fromDate).utc().format("YYYY-MM-DD");
-        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').utc().format("YYYY-MM-DD");
+        var fromDate = moment(req.body.fromDate).utc().startOf('days');
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').startOf('days');
 
         var fromDateMonth = new Date(fromDate).getMonth() + 1; 
         var toDateMonth = new Date(toDate).getMonth() + 1;
@@ -3988,13 +3988,15 @@ router.post('/filter-v5', async (req, res) => {
                                 // console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
                                 if (data.month === fromDateMonth || data.month === toDateMonth) {
                                     data.availability.map((av, i) => {
-                                        let date = moment(av).utc().format("YYYY-MM-DD");
+                                        let date = moment(av).utc().startOf('days');
                                         console.log('date====>', date, 'todate===>', toDate, 'fromDate===>', fromDate);
-                                        if (date >= fromDate && date <= toDate) {
+                                        console.log('condition====>',moment(date).isBetween(fromDate, toDate, null, '[]'));
+                                        if (moment(date).isBetween(fromDate, toDate, null, '[]')) {
                                             cnt = cnt+1;
                                         }
                                         // u can push match data in one array & return it
                                     });
+                                    console.log('cnt======>,', cnt, req.body.days);
                                     if(cnt >= req.body.days){
                                         availableArray.push(available);
                                     }
