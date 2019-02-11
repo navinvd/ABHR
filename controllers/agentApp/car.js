@@ -2510,7 +2510,7 @@ router.post('/delivering_v3', async (req, res) => {
 
         if (carHandOverResp.status === 'success') {
 
-            var userDeviceToken = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email:1, phone_number: 1 }).lean().exec();
             var deviceToken = '';
             console.log('User token =>', userDeviceToken);
             if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {

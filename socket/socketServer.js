@@ -188,6 +188,7 @@ socketFunction.socketStartUp = function (server) {
         });
 
         client.on('sendTrakingObject', async function (data) {
+            console.log('sendTrackingObject===>', data);
             try { 
                 var location = [ data.Longitude, data.Latitude ];
                 var BookingId = data.booking_id;
@@ -199,6 +200,7 @@ socketFunction.socketStartUp = function (server) {
                     if(checkadmin){
                         var checkadmins = checkadmin && checkadmin.socketIds && checkadmin.socketIds.length > 0 ? checkadmin.socketIds : [];
                         if(checkadmins.length !==0){
+                            console.log('check admins===>', checkadmins);
                             checkadmins.forEach((value)=>{
                                 io.to(value).emit("recieveTrackingObjest", data);
                             });
@@ -208,6 +210,7 @@ socketFunction.socketStartUp = function (server) {
                     if(checkuser){
                         var checkusers = checkuser && checkuser.socketIds && checkuser.socketIds.length > 0 ? checkuser.socketIds : [];
                         if(checkusers.length >0){
+                            console.log('check users===>', checkusers);
                             checkusers.forEach((value)=>{
                                 io.to(value).emit("recieveTrackingObjest", data);
                             });
