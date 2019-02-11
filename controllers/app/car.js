@@ -3985,7 +3985,7 @@ router.post('/filter-v5', async (req, res) => {
                         if (available.is_available) {
                             available.is_available.map((data, index) => {
                                 var cnt = 0;
-                                // console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
+                                console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
                                 if (data.month === fromDateMonth || data.month === toDateMonth) {
                                     data.availability.map((av, i) => {
                                         let date = moment(av).utc().startOf('days');
@@ -4000,7 +4000,6 @@ router.post('/filter-v5', async (req, res) => {
                                     }
                                 }
                             });
-                            console.log('availableArray => ', JSON.stringify(availableArray));
                         }
                     })
 

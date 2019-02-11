@@ -67,6 +67,7 @@ router.post('/add', (req, res, next) => {
         req.body['password'] = generatepassword;
         async.waterfall([
             function (callback) {
+                console.log('req.body', req.body);
                 var companyModel = new Company(req.body);
                 companyModel.save(function (err, data) {
                     console.log("user data===>", data, err);

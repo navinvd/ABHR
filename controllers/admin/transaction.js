@@ -171,16 +171,17 @@ router.post('/report_list', async (req, res, next) => {
               }
             }
           ];
-        if (req.body.selectFromDate && req.body.selectToDate) {
-            var From_date = moment(req.body.date).utc();
-            var To_date = moment(req.body.date).utc();
+          console.log( req.body.selectFromDate, req.body.selectToDate);
+          if (req.body.selectFromDate && req.body.selectToDate) {
+            var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+            var To_date = moment(req.body.selectToDate).utc().startOf('day');
             defaultQuery.push({
                 $match: {
-                    $and:[
-                        { "from_time": { $lte: To_date } },
-                        { "to_time": { $gte: From_date } },
-                    ]
-                },
+                      $and: [
+                                { "from_time": { $gte: new Date(From_date) } },
+                                { "to_time": { $lte: new Date(To_date) } },
+                            ]
+                        }
             })
         }
         console.log('defaultQuery', JSON.stringify(defaultQuery));
