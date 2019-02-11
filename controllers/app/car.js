@@ -1351,9 +1351,29 @@ router.post('/cancel-booking', async (req, res) => {
             "cancel_reason": req.body.cancel_reason ? req.body.cancel_reason : null,
             "trip_status": "cancelled"
         }
+
         const cancelBookingResp = await carHelper.cancelBooking(data);
 
         if (cancelBookingResp.status === 'success') {
+
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number}, {_id: 0, userId: 1}).lean().exec();
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
+            var deviceToken = '';
+            console.log('User token =>', userDeviceToken);
+            if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+                if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+                    // agentDeviceTokenArray.push(agent.deviceToken);
+                    deviceToken = userDeviceToken[0].deviceToken;
+                }
+            }
+
+            var notificationType = 1; // means notification for booking 
+            console.log('Dev Token=>', deviceToken);
+            if(userDeviceToken[0].deviceType === 'ios'){
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your booking is cancelled successfully");
+            }else if(userDeviceToken[0].deviceType === 'android'){
+                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your booking is cancelled successfully');
+            }
 
             // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
 
@@ -3504,14 +3524,14 @@ router.post('/filter-v5', async (req, res) => {
                 errorMessage: "Please enter days in number only"
             }
         },
-        'latitude': {
-            notEmpty: true,
-            errorMessage: "Specify your latitude"
-        },
-        'longitude': {
-            notEmpty: true,
-            errorMessage: "Specify your longitude"
-        },
+        // 'latitude': {
+        //     notEmpty: true,
+        //     errorMessage: "Specify your latitude"
+        // },
+        // 'longitude': {
+        //     notEmpty: true,
+        //     errorMessage: "Specify your longitude"
+        // },
         'resident_type': {
             notEmpty: true,
             errorMessage: "Are you resident ..? (eg 0 or 1)"
@@ -3520,14 +3540,14 @@ router.post('/filter-v5', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var fromDate = req.body.fromDate
+        var fromDate = moment(req.body.fromDate).format("YYY-MM-DD");
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
 
-        var fmonth = new Date(fromDate).getMonth() + 1; 
-        var tmonth = new Date(toDate).getMonth() + 1;
+        var fromDateMonth = new Date(fromDate).getMonth() + 1; 
+        var toDateMonth = new Date(toDate).getMonth() + 1;
 
-        var fromDateMonth = fmonth > 9 ? fmonth : ("0" + fmonth);
-        var toDateMonth = tmonth > 9 ? tmonth : ("0" + tmonth);
+        // var fromDateMonth = fmonth > 9 ? fmonth : ("0" + fmonth);
+        // var toDateMonth = tmonth > 9 ? tmonth : ("0" + tmonth);
 
         console.log("FromDate =>", fromDate);
         console.log("ToDate =>", toDate);
@@ -3660,7 +3680,8 @@ router.post('/filter-v5', async (req, res) => {
                             ]
                         },
                         {
-                            "isDeleted": false
+                            "isDeleted": false,
+                            "is_available": { $ne: true}
                         }
                     ]
                 }
@@ -3676,13 +3697,13 @@ router.post('/filter-v5', async (req, res) => {
             {
                 "$match": {
                     "$and": [
-                        {
-                            "data.service_location": {
-                                "$geoWithin": {
-                                    "$centerSphere": [[req.body.longitude, req.body.latitude], 62.1371 / 3963.2]
-                                }
-                            }
-                        },
+                        // {
+                        //     "data.service_location": {
+                        //         "$geoWithin": {
+                        //             "$centerSphere": [[req.body.longitude, req.body.latitude], 62.1371 / 3963.2]
+                        //         }
+                        //     }
+                        // },
                         {
                             "$or": [
                                 {
@@ -3858,7 +3879,7 @@ router.post('/filter-v5', async (req, res) => {
             defaultQuery.push(searchQuery);
         }
 
-        console.log('Default Query========>', JSON.stringify(defaultQuery));
+        // console.log('Default Query========>', JSON.stringify(defaultQuery));
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
@@ -3892,35 +3913,35 @@ router.post('/filter-v5', async (req, res) => {
                     });
 
                     finalDaata = finalDaata.map((d) => { return d.car })
+                    console.log('cars list==>', finalDaata);
 
-
-                    // console.log('Final DATA =>',JSON.stringify(finalDaata));
-
+                    availableArray = [];
                     var okData = finalDaata.map((available, index) => {
-
-                        available.is_available.map((data,index)=>{
-                            
-                            var cnt = 0;
-                            var flag = 0;
-                            if (data.month === fromDateMonth || data.month === toDateMonth) {
-                                cnt = 1;
-                                data.availability.map((av, i) => {
-                                    // if (av >= fromDate && av <= toDate && flag !== 1) {
-                                    //     flag = 1
-                                    //     // retun now
-                                    // }
-                                    // u can push match data in one array & return it
-                                    console.log('cmg->');
-                                })
-                            }
-
-                        })
+                        if(available.is_available){
+                            available.is_available.map((data,index)=>{
+                                var cnt = 0;
+                                
+                                if (data.month === fromDateMonth || data.month === toDateMonth) {
+                                    data.availability.map((av, i) => {
+                                        let date = moment(av).format("YYYY-MM-DD");
+                                        if (date >= fromDate && date <= toDate) {
+                                            cnt = cnt+1;
+                                        }
+                                        // u can push match data in one array & return it
+                                    });
+                                    if(cnt >= req.body.days){
+                                        availableArray.push(available);
+                                    }
+                                }
+                            })
+                        }
                     })
 
                     res.status(config.OK_STATUS).json({
                         status: "success",
                         message: "car data found",
-                        data: { cars: finalDaata }
+                        data: availableArray
+                        // data: { cars: finalDaata }
                     });
 
                 }
