@@ -25,7 +25,7 @@ socketFunction.socketStartUp = function (server) {
 		 * @apiParam {JSON} data Data of user
 		 */
         client.on('JoinGroup', async function (data) {
-            console.log(data);
+            io.to(client.id).emit("test", 'hiiii');
             var BookingId = data.booking_id;
             var user_id = data.user_id;
             var type = data.type;
@@ -37,7 +37,6 @@ socketFunction.socketStartUp = function (server) {
             allSockets.set(client.id, allsocketobj);
             var Booking = Groups.get(BookingId);
             var location = await CarBooking.findOne({ "_id": new ObjectId(BookingId)});
-            console.log(Booking);
             if (Booking) {
                 if (type === 'agent') {
                     if (typeof Booking['agentId'] === 'undefined' || Booking['agentId'] === null) { 
@@ -72,14 +71,14 @@ socketFunction.socketStartUp = function (server) {
                             "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
                             "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
                         }
-                        return obj;
+                        io.to(client.id).emit("Joined", obj);
                     }
                     if(location.trip_status === "returning"){
                         var obj = {
                             "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
                             "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
                         }
-                        return obj;
+                        io.to(client.id).emit("Joined", obj);
                     }
                 } else if( type === 'admin'){
                     if (typeof Booking['adminId'] === 'undefined' || Booking['adminId'] === null) { 
@@ -100,60 +99,81 @@ socketFunction.socketStartUp = function (server) {
                             "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
                             "source_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
                         }
-                        return obj;
+                        io.to(client.id).emit("Joined", obj);
                     }
                     if(location.trip_status === "returning"){
                         var obj = {
                             "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
                             "source_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
                         }
-                        return obj;
+                        io.to(client.id).emit("Joined", obj);
                     }
                 }
             } else {
                 if (type === 'agent') {
-                    let obj = { agentId: user_id }
-                    Groups.set(BookingId, obj);
+                    let bobj = { agentId: user_id }
+                    Groups.set(BookingId, bobj);
                     var Agentsocket = AgentsSockets.get(user_id);
-                    console.log('Agentsocket => ', Agentsocket);
                     if(typeof Agentsocket === 'undefined'){
-                        let obj = {
+                        let sobj = {
                             socketIds: [client.id]
                         }
-                        AgentsSockets.set(user_id, obj);
+                        AgentsSockets.set(user_id, sobj);
                     }else{
                         Agentsocket.socketIds.push(client.id);
                     }
-                    var location = [ data.Longitude, data.Latitude ];
-                    var update = CarBooking.update({ "_id": new ObjectId(BookingId)}, { $set : { "source_location": location}});
                 } else if (type === 'user') {
-                    let obj = { userId: user_id }
-                    Groups.set(BookingId, obj);
+                    let bobj = { userId: user_id }
+                    Groups.set(BookingId, bobj);
                     var Usersocket = UsersSockets.get(user_id);
                     if(typeof Usersocket === 'undefined'){
-                        let obj = {
+                        let sobj = {
                             socketIds: [client.id]
                         }
-                        UsersSockets.set(user_id, obj);
+                        UsersSockets.set(user_id, sobj);
                     }else{
                         Usersocket.socketIds.push(client.id);
                     }
-                    var location = CarBooking.findOne({ "_id": new ObjectId(BookingId)}, { "source_location": 1, "latitude":1,"longitude":1});
-                    return location;
+                    if(location.trip_status === "delivering"){
+                        var obj = {
+                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                            "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
+                        }
+                        io.to(client.id).emit("Joined", obj);
+                    }
+                    if(location.trip_status === "returning"){
+                        var obj = {
+                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                            "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
+                        }
+                        io.to(client.id).emit("Joined", obj);
+                    }
                 } else if (type === 'admin') {
-                    let obj = { adminId: user_id }
-                    Groups.set(BookingId, obj);
+                    let bobj = { adminId: user_id }
+                    Groups.set(BookingId, bobj);
                     var Adminsocket = AdminSockets.get(user_id);
                     if(typeof Adminsocket === 'undefined'){
-                        let obj = {
+                        let sobj = {
                             socketIds: [client.id]
                         }
-                        AdminSockets.set(user_id, obj);
+                        AdminSockets.set(user_id, sobj);
                     }else{
                         Adminsocket.socketIds.push(client.id);
                     }
-                    var location = CarBooking.findOne({ "_id": new ObjectId(BookingId)}, { "source_location": 1, "latitude":1,"longitude":1});
-                    return location;
+                    if(location.trip_status === "delivering"){
+                        var obj = {
+                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                            "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
+                        }
+                        io.to(client.id).emit("Joined", obj);
+                    }
+                    if(location.trip_status === "returning"){
+                        var obj = {
+                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                            "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
+                        }
+                        io.to(client.id).emit("Joined", obj);
+                    }
                 }
             }
             console.log('joinsocket group==>', Groups);
@@ -176,7 +196,7 @@ socketFunction.socketStartUp = function (server) {
                         var checkadmins = checkadmin && checkadmin.socketIds && checkadmin.socketIds.length > 0 ? checkadmin.socketIds : [];
                         if(checkadmins.length !==0){
                             checkadmins.forEach((value)=>{
-                                client.to(value).emit("recieveTrackingObjest", data);
+                                io.to(value).emit("recieveTrackingObjest", data);
                             });
                         }
                     }
@@ -185,7 +205,7 @@ socketFunction.socketStartUp = function (server) {
                         var checkusers = checkuser && checkuser.socketIds && checkuser.socketIds.length > 0 ? checkuser.socketIds : [];
                         if(checkusers.length >0){
                             checkusers.forEach((value)=>{
-                                client.to(value).emit("recieveTrackingObjest", data);
+                                io.to(value).emit("recieveTrackingObjest", data);
                             });
                         }
                     }
