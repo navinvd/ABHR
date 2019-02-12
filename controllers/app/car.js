@@ -3605,9 +3605,10 @@ router.post('/filter-v5', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var fromDate = moment(req.body.fromDate).utc().startOf('days');
-        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').utc().startOf('days');
+        var fromDate = moment(req.body.fromDate).startOf('days');
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').startOf('days');
 
+        
         var fromDateMonth = new Date(fromDate).getMonth() + 1;
         var toDateMonth = new Date(toDate).getMonth() + 1;
 
@@ -3989,7 +3990,7 @@ router.post('/filter-v5', async (req, res) => {
                                 if (data.month === fromDateMonth || data.month === toDateMonth) {
                                     data.availability.map((av, i) => {
                                         let date = moment(av).utc().startOf('days');
-                                        if (moment(date).isBetween(fromDate, toDate, null, '[]')) {
+                                        if (moment(date).isBetween(fromDate, toDate, null, '[)')) {
                                             cnt++
                                         }
                                         // u can push match data in one array & return it

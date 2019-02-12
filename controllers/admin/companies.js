@@ -52,7 +52,7 @@ router.post('/add', (req, res, next) => {
             notEmpty: true,
             errorMessage: "Email is required"
         },
-        'company_address':{
+        'company_address': {
             notEmpty: true,
             errorMessage: "Company Address is required"
         }
@@ -67,7 +67,6 @@ router.post('/add', (req, res, next) => {
         req.body['password'] = generatepassword;
         async.waterfall([
             function (callback) {
-                console.log('req.body', req.body);
                 var companyModel = new Company(req.body);
                 companyModel.save(function (err, data) {
                     console.log("user data===>", data, err);
@@ -141,7 +140,7 @@ router.post('/add', (req, res, next) => {
             }
         ], function (err, result) {
             if (err) {
-                console.log("Here : ",err);
+                console.log("Here : ", err);
                 return next(err);
             } else {
                 res.status(config.OK_STATUS).json(result);
@@ -298,25 +297,25 @@ router.put('/delete', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        Company.update({ "_id": new ObjectId(req.body.company_id)}, {$set: {'isDeleted': true}}, function (err, response) {
-                if (err) {
-                    res.status(config.BAD_REQUEST).json({
-                        message: "Something Went Wrong Please Try Again.."
-                    });
-                } else {
-                    Coupon.updateMany({"car_rental_company_id" : new ObjectId(req.body.company_id)}, {$set: {'isDeleted': true}}, function (err, data){
-                        if (err) {
-                            res.status(config.BAD_REQUEST).json({
-                                message: "Something Went Wrong Please Try Again.."
-                            });
-                        } else {
-                            res.status(config.OK_STATUS).json({
-                                message: "Company Deleted successfully.."
-                            });
-                        }
-                    });
-                }
-            });
+        Company.update({ "_id": new ObjectId(req.body.company_id) }, { $set: { 'isDeleted': true } }, function (err, response) {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    message: "Something Went Wrong Please Try Again.."
+                });
+            } else {
+                Coupon.updateMany({ "car_rental_company_id": new ObjectId(req.body.company_id) }, { $set: { 'isDeleted': true } }, function (err, data) {
+                    if (err) {
+                        res.status(config.BAD_REQUEST).json({
+                            message: "Something Went Wrong Please Try Again.."
+                        });
+                    } else {
+                        res.status(config.OK_STATUS).json({
+                            message: "Company Deleted successfully.."
+                        });
+                    }
+                });
+            }
+        });
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
@@ -391,7 +390,7 @@ router.post('/list', (req, res, next) => {
         },
         {
             $sort: {
-                "createdAt" : -1
+                "createdAt": -1
             }
         }];
         if (req.body.search != undefined) {
@@ -437,14 +436,14 @@ router.post('/list', (req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                    {
-                        $sort: {
-                            "sort_index": 1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    });
+                        {
+                            $sort: {
+                                "sort_index": 1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        });
                 }
             } else {
                 console.log('desc====================');
@@ -462,14 +461,14 @@ router.post('/list', (req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    });
+                        {
+                            $sort: {
+                                "sort_index": -1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        });
                 }
             }
         }
@@ -491,7 +490,7 @@ router.post('/list', (req, res, next) => {
             }
         }
         ]);
-        console.log('default query===============>',JSON.stringify(defaultQuery));
+        console.log('default query===============>', JSON.stringify(defaultQuery));
         Company.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
@@ -618,7 +617,7 @@ router.post('/car/rental_list', (req, res, next) => {
                 "$project": {
                     "_id": 1,
                     "userId": "$user_details",
-                    "booking_rent":1,
+                    "booking_rent": 1,
                     "booking_number": 1,
                     "from_time": 1,
                     "to_time": 1,
@@ -643,30 +642,30 @@ router.post('/car/rental_list', (req, res, next) => {
                     "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             }];
-            if (req.body.search != undefined) {
-                if (req.body.search.value != undefined) {
-                    var regex = new RegExp(req.body.search.value);
-                    var match = { $or: [] };
-                    req.body['columns'].forEach(function (obj) {
-                        if (obj.name) {
-                            var json = {};
-                            if (obj.isNumber) {
-                                json[obj.name] = parseInt(req.body.search.value)
-                            } else {
-                                json[obj.name] = {
-                                    "$regex": regex,
-                                    "$options": "i"
-                                }
+        if (req.body.search != undefined) {
+            if (req.body.search.value != undefined) {
+                var regex = new RegExp(req.body.search.value);
+                var match = { $or: [] };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
                             }
-                            match['$or'].push(json)
                         }
-                    });
-                }
-                var searchQuery = {
-                    $match: match
-                }
-                defaultQuery = defaultQuery.concat(searchQuery);
+                        match['$or'].push(json)
+                    }
+                });
             }
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery = defaultQuery.concat(searchQuery);
+        }
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
@@ -812,66 +811,66 @@ router.post('/car_list', (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         var defaultQuery = [
-        {
-            $lookup: {
-                from: 'car_model',
-                foreignField: '_id',
-                localField: 'car_model_id',
-                as: "modelDetails",
-            }
-        },
-        {
-            $unwind: {
-                "path": "$modelDetails",
-                "preserveNullAndEmptyArrays": true
-            }
-        },
-        {
-            $lookup: {
-                from: 'car_brand',
-                foreignField: '_id',
-                localField: 'car_brand_id',
-                as: "brandDetails",
-            }
-        },
-        {
-            $unwind: {
-                "path": "$brandDetails",
-                "preserveNullAndEmptyArrays": true
-            }
-        },
-        {
-            $match: {
-                "isDeleted": false,
-                "car_rental_company_id": new ObjectId(req.body.company_id)
-            }
-        },
-        {
-            $sort: {
-                'createdAt': -1
-            }
-        },
-        {
-            $group: {
-                "_id": "",
-                "recordsTotal": {
-                    "$sum": 1
-                },
-                "data": {
-                    "$push": "$$ROOT"
+            {
+                $lookup: {
+                    from: 'car_model',
+                    foreignField: '_id',
+                    localField: 'car_model_id',
+                    as: "modelDetails",
                 }
-            }
-        },
-        {
-            $project: {
-                "_id": 1,
-                "recordsTotal": 1,
-                "data": {
-                    "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
+            },
+            {
+                $unwind: {
+                    "path": "$modelDetails",
+                    "preserveNullAndEmptyArrays": true
                 }
-            }
-        }];
-        
+            },
+            {
+                $lookup: {
+                    from: 'car_brand',
+                    foreignField: '_id',
+                    localField: 'car_brand_id',
+                    as: "brandDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$brandDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {
+                    "isDeleted": false,
+                    "car_rental_company_id": new ObjectId(req.body.company_id)
+                }
+            },
+            {
+                $sort: {
+                    'createdAt': -1
+                }
+            },
+            {
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "_id": 1,
+                    "recordsTotal": 1,
+                    "data": {
+                        "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
+                    }
+                }
+            }];
+
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
@@ -1014,7 +1013,7 @@ router.post('/car/details', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/car/add', (req, res, next) => {
-    console.log('request body====>',req.body);
+    console.log('request body====>', req.body);
     var schema = {
         'car_rental_company_id': {
             notEmpty: true,
@@ -1091,12 +1090,13 @@ router.post('/car/add', (req, res, next) => {
         }
         var avaibility = JSON.parse(req.body.is_available);
         var AvailObj = [];
-        console.log('avaibility===>',avaibility);
-        for (var key in avaibility){
-            let datesobj = { "month": parseInt(key), "availability": avaibility[key]};
-            console.log('datesobj===.', datesobj);
+        for (var key in avaibility) {
+            avaibility[key].map((date, i) => {
+                avaibility[key][i] = moment(date).utc().startOf('days');
+            });
+            let datesobj = { "month": parseInt(key), "availability": avaibility[key] };
             AvailObj.push(datesobj);
-            }
+        }
         req.body.is_available = AvailObj;
         req.body.car_gallery = galleryArray;
         var CarModel = new Car(req.body);
@@ -1233,11 +1233,11 @@ router.post('/car/edit', async (req, res, next) => {
         car_images.push(...new_images);
         car_images.push(...oldArray);
         console.log(car_images);
-        if(req.body.is_available !== undefined){
+        if (req.body.is_available !== undefined) {
             var avaibility = JSON.parse(req.body.is_available);
             var AvailObj = [];
-            for (var key in avaibility){
-                let datesobj = { "month": parseInt(key), "availability": avaibility[key]};
+            for (var key in avaibility) {
+                let datesobj = { "month": parseInt(key), "availability": avaibility[key] };
                 console.log('datesobj===.', datesobj);
                 AvailObj.push(datesobj);
             }
