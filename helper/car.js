@@ -1236,7 +1236,8 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
               "path": "$carBookingDetails",
               "preserveNullAndEmptyArrays": true
             }
-          },
+          }
+          /* remove when add cancelled & finished logic
           {
               $match : 
               {
@@ -1255,10 +1256,12 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                                       "carBookingDetails.trip_status" : { $ne : "cancelled" } 
                                    }
                                 ]
-                    }
+                    },
                ]
               }
-          },
+          }
+          */
+          ,
           {
             "$group": {
               "_id": "$_id",
@@ -1293,10 +1296,10 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                 },
                 {
                   "data.carBookingDetails": null
-                }
-                // {
-                //     "data.carBookingDetails.trip_status" : { $eq : "cancelled"} // added now 
-                // }        
+                },
+                {
+                    "data.carBookingDetails.trip_status" : { $in : ["cancelled","finished"]} // added now 
+                }       
               ]
             }
           },

@@ -2990,6 +2990,7 @@ router.post('/filter-v4', async (req, res) => {
                                     }
                                 },
                                 { "booking.trip_status" : "cancelled" }, // add now
+                                { "booking.trip_status" : "finished" }, // add now
                                 { "booking": null },
                             ]
                         },
@@ -3726,14 +3727,14 @@ router.post('/filter-v5', async (req, res) => {
                 errorMessage: "Please enter days in number only"
             }
         },
-        // 'latitude': {
-        //     notEmpty: true,
-        //     errorMessage: "Specify your latitude"
-        // },
-        // 'longitude': {
-        //     notEmpty: true,
-        //     errorMessage: "Specify your longitude"
-        // },
+        'latitude': {
+            notEmpty: true,
+            errorMessage: "Specify your latitude"
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Specify your longitude"
+        },
         'resident_type': {
             notEmpty: true,
             errorMessage: "Are you resident ..? (eg 0 or 1)"
@@ -3862,7 +3863,6 @@ router.post('/filter-v5', async (req, res) => {
                     "preserveNullAndEmptyArrays": true
                 }
             },
-
             {
                 "$match": {
                     $and: [
@@ -3879,18 +3879,18 @@ router.post('/filter-v5', async (req, res) => {
                                         $lt: new Date(fromDate)
                                     }
                                 },
-                                { "booking.trip_status" : "cancelled" }, // added now
-                                { "booking": null },
+                                {"booking.trip_status" : "cancelled"}, // add now
+                                {"booking.trip_status" : "finished"}, // add now
+                                { "booking": null }
                             ]
                         },
                         {
-                            "isDeleted": false
-                            // "is_available": { $ne: true }
+                            "isDeleted": false,
+                            // "is_available": { $ne: true } // & this remove now
                         }
                     ]
                 }
             },
-
             {
                 "$group": {
                     "_id": "$_id",
