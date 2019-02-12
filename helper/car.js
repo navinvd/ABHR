@@ -1251,9 +1251,9 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                                    {
                                      "carBookingDetails.isDeleted": false
                                    },
-                                //    {
-                                //       "carBookingDetails.trip_status" : { $ne : "cancelled" } // remove now
-                                //    }
+                                   {
+                                      "carBookingDetails.trip_status" : { $ne : "cancelled" } 
+                                   }
                                 ]
                     }
                ]
@@ -1293,10 +1293,10 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                 },
                 {
                   "data.carBookingDetails": null
-                },
-                {
-                    "data.carBookingDetails.trip_status" : { $eq : "cancelled"} // added now 
-                }        
+                }
+                // {
+                //     "data.carBookingDetails.trip_status" : { $eq : "cancelled"} // added now 
+                // }        
               ]
             }
           },
@@ -1358,7 +1358,7 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
 
                 availableArray = [];
 
-                if (cars[0].is_available !== true) { // chk when there is array
+                if (cars[0].is_available & cars[0].is_available !== true) { // chk when there is array
                     cars[0].is_available.map((data, index) => {
                         var cnt = 0;
                         console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);

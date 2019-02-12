@@ -2989,6 +2989,7 @@ router.post('/filter-v4', async (req, res) => {
                                         $lt: new Date(fromDate)
                                     }
                                 },
+                                { "booking.trip_status" : "cancelled" }, // add now
                                 { "booking": null },
                             ]
                         },
@@ -3248,7 +3249,7 @@ router.post('/filter-v4', async (req, res) => {
                     err
                 });
             } else {
-                console.log("DATATA===>", data);
+                // console.log("DATATA===>", data);
 
                 // res.json('ok');
 
@@ -3271,6 +3272,8 @@ router.post('/filter-v4', async (req, res) => {
                     });
 
                     finalDaata = finalDaata.map((d) => { return d.car })
+
+                    console.log("DM Data =>",finalDaata);
 
                     res.status(config.OK_STATUS).json({
                         status: "success",
@@ -3876,12 +3879,13 @@ router.post('/filter-v5', async (req, res) => {
                                         $lt: new Date(fromDate)
                                     }
                                 },
+                                { "booking.trip_status" : "cancelled" }, // added now
                                 { "booking": null },
                             ]
                         },
                         {
-                            "isDeleted": false,
-                            "is_available": { $ne: true }
+                            "isDeleted": false
+                            // "is_available": { $ne: true }
                         }
                     ]
                 }
@@ -4117,7 +4121,7 @@ router.post('/filter-v5', async (req, res) => {
 
                     availableArray = [];
                     var okData = finalDaata.map((available, index) => {
-                        if (available.is_available) {
+                        if (available.is_available && available.is_available !== true) {
                             available.is_available.map((data, index) => {
                                 var cnt = 0;
                                 console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
@@ -4142,7 +4146,7 @@ router.post('/filter-v5', async (req, res) => {
                         res.status(config.OK_STATUS).json({
                             status: "success",
                             message: "car data found",
-                            data: availableArray
+                            data: {cars : availableArray }
                             // data: { cars: finalDaata }
                         });
                     }
