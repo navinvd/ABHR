@@ -1358,7 +1358,7 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
 
                 availableArray = [];
 
-                if (cars[0].is_available & cars[0].is_available !== true) { // chk when there is array
+                if (cars[0].is_available && cars[0].is_available !== true) { // chk when there is array
                     cars[0].is_available.map((data, index) => {
                         var cnt = 0;
                         console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
@@ -1570,12 +1570,12 @@ carHelper.cancelBooking = async function (data) {
 
             var update_carAssign = await CarAssign.updateOne(condition, update_data);
 
-            if (update_carAssign && update_carAssign.n > 0) {
+            // if (update_carAssign && update_carAssign.n > 0) {
                 return { status: 'success', message: "Your car booking has been cancelled successfully" }
-            }
-            else {
-                return { status: 'failed', message: "Error occured while cancelling your car booking" }
-            }
+            // }
+            // else {
+                // return { status: 'failed', message: "Error occured while cancelling your car booking" }
+            // }
         }
         else {
             return { status: 'failed', message: "Error occured while cancelling your car booking" }
