@@ -775,7 +775,8 @@ carHelper.history = async (user_id, history_type) => {
         var searchQuery = {
             $match: {
                 'isDeleted': false,
-                'userId': new ObjectId(user_id)
+                'userId': new ObjectId(user_id),
+                'trip_status': { $in: ['finished'] }
             }
         }
     }
@@ -1250,9 +1251,9 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                                    {
                                      "carBookingDetails.isDeleted": false
                                    },
-                                   {
-                                      "carBookingDetails.trip_status" : { $ne : "cancelled" }
-                                   }
+                                //    {
+                                //       "carBookingDetails.trip_status" : { $ne : "cancelled" } // remove now
+                                //    }
                                 ]
                     }
                ]
@@ -1292,6 +1293,9 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                 },
                 {
                   "data.carBookingDetails": null
+                },
+                {
+                    "data.carBookingDetails.trip_status" : { $eq : "cancelled"} // added now 
                 }        
               ]
             }
@@ -1312,7 +1316,8 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                   "_id":1,
                   "is_available":"$data.data.is_available",
                   "totalBooking":{$size:"$data.totalBooking"},
-                  "availableBooking":{$size:"$availableBooking"}
+                  "availableBooking":{$size:"$availableBooking"},
+                  "trip_status" : "$data.data.carBookingDetails.trip_status"
                }
           }
     ]
@@ -1330,25 +1335,56 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
             // return {"status":"success"}
 
             if (cars[0].totalBooking === cars[0].availableBooking) {
-                var cnt = 0;
-                cars[0].is_available.map((data,index)=>{
-                    // console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
-                    if (data.month === fromDateMonth || data.month === toDateMonth) {
-                        data.availability.map((av, i) => {
-                            let date = moment(av).format("YYYY-MM-DD");
-                            console.log('date====>', date, 'todate===>', toDate, 'fromDate===>', fromDate);
-                            if (date >= fromDate && date <= toDate) {
-                                cnt = cnt+1;
+                // var cnt = 0;
+                // cars[0].is_available.map((data,index)=>{
+                //     // console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
+                //     if (data.month === fromDateMonth || data.month === toDateMonth) {
+                //         data.availability.map((av, i) => {
+                //             let date = moment(av).format("YYYY-MM-DD");
+                //             console.log('date====>', date, 'todate===>', toDate, 'fromDate===>', fromDate);
+                //             if (date >= fromDate && date <= toDate) {
+                //                 cnt = cnt+1;
+                //             }
+                //             // u can push match data in one array & return it
+                //         });
+                //     }
+                // });
+                // if(cnt >= days){
+                //     return { status: 'success', message: "Car is available on this date" }
+                // } else {
+                //     return { status: 'failed', message: "Car is not available on this date" }
+                // }
+
+
+                availableArray = [];
+
+                if (cars[0].is_available !== true) { // chk when there is array
+                    cars[0].is_available.map((data, index) => {
+                        var cnt = 0;
+                        console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
+                        if (data.month === fromDateMonth || data.month === toDateMonth) {
+                            data.availability.map((av, i) => {
+                                let date = moment(av).utc().startOf('days');
+                                if (moment(date).isBetween(fromDate, toDate, null, '[)')) {
+                                    cnt++
+                                }
+                                // u can push match data in one array & return it
+                            });
+                            // console.log('cnt======>,', cnt, req.body.days);
+                            if (cnt >= days) {
+                                availableArray.push(cars[0]);
                             }
-                            // u can push match data in one array & return it
-                        });
-                    }
-                });
-                if(cnt >= days){
+                        }
+                    });
+                }
+
+                if(availableArray.length > 0){
                     return { status: 'success', message: "Car is available on this date" }
                 } else {
                     return { status: 'failed', message: "Car is not available on this date" }
                 }
+
+
             }
             else {
                 return { status: 'failed', message: "Car is not available on this date" }

@@ -4004,13 +4004,20 @@ router.post('/filter-v5', async (req, res) => {
                         }
                     })
 
-                    res.status(config.OK_STATUS).json({
-                        status: "success",
-                        message: "car data found",
-                        data: availableArray
-                        // data: { cars: finalDaata }
-                    });
-
+                    if(availableArray.length > 0){
+                        res.status(config.OK_STATUS).json({
+                            status: "success",
+                            message: "car data found",
+                            data: availableArray
+                            // data: { cars: finalDaata }
+                        });
+                    }
+                    else{
+                        res.status(config.BAD_REQUEST).json({
+                            status: "failed",
+                            message: "No Cars Available"
+                        });
+                    }
                 }
                 else {
                     res.status(config.BAD_REQUEST).json({
