@@ -66,22 +66,6 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Usersocket.socketIds.push(client.id);
                     }
-                    if(location.trip_status === "delivering"){
-                        var obj = {
-                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                            "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
-                        }
-                        console.log('obj====>',obj);
-                        io.to(client.id).emit("Joined", obj);
-                    }
-                    if(location.trip_status === "returning"){
-                        var obj = {
-                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                            "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
-                        }
-                        console.log('obj====>',obj);
-                        io.to(client.id).emit("Joined", obj);
-                    }
                 } else if( type === 'admin'){
                     if (typeof Booking['adminId'] === 'undefined' || Booking['adminId'] === null) { 
                         let obj = { ...Booking, adminId: user_id }
@@ -95,20 +79,6 @@ socketFunction.socketStartUp = function (server) {
                         AdminSockets.set(user_id, obj);
                     }else{
                         Adminsocket.socketIds.push(client.id);
-                    }
-                    if(location.trip_status === "delivering"){
-                        var obj = {
-                            "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                            "source_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
-                        }
-                        io.to(client.id).emit("Joined", obj);
-                    }
-                    if(location.trip_status === "returning"){
-                        var obj = {
-                            "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                            "source_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
-                        }
-                        io.to(client.id).emit("Joined", obj);
                     }
                 }
             } else {
@@ -136,22 +106,6 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Usersocket.socketIds.push(client.id);
                     }
-                    if(location.trip_status === "delivering"){
-                        var obj = {
-                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                            "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
-                        }
-                        console.log('obj====>',obj);
-                        io.to(client.id).emit("Joined", obj);
-                    }
-                    if(location.trip_status === "returning"){
-                        var obj = {
-                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                            "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
-                        }
-                        console.log('obj====>',obj);
-                        io.to(client.id).emit("Joined", obj);
-                    }
                 } else if (type === 'admin') {
                     let bobj = { adminId: user_id }
                     Groups.set(BookingId, bobj);
@@ -164,21 +118,24 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Adminsocket.socketIds.push(client.id);
                     }
-                    if(location.trip_status === "delivering"){
-                        var obj = {
-                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                            "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
-                        }
-                        io.to(client.id).emit("Joined", obj);
-                    }
-                    if(location.trip_status === "returning"){
-                        var obj = {
-                            "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                            "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
-                        }
-                        io.to(client.id).emit("Joined", obj);
-                    }
                 }
+            }
+            if(location.trip_status === "delivering"){
+                var obj = {
+                    "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                    "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]},
+                    "last_location" : {"longitude": location.last_location[0], "latitude" : location.last_location[1]}
+                }
+                io.to(client.id).emit("Joined", obj);
+            }
+            if(location.trip_status === "returning"){
+                var obj = {
+                    "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                    "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]},
+                    "last_location" : {"longitude": location.last_location[0], "latitude" : location.last_location[1]}
+                }
+                console.log('obj====>',obj);
+                io.to(client.id).emit("Joined", obj);
             }
             console.log('joinsocket group==>', Groups);
             console.log('user Sockets===>', UsersSockets);

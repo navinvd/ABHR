@@ -115,6 +115,9 @@ router.post('/add', (req, res, next) => {
         var avaibility = JSON.parse(req.body.is_available);
         var AvailObj = [];
         for (var key in avaibility){
+            avaibility[key].map((date, i) => {
+                avaibility[key][i] = moment(date).utc().startOf('days');
+            });
             let datesobj = { "month": parseInt(key), "availability": avaibility[key]};
             console.log('datesobj===.', datesobj);
             AvailObj.push(datesobj);
