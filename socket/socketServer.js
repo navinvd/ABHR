@@ -80,20 +80,6 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Adminsocket.socketIds.push(client.id);
                     }
-                    // if(location.trip_status === "delivering"){
-                    //     var obj = {
-                    //         "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                    //         "source_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
-                    //     }
-                    //     io.to(client.id).emit("Joined", obj);
-                    // }
-                    // if(location.trip_status === "returning"){
-                    //     var obj = {
-                    //         "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                    //         "source_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
-                    //     }
-                    //     io.to(client.id).emit("Joined", obj);
-                    // }
                 }
             } else {
                 if (type === 'agent') {
@@ -120,22 +106,6 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Usersocket.socketIds.push(client.id);
                     }
-                    // if(location.trip_status === "delivering"){
-                    //     var obj = {
-                    //         "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                    //         "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
-                    //     }
-                    //     console.log('obj====>',obj);
-                    //     io.to(client.id).emit("Joined", obj);
-                    // }
-                    // if(location.trip_status === "returning"){
-                    //     var obj = {
-                    //         "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                    //         "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
-                    //     }
-                    //     console.log('obj====>',obj);
-                    //     io.to(client.id).emit("Joined", obj);
-                    // }
                 } else if (type === 'admin') {
                     let bobj = { adminId: user_id }
                     Groups.set(BookingId, bobj);
@@ -148,20 +118,6 @@ socketFunction.socketStartUp = function (server) {
                     }else{
                         Adminsocket.socketIds.push(client.id);
                     }
-                    // if(location.trip_status === "delivering"){
-                    //     var obj = {
-                    //         "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                    //         "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]}
-                    //     }
-                    //     io.to(client.id).emit("Joined", obj);
-                    // }
-                    // if(location.trip_status === "returning"){
-                    //     var obj = {
-                    //         "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                    //         "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]}
-                    //     }
-                    //     io.to(client.id).emit("Joined", obj);
-                    // }
                 }
             }
             if(location.trip_status === "delivering"){

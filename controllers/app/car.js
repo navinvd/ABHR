@@ -15,6 +15,7 @@ const UserCoupon = require('./../../models/user_coupon');
 const CarNotification = require('./../../models/car_notification');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
+var mailHelper = require('./../../helper/mail');
 const moment = require('moment');
 
 /**
@@ -1107,49 +1108,6 @@ router.post('/book', async (req, res) => {
                     { "from_time": { $lte: toDate } },
                     { "to_time": { $gte: fromDate } },
                     { "trip_status": { $ne: 'cancelled' } },
-                    // {"trip_status" : { $eq : 'finished'}} // no need
-                    // {
-                    //     $and : [
-                    //         {"trip_status" : { $eq : 'cancelled'}},
-                    //         {"trip_status" : { $eq : 'finished'}}
-                    //     ]
-                    // }
-                    // {
-                    //     $or: [
-                    //             {
-                    //                 $and: [
-                    //                     {from_time : { $gte : fromDate} },
-                    //                     {to_time : { $lte : toDate} }
-                    //                 ]
-                    //             },
-                    //             {
-                    //                 $and: [
-                    //                     {from_time : { $gte : fromDate} },
-                    //                     {to_time : { $gte : toDate} },
-                    //                     {from_time : {$not: { $gte : toDate} } }
-                    //                 ]
-                    //             },
-                    //             {
-                    //                 $and: [
-                    //                     {to_time : { $lte : fromDate} },
-                    //                     {to_time : { $gt : toDate} },
-                    //                     {from_time : { $gt : fromDate} } 
-                    //                 ]
-                    //             },
-                    //             {
-                    //                 $and: [
-                    //                     {from_time : { $lte : fromDate} },
-                    //                     {to_time : { $gte : toDate} }
-                    //                 ]
-                    //             },
-                    //             {
-                    //                 $and: [
-                    //                     {from_time : { $eq : fromDate} },
-                    //                     {to_time : { $eq : toDate} }
-                    //                 ]
-                    //             }
-                    //     ]
-                    // }
                 ]
 
             }
@@ -1230,7 +1188,7 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification ther user on IOS APP 
                 /** push notification process to user app start */
 
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1}).lean().exec();
                 var deviceToken = '';
                 console.log('User token =>', userDeviceToken);
                 if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
@@ -1247,6 +1205,25 @@ router.post('/book', async (req, res) => {
                 } else if (userDeviceToken[0].deviceType === 'android') {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your car has been booked');
                 }
+
+                // /* send email to user */
+                // if( userDeviceToken[0].email){
+                //     var option = {
+                //         to: userDeviceToken[0].email,
+                //         subject: 'ABHR - Car Booking Notification'
+                //     }
+                //     var data = { 
+                //         booking_number : car_booking_number,
+                //         from_time: moment(req.body.fromDate).startOf('days').format('MM-DD-YYYY'),
+                //         days: req.body.days };
+                //     mailHelper.send('car_booking', option, data, function (err, res) {
+                //         if (err) {
+                //             console.log("Mail Error:", err);
+                //         } else {
+                //             console.log("Mail Success:", res);
+                //         }
+                //     })
+                // }
 
 
                 /** Push notofication for user app over */
@@ -1356,6 +1333,186 @@ router.post('/change-booking', async (req, res) => {
     }
 });
 
+// Change Car Booking  Details
+/**
+ * @api {post} /app/car/change-booking-v2 Change Car booking details
+ * @apiName Change Car Booking Details
+ * @apiDescription change car booking details like delivery address & delivery time
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Number} booking_number Car booking id
+ * @apiParam {String} delivery_address Car Delivery Address (eg. 320, regent square surat india)
+ * @apiParam {String} delivery_time Car Delivery Time (eg. 7am - 9am)
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+router.post('/change-booking-v2', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter your car booking number",
+        },
+        'delivery_address': {
+            notEmpty: true,
+            errorMessage: "Please enter your car delivery address",
+        },
+        'delivery_time': {
+            notEmpty: true,
+            errorMessage: "Please enter your car delivery time",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var booking_number = req.body.booking_number;
+        var data = {
+            "delivery_address": req.body.delivery_address,
+            "delivery_time": req.body.delivery_time
+        }
+        const bookingResp = await carHelper.change_carBook(booking_number, data);
+
+        if (bookingResp.status === 'success') {
+
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
+            var deviceToken = '';
+            console.log('User token =>', userDeviceToken);
+            if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+                if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+                    // agentDeviceTokenArray.push(agent.deviceToken);
+                    deviceToken = userDeviceToken[0].deviceToken;
+                }
+            }
+
+            var notificationType = 1; // means notification for booking 
+            console.log('Dev Token=>', deviceToken);
+            if (userDeviceToken[0].deviceType === 'ios') {
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your booking is cancelled successfully");
+            } else if (userDeviceToken[0].deviceType === 'android') {
+                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your booking is cancelled successfully');
+            }
+
+            res.status(config.OK_STATUS).json(bookingResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(bookingResp);
+        }
+        // res.json(bookingResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+/**
+ * @api {post} /app/car/cancel-booking-v2 Cancel Car Booking
+ * @apiName Cancel Car Booking
+ * @apiDescription Cancel Car Booking
+ * @apiGroup App - Car
+ * 
+ * @apiParam {String} user_id User ID
+ * @apiParam {String} car_id Car ID
+ * @apiParam {Date} cancel_date Car booking cancel date
+ * @apiParam {String} [cancel_reason] Reason for cancelling car booking
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+//Cancel Car booking 
+router.post('/cancel-booking-v2', async (req, res) => {
+    var schema = {
+        // 'user_id': {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter login user id",
+        // },
+        // 'car_id': {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter car id which you are going to book",
+        // },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number",
+        },
+        'cancel_date': {
+            notEmpty: true,
+            errorMessage: "Please specify date from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        }
+        // 'cancel_reason': { // will uncomment this in future
+        //     notEmpty: true,
+        //     errorMessage: "Please give reason for cancelling car booking",
+        // }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+
+        var data = {
+            // "userId": req.body.user_id,
+            // "carId": req.body.car_id,
+            "booking_number": req.body.booking_number,
+            "cancel_date": req.body.cancel_date,
+            "cancel_reason": req.body.cancel_reason ? req.body.cancel_reason : null,
+            "trip_status": "cancelled"
+        }
+
+        const cancelBookingResp = await carHelper.cancelBooking(data);
+
+        if (cancelBookingResp.status === 'success') {
+
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
+            var deviceToken = '';
+            console.log('User token =>', userDeviceToken);
+            if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+                if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+                    // agentDeviceTokenArray.push(agent.deviceToken);
+                    deviceToken = userDeviceToken[0].deviceToken;
+                }
+            }
+
+            var notificationType = 1; // means notification for booking 
+            console.log('Dev Token=>', deviceToken);
+            if (userDeviceToken[0].deviceType === 'ios') {
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your booking is cancelled successfully");
+            } else if (userDeviceToken[0].deviceType === 'android') {
+                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your booking is cancelled successfully');
+            }
+
+            // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
+
+            res.status(config.OK_STATUS).json(cancelBookingResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(cancelBookingResp);
+        }
+        // res.json(cancelBookingResp);
+
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
 
 
 /**
@@ -1420,26 +1577,6 @@ router.post('/cancel-booking', async (req, res) => {
         const cancelBookingResp = await carHelper.cancelBooking(data);
 
         if (cancelBookingResp.status === 'success') {
-
-            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
-            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
-            var deviceToken = '';
-            console.log('User token =>', userDeviceToken);
-            if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
-                if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
-                    // agentDeviceTokenArray.push(agent.deviceToken);
-                    deviceToken = userDeviceToken[0].deviceToken;
-                }
-            }
-
-            var notificationType = 1; // means notification for booking 
-            console.log('Dev Token=>', deviceToken);
-            if (userDeviceToken[0].deviceType === 'ios') {
-                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your booking is cancelled successfully");
-            } else if (userDeviceToken[0].deviceType === 'android') {
-                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your booking is cancelled successfully');
-            }
-
             // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
 
             res.status(config.OK_STATUS).json(cancelBookingResp);
@@ -2404,9 +2541,6 @@ router.post('/filter123', async (req, res) => {
         });
     }
 });
-
-
-
 
 
 // car report list
