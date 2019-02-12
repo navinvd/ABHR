@@ -1569,17 +1569,7 @@ carHelper.cancelBooking = async function (data) {
         if (datta && datta.n > 0) {
 
             var update_carAssign = await CarAssign.updateOne(condition, update_data);
-<<<<<<< HEAD
-
-            // if (update_carAssign && update_carAssign.n > 0) {
-                return { status: 'success', message: "Your car booking has been cancelled successfully" }
-            // }
-            // else {
-                // return { status: 'failed', message: "Error occured while cancelling your car booking" }
-            // }
-=======
             return { status: 'success', message: "Your car booking has been cancelled successfully" }
->>>>>>> cce5611af2992ab33cd2b1730261461cc43840e5
         }
         else {
             return { status: 'failed', message: "Error occured while cancelling your car booking" }
