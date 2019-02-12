@@ -405,23 +405,6 @@ router.post('/list', (req, res, next) => {
                 },
                 {
                     $sort: { 'createdAt': -1 }
-                },
-                {
-                    $group: {
-                        "_id": "",
-                        "recordsTotal": {
-                            "$sum": 1
-                        },
-                        "data": {
-                            "$push": "$$ROOT"
-                        }
-                    }
-                },
-                {
-                    $project: {
-                        "recordsTotal": 1,
-                        "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
-                    }
                 }
             ];
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
@@ -479,7 +462,7 @@ router.post('/list', (req, res, next) => {
                     }
                 }
             }
-            if (req.body.search != undefined) {
+            if (req.body.search != undefined ) {
                 if (req.body.search.value != undefined) {
                     var regex = new RegExp(req.body.search.value);
                     var match = { $or: [] };
@@ -503,6 +486,25 @@ router.post('/list', (req, res, next) => {
                 }
                 defaultQuery = defaultQuery.concat(searchQuery);
             }
+
+            defaultQuery = defaultQuery.concat([{
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "recordsTotal": 1,
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                }
+            }
+            ]);
             console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
             User.aggregate(defaultQuery, function (err, data) {
                 if (err) {
