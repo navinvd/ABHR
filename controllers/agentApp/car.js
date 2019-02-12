@@ -9,7 +9,7 @@ const CarAssign = require('./../../models/car_assign_agent');
 const CarModel = require('./../../models/car_model');
 const CarHandOver = require('./../../models/car_hand_over');
 const CarHelper = require('./../../helper/car');
-
+const smsHelper = require('./../../helper/sms');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 const moment = require('moment');
@@ -1154,7 +1154,8 @@ router.post('/returning_v2', async (req, res) => {
         try {
             var obj = {
                 'trip_status': 'returning',
-                'return_source_location': [ req.body.longitude, req.body.lattitude]
+                'return_source_location': [ req.body.longitude, req.body.lattitude],
+                'last_location': [ req.body.longitude, req.body.lattitude]
             }
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
             var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj });
@@ -1217,7 +1218,8 @@ router.post('/returning_v3', async (req, res) => {
         try {
             var obj = {
                 'trip_status': 'returning',
-                'return_source_location': [ req.body.longitude, req.body.lattitude]
+                'return_source_location': [ req.body.longitude, req.body.lattitude],
+                'last_location': [ req.body.longitude, req.body.lattitude]
             }
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
             var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj });
@@ -2412,7 +2414,8 @@ router.post('/delivering_v2', async (req, res) => {
         }
         var locationData = {
             'trip_status': 'delivering',
-            'deliever_source_location': [ req.body.longitude, req.body.lattitude]
+            'deliever_source_location': [ req.body.longitude, req.body.lattitude],
+            'last_location': [ req.body.longitude, req.body.lattitude]
         }
 
         const carHandOverResp = await CarHelper.car_delivering_v2(req, hand_over_data, locationData);
@@ -2501,7 +2504,8 @@ router.post('/delivering_v3', async (req, res) => {
         }
         var locationData = {
             'trip_status': 'delivering',
-            'deliever_source_location': [ req.body.longitude, req.body.lattitude]
+            'deliever_source_location': [ req.body.longitude, req.body.lattitude],
+            'last_location': [ req.body.longitude, req.body.lattitude]
         }
 
         const carHandOverResp = await CarHelper.car_delivering_v2(req, hand_over_data, locationData);
@@ -2510,23 +2514,26 @@ router.post('/delivering_v3', async (req, res) => {
 
         if (carHandOverResp.status === 'success') {
 
-            var userDeviceToken = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email:1, phone_number: 1 }).lean().exec();
+            var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email:1, phone_number: 1 }).lean().exec();
             var deviceToken = '';
-            console.log('User token =>', userDeviceToken);
-            if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
-                if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+
+            // Push notification //
+            console.log('User token =>', userData);
+            if (userData[0].deviceToken !== undefined && userData[0].deviceToken !== null) {
+                if (userData[0].deviceToken.length > 10) { // temp condition
                     // agentDeviceTokenArray.push(agent.deviceToken);
-                    deviceToken = userDeviceToken[0].deviceToken;
+                    deviceToken = userData[0].deviceToken;
+                    var notificationType = 1; // means notification for booking 
+                    if(userData[0].deviceType === 'ios'){
+                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your agent is on delivering track");
+                    }else if(userData[0].deviceType === 'android'){
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your agent is on delivering track');
+                    }
                 }
             }
 
-            var notificationType = 1; // means notification for booking 
-            console.log('Dev Token=>', deviceToken);
-            if(userDeviceToken[0].deviceType === 'ios'){
-                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your agent is on delivering track");
-            }else if(userDeviceToken[0].deviceType === 'android'){
-                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your agent is on delivering track');
-            }
+            // SMS Notification //
+
             res.status(config.OK_STATUS).json(carHandOverResp)
         }
         else {
