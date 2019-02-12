@@ -1392,9 +1392,9 @@ router.post('/change-booking-v2', async (req, res) => {
             var notificationType = 1; // means notification for booking 
             console.log('Dev Token=>', deviceToken);
             if (userDeviceToken[0].deviceType === 'ios') {
-                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your booking is cancelled successfully");
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your booking is cancelled successfully");
             } else if (userDeviceToken[0].deviceType === 'android') {
-                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your booking is cancelled successfully');
+                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your booking is cancelled successfully');
             }
 
             res.status(config.OK_STATUS).json(bookingResp);
@@ -1491,9 +1491,9 @@ router.post('/cancel-booking-v2', async (req, res) => {
             var notificationType = 1; // means notification for booking 
             console.log('Dev Token=>', deviceToken);
             if (userDeviceToken[0].deviceType === 'ios') {
-                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your booking is cancelled successfully");
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your booking is cancelled successfully");
             } else if (userDeviceToken[0].deviceType === 'android') {
-                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your booking is cancelled successfully');
+                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your booking is cancelled successfully');
             }
 
             // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
