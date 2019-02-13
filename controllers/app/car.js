@@ -15,8 +15,9 @@ const UserCoupon = require('./../../models/user_coupon');
 const CarNotification = require('./../../models/car_notification');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
-var mailHelper = require('./../../helper/mail');
+var mail_helper = require('./../../helper/mail');
 const moment = require('moment');
+const Nexmo = require('nexmo');
 
 /**
  * @api {post} /app/car/list List of available car
@@ -1148,6 +1149,7 @@ router.post('/book', async (req, res) => {
                 const deposit = await Car.findOne({ "_id": new ObjectId(req.body.car_id) });
                 var car_booking_number = bookingResp.data.booking_data['booking_number'];
 
+                
                 const transactionData = {
                     "userId": req.body.user_id,
                     "carId": req.body.car_id,
@@ -1166,6 +1168,8 @@ router.post('/book', async (req, res) => {
                 console.log('DATTA==>', data);
 
                 console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
+                
+
 
                 /*store coupon entry in user_coupon collection*/
 
@@ -1181,14 +1185,14 @@ router.post('/book', async (req, res) => {
                         let apply = await add_user_coupon.save();
                     }
                 }
-
+                
                 /* coupon over */
 
 
-                // after car booking need to send push notification ther user on IOS APP 
+                // after car booking need to send push notification ther user on IOS APP & Android app 
                 /** push notification process to user app start */
-
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1}).lean().exec();
+                
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code : 1, deviceType: 1, email: 1}).lean().exec();
                 var deviceToken = '';
                 console.log('User token =>', userDeviceToken);
                 if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
@@ -1204,32 +1208,13 @@ router.post('/book', async (req, res) => {
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, 'Your car has been booked');
                 } else if (userDeviceToken[0].deviceType === 'android') {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your car has been booked');
-                }
-
-                // /* send email to user */
-                // if( userDeviceToken[0].email){
-                //     var option = {
-                //         to: userDeviceToken[0].email,
-                //         subject: 'ABHR - Car Booking Notification'
-                //     }
-                //     var data = { 
-                //         booking_number : car_booking_number,
-                //         from_time: moment(req.body.fromDate).startOf('days').format('MM-DD-YYYY'),
-                //         days: req.body.days };
-                //     mailHelper.send('car_booking', option, data, function (err, res) {
-                //         if (err) {
-                //             console.log("Mail Error:", err);
-                //         } else {
-                //             console.log("Mail Success:", res);
-                //         }
-                //     })
-                // }
-
-
+                }   
+                
                 /** Push notofication for user app over */
 
                 // after car booking need to send push notification to all agent
-                /** push notification process to all agent start */
+                /* push notification process to all agent start */
+                
                 var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
@@ -1245,8 +1230,51 @@ router.post('/book', async (req, res) => {
 
                 var notificationFor = "new-booking";
                 var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor);
-
+                
                 /** Notification over for agent */
+                
+
+                /* send email to user after car has been booked start*/
+
+                /*
+                var options = {
+                    to: userDeviceToken[0].email,
+                    subject: 'ABHR - New car has been booked'
+                }
+
+                var data1 = bookingResp.data.booking_data;
+
+                // console.log('Booking Response DATA=>',data1);
+
+                let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
+                console.log('Mail sending response =>', mail_resp);
+                */
+
+                /** Sending email is over */
+
+
+                /** Send SMS after car has been booked Start*/
+                
+                /*
+                const nexmo = new Nexmo({
+                    apiKey: config.NEXMO_API_KEY,
+                    apiSecret: config.NEXMO_API_SECRET
+                })
+        
+                // const send_to = '919712825007'; // userDeviceToken[0].country_code
+                const send_to = userDeviceToken[0].country_code + '' + userDeviceToken[0].phone_number;
+                const from = 'ABHR';
+                const to = send_to;
+                const sms_text = 'Your car has been booked successfully'
+        
+                const resp = await nexmo.message.sendSms(from, to, sms_text);
+                console.log("SMS Response =>",resp)
+                */
+
+                /** Send sms over */
+
+
+                /*
                 if (sendNotification.status === 'success') {
                     console.log('Notification send Success==>')
                     // res.status(config.OK_STATUS).json(sendNotification);
@@ -1257,6 +1285,8 @@ router.post('/book', async (req, res) => {
                     // res.status(config.BAD_REQUEST).json(sendNotification);
                     res.status(config.OK_STATUS).json(bookingResp);
                 }
+                */
+               res.status(config.OK_STATUS).json(bookingResp)
             }
             else {
                 res.status(config.BAD_REQUEST).json(bookingResp);
@@ -3901,13 +3931,13 @@ router.post('/filter-v5', async (req, res) => {
             {
                 "$match": {
                     "$and": [
-                        // {
-                        //     "data.service_location": {
-                        //         "$geoWithin": {
-                        //             "$centerSphere": [[req.body.longitude, req.body.latitude], 62.1371 / 3963.2]
-                        //         }
-                        //     }
-                        // },
+                        {
+                            "data.service_location": {
+                                "$geoWithin": {
+                                    "$centerSphere": [[req.body.longitude, req.body.latitude], 62.1371 / 3963.2]
+                                }
+                            }
+                        },
                         {
                             "$or": [
                                 {
