@@ -848,26 +848,6 @@ router.post('/car_list', (req, res, next) => {
                 $sort: {
                     'createdAt': -1
                 }
-            },
-            {
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
-                    }
-                }
-            },
-            {
-                $project: {
-                    "_id": 1,
-                    "recordsTotal": 1,
-                    "data": {
-                        "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
-                    }
-                }
             }];
 
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
@@ -917,6 +897,26 @@ router.post('/car_list', (req, res, next) => {
                     }
                 }
             }
+
+        // if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+        //     var colIndex = req.body.order[0].column;
+        //     var colname = req.body.columns[colIndex].name;
+        //     var order = req.body.order[0].dir;
+        //     if (order == "asc") {
+        //         var sortableQuery = {
+        //             $sort: {
+        //                 [colname]: 1
+        //             }
+        //         }
+        //     } else {
+        //         var sortableQuery = {
+        //             $sort: {
+        //                 [colname]: -1
+        //             }
+        //         }
+        //     }
+        //     defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
+        // }
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);
@@ -950,6 +950,26 @@ router.post('/car_list', (req, res, next) => {
             }
             defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
         }
+        defaultQuery = defaultQuery.concat({
+            $group: {
+                "_id": "",
+                "recordsTotal": {
+                    "$sum": 1
+                },
+                "data": {
+                    "$push": "$$ROOT"
+                }
+            }
+        },
+        {
+            $project: {
+                "_id": 1,
+                "recordsTotal": 1,
+                "data": {
+                    "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
+                }
+            }
+        });
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>', err);
@@ -972,7 +992,6 @@ router.post('/car_list', (req, res, next) => {
         });
     }
 });
-
 /**
  * @api {post} /admin/company/car/details Details of car for perticular carId
  * @apiName Car Details
