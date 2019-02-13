@@ -23,7 +23,7 @@ smsHelper.sendOTP = async (data) => {
 
         var user_id = { _id: new ObjectId(data.user_id) }
         // var new_data = { $set: { otp: otp, is_phone_verified: false } };
-        var new_data = { $set: { otp: otp, phone_number_verified: 1 } };
+        var new_data = { $set: { otp: otp, phone_number_verified: 1, phone_number : data.mobile_number , country_code : data.country_code } };
         var datta = await User.update(user_id, new_data);
 
         if (datta.n > 0) {
