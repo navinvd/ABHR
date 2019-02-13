@@ -41,7 +41,7 @@ var path = require('path');
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/add', (req, res, next) => {
+router.post('/add', async (req, res, next) => {
     console.log(req.body);
     var schema = {
         'name': {
@@ -60,92 +60,118 @@ router.post('/add', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var generatepassword = generator.generate({
-            length: 10,
-            numbers: true
-        });
-        req.body['password'] = generatepassword;
-        async.waterfall([
-            function (callback) {
-                var companyModel = new Company(req.body);
-                companyModel.save(function (err, data) {
-                    console.log("user data===>", data, err);
-                    if (err) {
-                        if (err.code == '11000') {
-                            if (err.message.indexOf('name') != -1) {
-                                errData = {
-                                    message: "Company Name already exist",
-                                    error: err
-                                };
-                                callback(errData);
-                            } else if (err.message.indexOf('email') != -1) {
-                                errData = {
-                                    message: "Email already exist",
-                                    error: err
-                                };
-                                callback(errData);
-                            } else {
-                                callback(err);
-                            }
-                        } else {
-                            callback(err);
-                        }
-                    } else {
-                        var cancell_criteria = [{
-                            "hours": 24,
-                            "rate": 30
-                        },
-                        {
-                            "hours": 48,
-                            "rate": 20
-                        }];
-                        var terms_conditionData = {
-                            "CompanyId": data._id,
-                            "cancellation_policy_criteria": cancell_criteria,
-                            "terms_and_conditions": "<p>exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p> <br/> 1. Lorem ipsum <br/> 2. Lorem ipsum <br/> 3. Lorem ipsum"
-                        }
-                        var TermsAndConditionModel = new CarTermsAndCondition(terms_conditionData);
-                        TermsAndConditionModel.save(function (err, TNCdata) {
-                            if (err) {
-                                callback(err);
-                            } else {
-                                var result = {
-                                    message: "Company added successfully..",
-                                    data: data
-                                };
-                                var option = {
-                                    to: req.body.email,
-                                    subject: 'ABHR - Car Company Account Notification'
-                                }
-                                var loginURL = config.FRONT_END_URL + '/company/login';
-                                var emaildata = {
-                                    name: req.body.name,
-                                    email: req.body.email,
-                                    password: generatepassword,
-                                    link: loginURL
-                                }
-                                mailHelper.send('/car_company/add_company', option, emaildata, function (err, res) {
-                                    if (err) {
-                                        errData = {
-                                            message: "Company is Added but mail is not sent",
-                                            error: err
-                                        };
-                                    }
-                                });
-                                callback(null, result);
-                            }
-                        });
-                    }
+        var check_email = await Company.findOne({"email": req.body.email, "isDeleted": false});
+        if(check_email !== null){
+            var check_name = await Company.findOne({"name": req.body.name, "isDeleted": false});
+            if(check_name  !==null){
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Compnay name and email already exist"
+                });
+            }else{
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Email already exist"
                 });
             }
-        ], function (err, result) {
-            if (err) {
-                console.log("Here : ", err);
-                return next(err);
-            } else {
-                res.status(config.OK_STATUS).json(result);
+        }
+        else{
+            var check_name = await Company.findOne({"name": req.body.name, "isDeleted": false});
+            if(check_name  !==null){
+                console.log('in if check name====');
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Compnay name already exist"
+                });
+            }else{
+                var check_user_email = await User.findOne({"email": req.body.email, "isDeleted": false});
+                if(check_user_email){
+                    res.status(config.BAD_REQUEST).json({
+                        status: 'faild',
+                        message: "Email already exist"
+                    });
+                }else{
+                    var generatepassword = generator.generate({
+                        length: 10,
+                        numbers: true
+                    });
+                    req.body['password'] = generatepassword;
+                    async.waterfall([
+                        function (callback) {
+                            var companyModel = new Company(req.body);
+                            companyModel.save(function (err, data) {
+                                console.log("user data===>", data, err);
+                                if (err) {
+                                    callback(err);
+                                } else {
+                                    var cancell_criteria = [{
+                                        "hours": 24,
+                                        "rate": 30
+                                    },
+                                    {
+                                        "hours": 48,
+                                        "rate": 20
+                                    }];
+                                    var terms_conditionData = {
+                                        "CompanyId": data._id,
+                                        "cancellation_policy_criteria": cancell_criteria,
+                                        "terms_and_conditions": "<p>exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p> <br/> 1. Lorem ipsum <br/> 2. Lorem ipsum <br/> 3. Lorem ipsum"
+                                    }
+                                    var TermsAndConditionModel = new CarTermsAndCondition(terms_conditionData);
+                                    TermsAndConditionModel.save(function (err, TNCdata) {
+                                        if (err) {
+                                            callback(err);
+                                        } else {
+                                            var result = {
+                                                message: "Company added successfully..",
+                                                data: data
+                                            };
+                                            var option = {
+                                                to: req.body.email,
+                                                subject: 'ABHR - Car Company Account Notification'
+                                            }
+                                            var loginURL = config.FRONT_END_URL + '/company/login';
+                                            var emaildata = {
+                                                name: req.body.name,
+                                                email: req.body.email,
+                                                password: generatepassword,
+                                                link: loginURL
+                                            }
+                                            mailHelper.send('/car_company/add_company', option, emaildata, function (err, res) {
+                                                if (err) {
+                                                    errData = {
+                                                        message: "Company is Added but mail is not sent",
+                                                        error: err
+                                                    };
+                                                }
+                                            });
+                                            callback(null, result);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    ], function (err, result) {
+                        if (err) {
+                            console.log("Here : ", err);
+                            return next(err);
+                        } else {
+                            res.status(config.OK_STATUS).json(result);
+                        }
+                    });
+                }
             }
-        });
+            // console.log('in else check email====');
+            // var check_user_email = await User.findOne({"email": req.body.email, "isDeleted": false});
+            // if(check_user_email){
+            //     res.status(config.BAD_REQUEST).json({
+            //         status: 'faild',
+            //         message: "Email already exist"
+            //     });
+            // }else{
+               
+            // }
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
@@ -174,7 +200,7 @@ router.post('/add', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.put('/update', (req, res, next) => {
+router.put('/update', async (req, res, next) => {
     console.log('here');
     var schema = {
         'company_id': {
@@ -185,84 +211,53 @@ router.put('/update', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        async.waterfall([
-            function (callback) {
-                if (req.body.address) {
-                    Place.findOne({
-                        "google_place_id": {
-                            $eq: req.body.address.placeId
-                        }
-                    }, function (err, data) {
+        var check_email = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "email": req.body.email, "isDeleted": false});
+        console.log(check_email);
+        if(check_email){
+            var check_name = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
+            if(check_name){
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Compnay name and email already exist"
+                });
+            }else{
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Email already exist"
+                });
+            }
+        } else{
+            var check_name = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
+            if(check_name  !==null){
+                console.log('in if check name====');
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Compnay name already exist"
+                });
+            }else{
+                var check_user_email = await User.findOne({"email": req.body.email, "isDeleted": false});
+                if(check_user_email){
+                    res.status(config.BAD_REQUEST).json({
+                        status: 'faild',
+                        message: "Email already exist"
+                    });
+                }else{
+                    await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, function (err, response) {
                         if (err) {
-                            callback(err);
+                            res.status(config.BAD_REQUEST).json({
+                                status: 'faild',
+                                message: "Error occured while updating data"
+                            });
                         } else {
-                            if (data.length != 0) {
-                                req.body['place_id'] = data.google_place_id
-                                callback(null, req.body);
-                            } else {
-                                var addressData = req.body.address;
-                                var placeModel = new Place(addressData);
-                                placeModel.save(function (err, placeData) {
-                                    if (err) {
-                                        callback(err);
-                                    } else {
-                                        req.body['place_id'] = placeData._id;
-                                        callback(null, req.body);
-                                    }
-                                });
-                            }
+                            res.status(config.OK_STATUS).json({
+                                status: 'success',
+                                message: "Company Updated Successfully"
+                            });
                         }
                     });
-                } else {
-                    callback(null, req.body);
                 }
-            },
-            function (userData, callback) {
-                Company.update({
-                    _id: {
-                        $eq: req.body.company_id
-                    }
-                }, {
-                        $set: userData
-                    }, function (err, response) {
-                        if (err) {
-                            if (err.code == '11000') {
-                                if (err.message.indexOf('name') != -1) {
-                                    errData = {
-                                        message: "Company Name already exist",
-                                        error: err
-                                    };
-                                    callback(errData);
-                                } else if (err.message.indexOf('email') != -1) {
-                                    errData = {
-                                        message: "Email already exist",
-                                        error: err
-                                    };
-                                    callback(errData);
-                                } else {
-                                    callback(err);
-                                }
-                            } else {
-                                callback(err);
-                            }
-                        } else {
-                            var result = {
-                                message: "Company updated successfully..",
-                                data: response
-                            };
-                            console.log('in updated')
-                            callback(null, result);
-                        }
-                    });
             }
-        ], function (err, result) {
-            if (err) {
-                console.log("Here");
-                return next(err);
-            } else {
-                res.status(config.OK_STATUS).json(result);
-            }
-        });
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
