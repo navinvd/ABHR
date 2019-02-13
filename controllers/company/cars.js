@@ -238,20 +238,48 @@ router.post('/list',(req, res, next) => {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if (order == "asc") {
-                var sortableQuery = {
-                    $sort: {
-                        [colname]: 1
-                    }
+            if(req.body.columns[colIndex].isNumber){
+                if(order == "asc"){
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: 1 }
+                    });
+                }else{
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: -1 }
+                    });
                 }
-            } else {
-                var sortableQuery = {
-                    $sort: {
-                        [colname]: -1
-                    }
+            }else{
+                colname = '$' + colname;
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
+                        {
+                            $sort: { "sort_index": 1 }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
+                    {
+                        $sort: {
+                            "sort_index": -1
+                        }
+                    },
+                    {
+                        $replaceRoot: { newRoot: "$records" }
+                    })
                 }
             }
-            defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
         }
         if (req.body.search != undefined) {
             if (req.body.search.value != undefined) {
@@ -467,36 +495,48 @@ router.post('/rented_list', (req, res, next) => {
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
-                colname = '$'+colname;
                 var order = req.body.order[0].dir;
-                if(order == "asc") {
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
-                    { 
-                        $sort: { "sort_index": 1 }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })      
-                } else {
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })    
+                if(req.body.columns[colIndex].isNumber){
+                    if(order == "asc"){
+                        defaultQuery = defaultQuery.concat({
+                            $sort: { [colname]: 1 }
+                        });
+                    }else{
+                        defaultQuery = defaultQuery.concat({
+                            $sort: { [colname]: -1 }
+                        });
+                    }
+                }else{
+                    colname = '$' + colname;
+                    if (order == "asc") {
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                            {
+                                $sort: { "sort_index": 1 }
+                            },
+                            {
+                                $replaceRoot: { newRoot: "$records" }
+                            })
+                    } else {
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                        {
+                            $sort: {
+                                "sort_index": -1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                    }
                 }
             }
             console.log('defaultQuery===>',JSON.stringify(defaultQuery));
@@ -671,28 +711,39 @@ router.post('/report_list', async (req, res, next) => {
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
-            colname = '$' + colname;
             var order = req.body.order[0].dir;
-            if (order == "asc") {
-                defaultQuery = defaultQuery.concat({
-                    $project: {
-                        "records": "$$ROOT",
-                        "sort_index": { "$toLower": [colname] }
-                    }
-                },
-                    {
-                        $sort: { "sort_index": 1 }
+            if(req.body.columns[colIndex].isNumber){
+                if(order == "asc"){
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: 1 }
+                    });
+                }else{
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: -1 }
+                    });
+                }
+            }else{
+                colname = '$' + colname;
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
                     },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
-            } else {
-                defaultQuery = defaultQuery.concat({
-                    $project: {
-                        "records": "$$ROOT",
-                        "sort_index": { "$toLower": [colname] }
-                    }
-                },
+                        {
+                            $sort: { "sort_index": 1 }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
                     {
                         $sort: {
                             "sort_index": -1
@@ -701,6 +752,7 @@ router.post('/report_list', async (req, res, next) => {
                     {
                         $replaceRoot: { newRoot: "$records" }
                     })
+                }
             }
         }
         var totalrecords = await CarBooking.aggregate(defaultQuery);
@@ -869,28 +921,39 @@ router.post('/export_report_list', async (req, res, next) => {
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
-            colname = '$' + colname;
             var order = req.body.order[0].dir;
-            if (order == "asc") {
-                defaultQuery = defaultQuery.concat({
-                    $project: {
-                        "records": "$$ROOT",
-                        "sort_index": { "$toLower": [colname] }
-                    }
-                },
-                    {
-                        $sort: { "sort_index": 1 }
+            if(req.body.columns[colIndex].isNumber){
+                if(order == "asc"){
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: 1 }
+                    });
+                }else{
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: -1 }
+                    });
+                }
+            }else{
+                colname = '$' + colname;
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
                     },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
-            } else {
-                defaultQuery = defaultQuery.concat({
-                    $project: {
-                        "records": "$$ROOT",
-                        "sort_index": { "$toLower": [colname] }
-                    }
-                },
+                        {
+                            $sort: { "sort_index": 1 }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
                     {
                         $sort: {
                             "sort_index": -1
@@ -899,6 +962,7 @@ router.post('/export_report_list', async (req, res, next) => {
                     {
                         $replaceRoot: { newRoot: "$records" }
                     })
+                }
             }
         }
         var totalrecords = await CarBooking.aggregate(defaultQuery);

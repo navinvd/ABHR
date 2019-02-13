@@ -79,20 +79,52 @@ router.post('/list', (req, res, next) => {
                     }
                 }
             ];
-            if(typeof req.body.order !== 'undefined' && req.body.order.length>0){
+            if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
                 var order = req.body.order[0].dir;
-                if(order == "asc"){
-                    var sortableQuery = {
-                        $sort: { [colname]: 1 }
+                if(req.body.columns[colIndex].isNumber){
+                    if(order == "asc"){
+                        defaultQuery = defaultQuery.concat({
+                            $sort: { [colname]: 1 }
+                        });
+                    }else{
+                        defaultQuery = defaultQuery.concat({
+                            $sort: { [colname]: -1 }
+                        });
                     }
-                } else {
-                    var sortableQuery = {
-                        $sort: { [colname]: -1 }
-                    } 
-                } 
-                defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery); 
+                }else{
+                    colname = '$' + colname;
+                    if (order == "asc") {
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                            {
+                                $sort: { "sort_index": 1 }
+                            },
+                            {
+                                $replaceRoot: { newRoot: "$records" }
+                            })
+                    } else {
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                        {
+                            $sort: {
+                                "sort_index": -1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                    }
+                }
             }
             if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
                 if (req.body.search.value) {
