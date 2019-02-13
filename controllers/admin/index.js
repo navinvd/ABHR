@@ -399,13 +399,13 @@ router.post('/checkemail', async (req, res, next) => {
                 var obj = { "email" : req.body.email,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.user_id) }};
             }
             var userId = await User.findOne(obj); 
-            if(userId !== null && userId!== ''){
+            if(userId !== null && userId !== ''){
                 res.status(config.OK_STATUS).json({
                     status: "success",
                     message: "Record found"
                 });
             }else{
-                var CompanyCheck = await Company.findOne({ "email": req.body.email, "isDeleted": false });
+                var CompanyCheck = await Company.findOne(obj);
                 if (CompanyCheck !== null && CompanyCheck !== '') {
                     res.status(config.OK_STATUS).json({
                         status: "success",

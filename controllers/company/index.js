@@ -10,6 +10,7 @@ var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var auth = require('./../../middlewares/auth');
 var router = express.Router();
 var ObjectId = require('mongoose').Types.ObjectId;
+var async = require("async");
 
 //Routes
 var cars = require('./cars');
@@ -26,6 +27,7 @@ router.use('/transaction', Transaction);
 
 //models
 var Company = require('./../../models/car_company');
+var User = require('./../../models/users');
 
 /**
  * @api {post} /company/login Login
@@ -423,51 +425,58 @@ router.put('/update', async (req, res, next) => {
         req.checkBody(schema);
         var errors = req.validationErrors();
         if (!errors) {
-            try{
-                var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
-                if (userId) {
-                    Company.update({"_id": new ObjectId(req.body.company_id) }, { $set: req.body },{ upsert: true }, async function (err, data) {
-                        var userId = await Company.findOne({"_id": new ObjectId(req.body.company_id), "isDeleted": false }).exec();
+            var check_email = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "email": req.body.email, "isDeleted": false});
+        console.log(check_email);
+        if(check_email){
+            var check_name = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
+            if(check_name){
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Compnay name and email already exist"
+                });
+            }else{
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Email already exist"
+                });
+            }
+        } else{
+            var check_name = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
+            if(check_name  !==null){
+                console.log('in if check name====');
+                res.status(config.BAD_REQUEST).json({
+                    status: 'faild',
+                    message: "Compnay name already exist"
+                });
+            }else{
+                var check_user_email = await User.findOne({"email": req.body.email, "isDeleted": false});
+                if(check_user_email){
+                    res.status(config.BAD_REQUEST).json({
+                        status: 'faild',
+                        message: "Email already exist"
+                    });
+                }else{
+                    await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, function (err, response) {
                         if (err) {
-                            if (err.code == '11000') {
-                                if (err.message.indexOf('name') != -1) {
-                                    errData = {
-                                        message: "Company Name already exist",
-                                        error: err
-                                    };
-                                    return next(errData);
-                                } else if (err.message.indexOf('email') != -1) {
-                                    errData = {
-                                        message: "Email already exist",
-                                        error: err
-                                    };
-                                    return next(errData);
-                                } else {
-                                    return next(err);
-                                }
-                            } else {
-                                return next(err);
-                            }
+                            res.status(config.BAD_REQUEST).json({
+                                status: 'faild',
+                                message: "Error occured while updating data"
+                            });
                         } else {
                             res.status(config.OK_STATUS).json({
-                                status: "success",
-                                message: "Profile updated successfully..",
-                                result: { data: userId }
+                                status: 'success',
+                                message: "Company Updated Successfully"
                             });
                         }
                     });
-                } else {
-                    res.status(config.OK_STATUS).json({
-                        status: "failed",
-                        message: "record not found"
-                    });
                 }
-            } catch (error) {
-                res.status(config.BAD_REQUEST).json({
-                    message: "Something Went wrong",
-                    error: error
-                });
             }
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
     }
 });
 
