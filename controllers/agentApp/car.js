@@ -5,11 +5,13 @@ var config = require('./../../config');
 
 const Car = require('./../../models/cars');
 const CarBooking = require('./../../models/car_booking');
+const Users = require('./../../models/users');
 const CarAssign = require('./../../models/car_assign_agent');
 const CarModel = require('./../../models/car_model');
 const CarHandOver = require('./../../models/car_hand_over');
 const CarHelper = require('./../../helper/car');
 const smsHelper = require('./../../helper/sms');
+const pushNotificationHelper = require('./../../helper/push_notification');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 const moment = require('moment');
@@ -1216,18 +1218,18 @@ router.post('/returning_v3', async (req, res) => {
     if (!errors) {
         // pending  (socket event receive from ANDROID and emit to IOS )
         try {
-            var obj = {
+            var obj1 = {
                 'trip_status': 'returning',
                 'return_source_location': [ req.body.longitude, req.body.lattitude],
                 'last_location': [ req.body.longitude, req.body.lattitude]
             }
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
-            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj });
+            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj1 });
 
             if (booking_details && booking_details.n > 0) {
                 var cond = { 'booking_number': req.body.booking_number , 'assign_for_receive' : true }
                 var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
-
+                
                 var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number}, {_id: 0, userId: 1}).lean().exec();
                 var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
                 var deviceToken = '';
@@ -1242,9 +1244,9 @@ router.post('/returning_v3', async (req, res) => {
                 var notificationType = 1; // means notification for booking 
                 console.log('Dev Token=>', deviceToken);
                 if(userDeviceToken[0].deviceType === 'ios'){
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your agent is on returning track");
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your agent is on returning track");
                 }else if(userDeviceToken[0].deviceType === 'android'){
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your agent is on returning track');
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your agent is on returning track');
                 }
 
                 if (CarAssignData && CarAssignData.n > 0) {
@@ -2525,9 +2527,9 @@ router.post('/delivering_v3', async (req, res) => {
                     deviceToken = userData[0].deviceToken;
                     var notificationType = 1; // means notification for booking 
                     if(userData[0].deviceType === 'ios'){
-                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, "Your agent is on delivering track");
+                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your agent is on delivering track");
                     }else if(userData[0].deviceType === 'android'){
-                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your agent is on delivering track');
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your agent is on delivering track');
                     }
                 }
             }
