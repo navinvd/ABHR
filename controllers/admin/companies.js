@@ -948,7 +948,7 @@ router.post('/car_list', (req, res, next) => {
             var searchQuery = {
                 $match: match
             }
-            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+            defaultQuery.concat(searchQuery);
         }
         defaultQuery = defaultQuery.concat({
             $group: {
