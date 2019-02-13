@@ -711,7 +711,7 @@ router.post('/rental_list',async (req, res, next) => {
                 console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: { data: data, recordsTotal: totalrecords.length }
+                    result: { data: data[0], recordsTotal: totalrecords.length }
                 });
             }
         })
