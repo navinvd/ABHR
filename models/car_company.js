@@ -7,8 +7,7 @@ var SALT_WORK_FACTOR = config.SALT_WORK_FACTOR;
 var Schema = mongoose.Schema;
 var CarCompanySchema = new Schema({
     name: {
-        type: String,
-        unique: true,
+        type: String
     },
     description: {
         type: String,
@@ -17,8 +16,7 @@ var CarCompanySchema = new Schema({
     site_url: String,
     email: {
         type: String,
-        required: true,
-        unique: true,
+        required: true
     },
     profile_image: String,
     password: String,
