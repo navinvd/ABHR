@@ -549,7 +549,7 @@ router.post('/list', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/rental_list', (req, res, next) => {
+router.post('/rental_list',async (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -593,11 +593,88 @@ router.post('/rental_list', (req, res, next) => {
             },
             {
                 $match: { "isDeleted": false }
-            },
-            {
-                $sort: { 'createdAt': -1 }
-            },
-            {
+            }];
+            defaultQuery.push(
+                {
+                    $project: {
+                        _id: 1,
+                        booking_number: 1,
+                        first_name: "$userId.first_name",
+                        booking_rent: 1,
+                        isDeleted: 1,
+                        from_time: 1,
+                        to_time: 1,
+                        trip_status:1,
+                        booking_rent:1,
+                        car_handover_by_agent_id:1,
+                        car_receive_by_agent_id:1,
+                        createdAt:1
+                    }
+                });
+                if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+                    if (req.body.search.value != undefined && req.body.search.value !== '') {
+                        var regex = new RegExp(req.body.search.value);
+                        var match = { $or: [] };
+                        req.body['columns'].forEach(function (obj) {
+                            if (obj.name) {
+                                var json = {};
+                                if (obj.isNumber) {
+                                    console.log(typeof parseInt(req.body.search.value));
+                                    json[obj.name] = parseInt(req.body.search.value)
+                                } else {
+                                    json[obj.name] = {
+                                        "$regex": regex,
+                                        "$options": "i"
+                                    }
+                                }
+                                match['$or'].push(json)
+                            }
+                        });
+                    }
+                    console.log('re.body.search==>', req.body.search.value);
+                    var searchQuery = {
+                        $match: match
+                    }
+                    defaultQuery.push(searchQuery);
+                    console.log("==>", JSON.stringify(defaultQuery));
+                }
+                if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+                    var colIndex = req.body.order[0].column;
+                    var colname = req.body.columns[colIndex].name;
+                    colname = '$' + colname;
+                    var order = req.body.order[0].dir;
+                    if (order == "asc") {
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                            {
+                                $sort: { "sort_index": 1 }
+                            },
+                            {
+                                $replaceRoot: { newRoot: "$records" }
+                            })
+                    } else {
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                            {
+                                $sort: {
+                                    "sort_index": -1
+                                }
+                            },
+                            {
+                                $replaceRoot: { newRoot: "$records" }
+                            })
+                    }
+                }
+                var totalrecords = await CarBooking.aggregate(defaultQuery);
+            defaultQuery = defaultQuery.concat([{
                 $group: {
                     "_id": "",
                     "recordsTotal": {
@@ -610,91 +687,22 @@ router.post('/rental_list', (req, res, next) => {
             },
             {
                 $project: {
-                    "_id": 1,
                     "recordsTotal": 1,
                     "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             }
-        ];
-        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-            var colIndex = req.body.order[0].column;
-            var colname = req.body.columns[colIndex].name;
-            var order = req.body.order[0].dir;
-            if (order === "asc") {
-                if (typeof req.body.columns[colIndex].isBoolean !== 'undefined' && req.body.columns[colIndex].isBoolean) {
-                    defaultQuery = defaultQuery.concat({
-                        $sort: {
-                            [colname]: 1
-                        }
-                    });
-                } else {
-                    colname = '$' + colname;
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
-                        {
-                            $sort: {
-                                "sort_index": 1
-                            }
-                        },
-                        {
-                            $replaceRoot: { newRoot: "$records" }
-                        });
-                }
-            } else {
-                console.log('desc====================');
-                if (typeof req.body.columns[colIndex].isBoolean !== 'undefined' && req.body.columns[colIndex].isBoolean) {
-                    defaultQuery = defaultQuery.concat({
-                        $sort: {
-                            [colname]: -1
-                        }
-                    });
-                } else {
-                    colname = '$' + colname;
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
-                        {
-                            $sort: {
-                                "sort_index": -1
-                            }
-                        },
-                        {
-                            $replaceRoot: { newRoot: "$records" }
-                        });
-                }
+            ]);
+            if (req.body.start) {
+                defaultQuery.push({
+                    "$skip": req.body.start
+                })
             }
-        }
-        if (req.body.search != undefined) {
-            if (req.body.search.value != undefined) {
-                var regex = new RegExp(req.body.search.value);
-                var match = { $or: [] };
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
-                            }
-                        }
-                        match['$or'].push(json)
-                    }
-                });
+            if (req.body.length) {
+                defaultQuery.push({
+                    "$limit": req.body.length
+                })
             }
-            var searchQuery = {
-                $match: match
-            }
-            defaultQuery = defaultQuery.concat(searchQuery);
-        }
+        console.log('defaultQuery====.', JSON.stringify(defaultQuery));
         CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>', err);
@@ -703,7 +711,7 @@ router.post('/rental_list', (req, res, next) => {
                 console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
+                    result: { data: data, recordsTotal: totalrecords.length }
                 });
             }
         })
