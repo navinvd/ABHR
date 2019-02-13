@@ -159,28 +159,39 @@ router.post('/report_list', async (req, res, next) => {
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
-            colname = '$' + colname;
             var order = req.body.order[0].dir;
-            if (order == "asc") {
-                defaultQuery = defaultQuery.concat({
-                    $project: {
-                        "records": "$$ROOT",
-                        "sort_index": { "$toLower": [colname] }
-                    }
-                },
-                    {
-                        $sort: { "sort_index": 1 }
+            if(req.body.columns[colIndex].isNumber){
+                if(order == "asc"){
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: 1 }
+                    });
+                }else{
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: -1 }
+                    });
+                }
+            }else{
+                colname = '$' + colname;
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
                     },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
-            } else {
-                defaultQuery = defaultQuery.concat({
-                    $project: {
-                        "records": "$$ROOT",
-                        "sort_index": { "$toLower": [colname] }
-                    }
-                },
+                        {
+                            $sort: { "sort_index": 1 }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
                     {
                         $sort: {
                             "sort_index": -1
@@ -189,6 +200,7 @@ router.post('/report_list', async (req, res, next) => {
                     {
                         $replaceRoot: { newRoot: "$records" }
                     })
+                }
             }
         }
         var totalrecords = await CarBooking.aggregate(defaultQuery);
@@ -347,28 +359,39 @@ router.post('/export_report_list', async (req, res, next) => {
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
-            colname = '$' + colname;
             var order = req.body.order[0].dir;
-            if (order == "asc") {
-                defaultQuery = defaultQuery.concat({
-                    $project: {
-                        "records": "$$ROOT",
-                        "sort_index": { "$toLower": [colname] }
-                    }
-                },
-                    {
-                        $sort: { "sort_index": 1 }
+            if(req.body.columns[colIndex].isNumber){
+                if(order == "asc"){
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: 1 }
+                    });
+                }else{
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: -1 }
+                    });
+                }
+            }else{
+                colname = '$' + colname;
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
                     },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
-            } else {
-                defaultQuery = defaultQuery.concat({
-                    $project: {
-                        "records": "$$ROOT",
-                        "sort_index": { "$toLower": [colname] }
-                    }
-                },
+                        {
+                            $sort: { "sort_index": 1 }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
                     {
                         $sort: {
                             "sort_index": -1
@@ -377,6 +400,7 @@ router.post('/export_report_list', async (req, res, next) => {
                     {
                         $replaceRoot: { newRoot: "$records" }
                     })
+                }
             }
         }
         var totalrecords = await CarBooking.aggregate(defaultQuery);
