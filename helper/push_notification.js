@@ -70,10 +70,10 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
 
             fcm_agent.send(message, async (err, result) => {
                 if (err) {
-                    console.log('Not Send =>', err);
+                    console.log('Notification for all agent =>', err);
                     resolve({ status: 'failed', message: 'Notification has not been sent', data: err })
                 } else {
-                    console.log('Send =>', result);
+                    console.log('Notification for all agent =>', result);
                     resolve({ status: 'success', message: 'Notification has been sent successfully', data: result })
                 }
             });
@@ -106,12 +106,12 @@ push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, 
 
         const promise = new Promise(((resolve) => {
             fcm_user.send(message, function(err, response){
-            console.log('res===>',err, 'response==>',response);
+            // console.log('res===>',err, 'response==>',response);
             if (err) {
-                console.log('err===>',err);
+                console.log('Send notification to android user =>',err);
                 resolve({status : 'failed', message : 'Notification has not been sent', data : err });
             } else {
-                console.log('response===>',response);
+                console.log('Send notification to android user =>',response);
                 resolve({status : 'success', message : 'Notification has been sent successfully', data : response});
             }
         });
@@ -151,7 +151,7 @@ push_notification_helper.sendToIOS = async (device_token, car_booking_number, no
         note.topic = "com.Abhr";
         let result = await apnProvider.send(note, device_token);
 
-        console.log('RESULT for user APP Notification =>',JSON.stringify(result));
+        console.log('Send notification to IOS user =>',JSON.stringify(result));
 
         return { status: 'success', message: 'Notification has been sent successfully', data: result }
     } catch (err) {

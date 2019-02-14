@@ -85,8 +85,10 @@ mail_helper.sendEmail_carBook = async (template_name, options, data) => {
         from: "ABHR <noreply@gmail.com>"
     });
     try {
-        var email_data = await template_sender({ to: options.to, subject: options.subject }, data[0]);
-            return { status: 'success', message: "Email has been sent", data : data  }      
+        // console.log("Mail DAta :",data);
+        data = JSON.parse(JSON.stringify(data));
+        var email_data = await template_sender({ to: options.to, subject: options.subject }, data);
+        return { status: 'success', message: "Email has been sent"}      
     }
     catch (err) {
         return { status: 'failed', message: "Error occured while sending email to your email address", error : err }
