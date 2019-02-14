@@ -639,6 +639,41 @@ router.post('/help', async (req, res) => {
     }
 });
 
+ // help - v2
+
+ router.post('/help-v2', async (req, res) => {
+     /*
+    var schema = {
+        'help_type': {
+            notEmpty: true,
+            errorMessage: "Enter type from one of this (0, 1, 2, 3)"
+        }
+    };
+    
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        */
+        var helpResp = await commonHelper.getHelp_v2();
+        if(helpResp.status === 'success'){
+            res.status(config.OK_STATUS).json(helpResp)
+        }
+        else{
+            res.status(config.BAD_REQUEST).json(helpResp)
+        }
+    // } else {
+    //     res.status(config.BAD_REQUEST).json({
+    //         status: 'failed',
+    //         message: "Validation Error",
+    //         errors
+    //     });
+    // }
+});
+
+
+
+
+
 // term & conditions, about us , privacy policy, copyright all in one api
 /**
  * @api {post} /app/aboutus About us

@@ -1021,6 +1021,9 @@ router.post('/checkCarAvailability-v3', async (req, res) => {
  * @apiParam {Number} [coupon_code] coupon code (eg. ABCD)
  * @apiParam {Number} [coupon_percentage] coupon percentage (eg. 10)
  * @apiParam {Number} total_booking_amount Total car booking amount
+ * @apiParam {String} carCompanyId Car rental company id
+ * @apiParam {Number} vat vat rate
+ * @apiParam {Number} deposite_amount car deposite amount
  * @apiParam {Number} latitude latitude
  * @apiParam {Number} longitude longitude
  * 
@@ -1120,9 +1123,9 @@ router.post('/book', async (req, res) => {
                     { "carId": new ObjectId(req.body.car_id) },
                     { "from_time": { $lte: toDate } },
                     { "to_time": { $gte: fromDate } },
-                    { "trip_status": { $ne: 'cancelled' } },
+                    // { "trip_status": { $ne: 'cancelled' } },
+                    { "trip_status": { $nin: ['cancelled','finished'] } },
                 ]
-
             }
             // }
 
@@ -1319,6 +1322,9 @@ router.post('/book', async (req, res) => {
         });
     }
 });
+
+
+
 
 
 // Change Car Booking  Details
