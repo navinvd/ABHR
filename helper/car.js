@@ -1575,6 +1575,7 @@ carHelper.cancelBooking = async function (data) {
                                     cancel_date: data.cancel_date, 
                                     cancel_reason: data.cancel_reason, 
                                     trip_status: data.trip_status, 
+                                    transaction_status: "cancelled", 
                                     cancellation_rate : final_rate_percentage,
                                     cancellation_charge : cancel_charge,
                                     amount_return_to_user : amount_return_to_user
@@ -2158,13 +2159,15 @@ carHelper.car_receive = async (req, car_handover_data) => {
 
         // after car receive we need to change car booking status to -> finished
         let booking_number = { booking_number: car_hand_over_data.booking_number };
-        let trip_status = { $set: { trip_status: 'finished' } };
+        // let trip_status = { $set: { trip_status: 'finished' } };
+        let trip_status = { $set: { trip_status: 'finished', transaction_status : 'successfull' } };
+        let trip_status2 = { $set: { trip_status: 'finished' } };
 
         var updateCarBooking = await CarBooking.updateOne(booking_number, trip_status);
 
         if (updateCarBooking && updateCarBooking.n > 0) {
             // var updateCarAssign = await CarAssign.updateOne(booking_number, trip_status);
-            var updateCarAssign = await CarAssign.updateMany(booking_number, trip_status, { multi: true });
+            var updateCarAssign = await CarAssign.updateMany(booking_number, trip_status2, { multi: true });
             if (updateCarAssign && updateCarAssign.n > 0) {
                 return { status: "success", message: "Car has been receive successfully" };
             }

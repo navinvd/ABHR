@@ -1091,6 +1091,10 @@ router.post('/book', async (req, res) => {
         'total_booking_amount': {
             notEmpty: true,
             errorMessage: "Please enter total booking amount",
+        },
+        'deposite_amount': {
+            notEmpty: true,
+            errorMessage: "Please enter car deposite amount",
         }
     };
     req.checkBody(schema);
@@ -1148,7 +1152,9 @@ router.post('/book', async (req, res) => {
                 "total_booking_amount": req.body.total_booking_amount, // add this field to db
                 "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
                 "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
-                "trip_status": "upcoming"
+                "trip_status": "upcoming",
+                "transaction_status" : "inprogress",
+                "deposite_amount" : req.body.deposite_amount
             }
 
 

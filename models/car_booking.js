@@ -20,7 +20,16 @@ var BookingSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId
     },
     vat: {
-        type: Number
+        type: Number,
+        required: true
+    },
+    deposite_amount: {
+        type: Number,
+        required: true
+    },
+    defect_amount: {
+        type: Number,
+        default : 0
     },
     from_time: {
         type: Date,
@@ -51,6 +60,10 @@ var BookingSchema = new Schema({
     trip_status: {
         type: String,
         enum: ["inprogress", "cancelled", "finished", "return", "upcoming", "delivering", "returning"]
+    },
+    transaction_status: {
+        type: String,
+        enum: ["inprogress", "cancelled", "successfull", "failed"]
     },
     delivery_address: {
         type: String,
