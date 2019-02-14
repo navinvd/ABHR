@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
 var config = require('./../../config');
-var Transaction = require('./../../models/transaction');
+var CarBooking = require('./../../models/car_booking');
 var ObjectId = require('mongoose').Types.ObjectId;
 var moment = require('moment');
 var _ = require('underscore');
+
 
 /**
  * @api {post} /admin/transaction/report_list create transaction report list for booking
@@ -56,25 +57,11 @@ router.post('/report_list', async (req, res, next) => {
                 "path": "$car_details",
                 "preserveNullAndEmptyArrays": true
               }
-            },
-            {
-              "$lookup": {
-                "from": "car_booking",
-                "localField": "booking_number",
-                "foreignField": "booking_number",
-                "as": "car_booking_details",
-              }
-            },
-            {
-              "$unwind": {
-                  "path": "$car_booking_details",
-                  "preserveNullAndEmptyArrays": true
-              }
             }, 
             {
               "$lookup": {
                 "from": "users",
-                "localField": "car_booking_details.car_handover_by_agent_id",
+                "localField": "car_handover_by_agent_id",
                 "foreignField": "_id",
                 "as": "agent_for_handover",
               }
@@ -88,7 +75,7 @@ router.post('/report_list', async (req, res, next) => {
             {
               "$lookup": {
                 "from": "users",
-                "localField": "car_booking_details.car_receive_by_agent_id",
+                "localField": "car_receive_by_agent_id",
                 "foreignField": "_id",
                 "as": "agent_for_receive",
               }
@@ -157,8 +144,8 @@ router.post('/report_list', async (req, res, next) => {
                 "last_name": "$user_details.last_name",
                 "from_time": 1,
                 "to_time": 1,
-                "Transaction_amount": 1,
-                "VAT": 1,
+                "total_booking_amount": 1,
+                "vat": 1,
                 "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
                 "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
                 "car_receive_first_name": "$agent_for_receive.first_name",
@@ -166,7 +153,7 @@ router.post('/report_list', async (req, res, next) => {
                 "booking_number": 1,
                 "deposite_amount": 1,
                 "coupon_code": 1,
-                "status": 1,
+                "transaction_status": 1,
                 "createdAt":1
               }
             }
@@ -185,7 +172,7 @@ router.post('/report_list', async (req, res, next) => {
             })
         }
         console.log('defaultQuery', JSON.stringify(defaultQuery));
-        var totalrecords = await Transaction.aggregate(defaultQuery);
+        var totalrecords = await CarBooking.aggregate(defaultQuery);
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
                 var regex = new RegExp(req.body.search.value);
@@ -271,7 +258,7 @@ router.post('/report_list', async (req, res, next) => {
             })
         }
         console.log('defaultQuery===>', JSON.stringify(defaultQuery));
-        Transaction.aggregate(defaultQuery, function (err, data) {
+        CarBooking.aggregate(defaultQuery, function (err, data) {
             console.log('data===>', data);
             if (err) {
                 return next(err);
@@ -329,22 +316,8 @@ router.post('/export_report_list', async (req, res, next) => {
             },
             {
               "$lookup": {
-                "from": "car_booking",
-                "localField": "booking_number",
-                "foreignField": "booking_number",
-                "as": "car_booking_details",
-              }
-            },
-            {
-              "$unwind": {
-                  "path": "$car_booking_details",
-                  "preserveNullAndEmptyArrays": true
-              }
-            }, 
-            {
-              "$lookup": {
                 "from": "users",
-                "localField": "car_booking_details.car_handover_by_agent_id",
+                "localField": "car_handover_by_agent_id",
                 "foreignField": "_id",
                 "as": "agent_for_handover",
               }
@@ -358,7 +331,7 @@ router.post('/export_report_list', async (req, res, next) => {
             {
               "$lookup": {
                 "from": "users",
-                "localField": "car_booking_details.car_receive_by_agent_id",
+                "localField": "car_receive_by_agent_id",
                 "foreignField": "_id",
                 "as": "agent_for_receive",
               }
@@ -427,8 +400,8 @@ router.post('/export_report_list', async (req, res, next) => {
                 "last_name": "$user_details.last_name",
                 "from_time": 1,
                 "to_time": 1,
-                "Transaction_amount": 1,
-                "VAT": 1,
+                "total_booking_amount": 1,
+                "vat": 1,
                 "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
                 "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
                 "car_receive_first_name": "$agent_for_receive.first_name",
@@ -436,7 +409,7 @@ router.post('/export_report_list', async (req, res, next) => {
                 "booking_number": 1,
                 "deposite_amount": 1,
                 "coupon_code": 1,
-                "status": 1,
+                "transaction_status": 1,
               }
             }
           ];
@@ -453,7 +426,7 @@ router.post('/export_report_list', async (req, res, next) => {
             })
         }
         console.log('defaultQuery', JSON.stringify(defaultQuery));
-        var totalrecords = await Transaction.aggregate(defaultQuery);
+        var totalrecords = await CarBooking.aggregate(defaultQuery);
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -530,7 +503,7 @@ router.post('/export_report_list', async (req, res, next) => {
             }
         }
         console.log('defaultQuery===>', JSON.stringify(defaultQuery));
-        Transaction.aggregate(defaultQuery, function (err, data) {
+        CarBooking.aggregate(defaultQuery, function (err, data) {
             console.log('data===>', data);
             if (err) {
                 return next(err);
@@ -598,22 +571,8 @@ router.post('/list', async (req, res, next) => {
             },
             {
               "$lookup": {
-                "from": "car_booking",
-                "localField": "booking_number",
-                "foreignField": "booking_number",
-                "as": "car_booking_details",
-              }
-            },
-            {
-              "$unwind": {
-                  "path": "$car_booking_details",
-                  "preserveNullAndEmptyArrays": true
-              }
-            }, 
-            {
-              "$lookup": {
                 "from": "users",
-                "localField": "car_booking_details.car_handover_by_agent_id",
+                "localField": "car_handover_by_agent_id",
                 "foreignField": "_id",
                 "as": "agent_for_handover",
               }
@@ -627,7 +586,7 @@ router.post('/list', async (req, res, next) => {
             {
               "$lookup": {
                 "from": "users",
-                "localField": "car_booking_details.car_receive_by_agent_id",
+                "localField": "car_receive_by_agent_id",
                 "foreignField": "_id",
                 "as": "agent_for_receive",
               }
@@ -710,17 +669,18 @@ router.post('/list', async (req, res, next) => {
                 // "last_name": "$user_details.last_name",
                 "from_time": 1,
                 "to_time": 1,
-                "Transaction_amount": 1,
-                "VAT": 1,
+                "total_booking_amount": 1,
+                "defect_amount":1,
+                "vat": 1,
+                "transaction_status":1,
                 // "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
                 // "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
                 // "car_receive_first_name": "$agent_for_receive.first_name",
                 // "car_receive_last_name": "$agent_for_receive.last_name",
                 "booking_number": 1,
                 "deposite_amount": 1,
-                "coupon_rate": "$coupon_details.discount_rate",
+                "coupon_percentage": 1,
                 "coupon_code": 1,
-                "status": 1,
                 "createdAt":1
               }
             }
@@ -813,7 +773,7 @@ router.post('/list', async (req, res, next) => {
                 }
             }
         }
-        var totalrecords = await Transaction.aggregate(defaultQuery);
+        var totalrecords = await CarBooking.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
@@ -825,7 +785,7 @@ router.post('/list', async (req, res, next) => {
             })
         }
         console.log('defaultQuery===>', JSON.stringify(defaultQuery));
-        Transaction.aggregate(defaultQuery, function (err, data) {
+        CarBooking.aggregate(defaultQuery, function (err, data) {
             console.log('data===>', data);
             if (err) {
                 return next(err);
@@ -863,9 +823,9 @@ router.post('/list', async (req, res, next) => {
 router.post('/details', async (req, res, next) => {
 
     var schema = {
-        'transaction_id': {
+        'booking_id': {
             notEmpty: true,
-            errorMessage: "transaction_id is required"
+            errorMessage: "booking_id is required"
         },
     };
     req.checkBody(schema);
@@ -875,7 +835,7 @@ router.post('/details', async (req, res, next) => {
             {
               "$match": {
                 "isDeleted": false,
-                "_id": new ObjectId(req.body.transaction_id)
+                "_id": new ObjectId(req.body.booking_id)
               }
             },
             {
@@ -894,22 +854,8 @@ router.post('/details', async (req, res, next) => {
             },
             {
               "$lookup": {
-                "from": "car_booking",
-                "localField": "booking_number",
-                "foreignField": "booking_number",
-                "as": "car_booking_details",
-              }
-            },
-            {
-              "$unwind": {
-                  "path": "$car_booking_details",
-                  "preserveNullAndEmptyArrays": true
-              }
-            }, 
-            {
-              "$lookup": {
                 "from": "users",
-                "localField": "car_booking_details.car_handover_by_agent_id",
+                "localField": "car_handover_by_agent_id",
                 "foreignField": "_id",
                 "as": "agent_for_handover",
               }
@@ -923,7 +869,7 @@ router.post('/details', async (req, res, next) => {
             {
               "$lookup": {
                 "from": "users",
-                "localField": "car_booking_details.car_receive_by_agent_id",
+                "localField": "car_receive_by_agent_id",
                 "foreignField": "_id",
                 "as": "agent_for_receive",
               }
@@ -934,20 +880,6 @@ router.post('/details', async (req, res, next) => {
                   "preserveNullAndEmptyArrays": true
               }
             },
-            {
-                "$lookup": {
-                  "from": "coupons",
-                  "localField": "coupon_code",
-                  "foreignField": "coupon_code",
-                  "as": "coupon_details",
-                }
-              },
-              {
-                "$unwind": {
-                    "path": "$coupon_details",
-                    "preserveNullAndEmptyArrays": true
-                }
-              },
             {
               "$lookup": {
                 "from": "car_company",
@@ -1020,7 +952,7 @@ router.post('/details', async (req, res, next) => {
             //  }
             // }
           ];
-        Transaction.aggregate(defaultQuery, function (err, data) {
+        CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
             } else {

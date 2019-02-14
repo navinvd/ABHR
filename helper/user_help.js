@@ -33,88 +33,33 @@ user_help_Helper.AddArticle = async (insertData) => {
     } 
 };
 
-// list of cars 
+// update article
 user_help_Helper.UpdateArticle = async (updateData) => {
     try{
-        let cars = await Car.find({"isDeleted": false}).count();
-        if (cars !== null && cars !== '') {
-            return { status: 'success', message: "Cars data found", data: cars}
+        let Articles = await Help.updateOne({"_id": new ObjectId(updateData.article_id), "isDeleted": false}, { $set: updateData });
+        if (Articles !== null && Articles !== '') {
+            return { status: 'success', message: "Article Update Successfully"}
         }
         else {
-            return { status: 'success', message: "No car Data found" };
+            return { status: 'success', message: "Article Not Update Successfully" };
         }
     } catch(e){
-        return { status: 'failed', message: "Error occured while fetching coupon" };
+        return { status: 'failed', message: "Error occured while updating article", e};
     } 
 };
 
-// list of rentals 
-user_help_Helper.NoOfRentals = async () => {
+// update article
+user_help_Helper.DeleteArticle = async (updateData) => {
     try{
-        let rentals = await CarBooking.find({"isDeleted": false}).count();
-        if (rentals !== null && rentals !== '') {
-            return { status: 'success', message: "Rental data found", data: rentals}
+        let Articles = await Help.updateOne({"_id": new ObjectId(updateData.article_id)}, { $set: {"isDeleted": true} });
+        if (Articles !== null && Articles !== '') {
+            return { status: 'success', message: "Article Deleted Successfully"}
         }
         else {
-            return { status: 'success', message: "No rental data found" };
+            return { status: 'success', message: "Article Not Delete Successfully" };
         }
     } catch(e){
-        return { status: 'failed', message: "Error occured while fetching coupon" };
-    } 
-};
-
-// list of cars for company 
-user_help_Helper.companyNoOfCars = async (company_id) => {
-    try{
-        let cars = await Car.find({"isDeleted": false, "car_rental_company_id": new ObjectId(company_id)}).count();
-        if (cars !== null && cars !== '') {
-            return { status: 'success', message: "Cars data found", data: cars}
-        }
-        else {
-            return { status: 'success', message: "No Car data found" };
-        }
-    } catch(e){
-        return { status: 'failed', message: "Error occured while fetching coupon" };
-    } 
-};
-
-// list of retnals for company 
-user_help_Helper.companyNoOfRentals = async (company_id) => {
-    try{
-        var defaultQuery = [
-            {
-              "$lookup": {
-                "from": "cars",
-                "foreignField": "_id",
-                "localField": "carId",
-                "as": "carDetails"
-              }
-            },
-            {
-              "$unwind": {
-                "path": "$carDetails",
-                "preserveNullAndEmptyArrays": true
-              }
-            },
-            {
-                "$match" : { "carDetails.car_rental_company_id" : new ObjectId(company_id)}
-            },
-            {
-                "$group" : {
-                      _id : "$carDetails.car_rental_company_id",
-                      total: { $sum: 1 }
-                }
-            }
-          ];
-        let rentals = await CarBooking.aggregate(defaultQuery);
-        if (rentals !== null && rentals !== '' && rentals.length !== 0) {
-            return { status: 'success', message: "Rental data found", data: rentals[0].total}
-        }
-        else {
-            return { status: 'success', message: "No rental data found" };
-        }
-    } catch(e){
-        return { status: 'failed', message: "Error occured while fetching coupon" , err:e};
+        return { status: 'failed', message: "Error occured while deleting article", e};
     } 
 };
 
