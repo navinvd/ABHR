@@ -40,6 +40,7 @@ router.use('/tracking', tracking);
 //models
 var User = require('./../../models/users');
 var Company = require('./../../models/car_company');
+var Car_VAT = require('./../../models/car_vat');
 
 /**
  * @api {post} /admin/login Login
@@ -430,6 +431,86 @@ router.post('/checkemail', async (req, res, next) => {
             status: "failed",
             message:"Validation error",
             error: e
+        });
+    }
+});
+
+
+/**
+ * @api {get} /admin/vat get VAT TAX
+ * @apiName GET AdminVAT
+ * @apiDescription Used to get VAT rate
+ * @apiGroup Admin - Admin
+ * @apiVersion 0.0.0
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.get('/vat', async (req, res, next) => {
+    var VAT = await Car_VAT.findOne({});
+    if(VAT && VAT!==null){
+        res.status(config.OK_STATUS).json({
+            status: "success",
+            result: VAT
+        });
+    }else{
+        res.status(config.BAD_REQUEST).json({
+            status: "failed"
+        }); 
+    }
+});
+
+
+/**
+ * @api {put} /admin/vat/update update VAT TAX
+ * @apiName Update AdminVAT
+ * @apiDescription Used to update VAT rate
+ * @apiGroup Admin - Admin
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} rate VAT value
+ * @apiParam {String} first_name FirstName
+ * @apiParam {String} last_name LastName
+ * @apiParam {String} phone_number User User Phone Number 
+ * @apiParam {String} email User email address 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.put('/vat/update', async (req, res, next) => {
+    console.log('here');
+    var schema = {
+        'rate': {
+            notEmpty: true,
+            errorMessage: "rate is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var carVAT = await Car_VAT.update({}, { $set: { 'rate': req.body.rate}});
+        if(carVAT.nModified){
+            res.status(config.OK_STATUS).json({
+                status: "success",
+                message: "VAT updated Successfully"
+            });
+        }else{
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "VAT not updated Successfully"
+            });
+        }
+    }else{
+            res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            status: 'failed'
         });
     }
 });
