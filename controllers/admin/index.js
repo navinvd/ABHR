@@ -24,6 +24,7 @@ var coupon = require('./coupons');
 var dashboard = require('./dashboard');
 var transaction = require('./transaction');
 var tracking = require('./car_tracking');
+var help = require('./user_help');
 
 router.use('/user', users);
 router.use('/keyword', keywords);
@@ -36,6 +37,7 @@ router.use('/coupon', coupon);
 router.use('/dashboard', dashboard);
 router.use('/transaction', transaction);
 router.use('/tracking', tracking);
+router.use('/help', help);
 
 //models
 var User = require('./../../models/users');
@@ -496,7 +498,7 @@ router.put('/vat/update', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         var carVAT = await Car_VAT.update({}, { $set: { 'rate': req.body.rate}});
-        if(carVAT.nModified){
+        if(carVAT){
             res.status(config.OK_STATUS).json({
                 status: "success",
                 message: "VAT updated Successfully"
