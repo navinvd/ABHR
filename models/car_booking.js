@@ -16,6 +16,12 @@ var BookingSchema = new Schema({
     agentId: {
         type: mongoose.Schema.Types.ObjectId
     },
+    carCompanyId: {
+        type: mongoose.Schema.Types.ObjectId
+    },
+    vat: {
+        type: Number
+    },
     from_time: {
         type: Date,
     },
