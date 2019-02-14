@@ -1044,6 +1044,14 @@ router.post('/book', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter car id which you are going to book",
         },
+        'carCompanyId': {
+            notEmpty: true,
+            errorMessage: "Please enter car rental company id",
+        },
+        'vat': {
+            notEmpty: true,
+            errorMessage: "Please enter car vat rate",
+        },
         'fromDate': {
             notEmpty: true,
             errorMessage: "Please specify date from when you need car",
@@ -1083,6 +1091,10 @@ router.post('/book', async (req, res) => {
         'total_booking_amount': {
             notEmpty: true,
             errorMessage: "Please enter total booking amount",
+        },
+        'deposite_amount': {
+            notEmpty: true,
+            errorMessage: "Please enter car deposite amount",
         }
     };
     req.checkBody(schema);
@@ -1127,6 +1139,8 @@ router.post('/book', async (req, res) => {
             var data = {
                 "userId": req.body.user_id,
                 "carId": req.body.car_id,
+                "carCompanyId": req.body.carCompanyId, // add later on
+                "vat": req.body.vat, // add later on
                 "from_time": req.body.fromDate,
                 "to_time": toDate, // auto calculation
                 "days": req.body.days,
@@ -1138,7 +1152,9 @@ router.post('/book', async (req, res) => {
                 "total_booking_amount": req.body.total_booking_amount, // add this field to db
                 "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
                 "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
-                "trip_status": "upcoming"
+                "trip_status": "upcoming",
+                "transaction_status" : "inprogress",
+                "deposite_amount" : req.body.deposite_amount
             }
 
 
@@ -1158,6 +1174,7 @@ router.post('/book', async (req, res) => {
                     "Transaction_amount": req.body.total_booking_amount, //
                     "deposite_amount": deposit.deposit,
                     "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
+                    "VAT": req.body.vat ? req.body.vat : null,
                     "status": "inprogress",
                     "booking_number": car_booking_number
                 }
@@ -3620,6 +3637,10 @@ router.post('/booking-details-ios', async (req, res) => {
                     }
                     else {
                         data[0].call_or_not = 'no' // not call 
+                    }
+
+                    if(data[0].vat === undefined){
+                        data[0].vat = null
                     }
 
                     res.status(config.OK_STATUS).json({

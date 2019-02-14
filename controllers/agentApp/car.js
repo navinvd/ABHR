@@ -423,6 +423,10 @@ router.post('/booking-details', async (req, res) => {
                         }
                         /** ----------------------------------------------- */
                         c.car['total_avg_rating'] = c.total_avg_rating;
+
+                        if(c.car['vat'] === undefined){
+                            c.car['vat'] = null
+                        }
                         delete c.car.reviews;
                         return c.car;
                     })
@@ -2255,6 +2259,9 @@ router.post('/car-list-v3', async (req, res) => {
         var finalData = finalData.map((c) => {
             if (c['image_name'] === undefined) {
                 c['image_name'] = null
+            }
+            if(c['vat'] === undefined){
+                c['vat'] = null
             }
             return c;
         })

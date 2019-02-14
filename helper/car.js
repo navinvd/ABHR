@@ -13,6 +13,7 @@ const City = require('./../models/city');
 const CarHandOver = require('./../models/car_hand_over');
 const CarReceive = require('./../models/car_receive');
 const CarReport = require('./../models/car_report');
+const CarVAT = require('./../models/car_vat');
 const moment = require('moment');
 const _ = require('underscore');
 var config = require('./../config');
@@ -299,7 +300,12 @@ carHelper.getcarDetailbyId = async (car_id) => {
     ];
     try {
         let carDetail = await Car.aggregate(defaultQuery);
+           
         if (carDetail && carDetail.length > 0) {
+
+            const vat = await CarVAT.findOne({},{rate : 1});
+            console.log('VAT=>',vat);
+
             var cars = carDetail.map((c) => {
                 c.car["total_avg_rating"] = c.total_avg_rating;
                 // c.car["car_rental_company_name"] = c.car_rental_company_name;
@@ -315,6 +321,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
                 if (c.car['car_rental_company_country'] === undefined) {
                     c.car['car_rental_company_country'] = null
                 }
+                c.car['vat'] = vat ? vat.rate : null
                 delete c.car.reviews;
                 return c.car;
             })
@@ -656,6 +663,9 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                 if (c['phone_number'] === undefined) {
                     c['phone_number'] = "9876543210" // dummy
                 }
+                if(c['vat'] === undefined){
+                    c['vat'] = null
+                }
 
                 // delete c.model_details;
                 // delete c.brand_details;
@@ -834,6 +844,9 @@ carHelper.history = async (user_id, history_type) => {
                 }
                 if (c['phone_number'] === undefined) {
                     c['phone_number'] = "9876543210" // dummy super admin
+                }
+                if(c['vat'] === undefined){
+                    c['vat'] = null
                 }
 
                 // delete c.model_details;
@@ -1562,6 +1575,7 @@ carHelper.cancelBooking = async function (data) {
                                     cancel_date: data.cancel_date, 
                                     cancel_reason: data.cancel_reason, 
                                     trip_status: data.trip_status, 
+                                    transaction_status: "cancelled", 
                                     cancellation_rate : final_rate_percentage,
                                     cancellation_charge : cancel_charge,
                                     amount_return_to_user : amount_return_to_user
@@ -2145,13 +2159,15 @@ carHelper.car_receive = async (req, car_handover_data) => {
 
         // after car receive we need to change car booking status to -> finished
         let booking_number = { booking_number: car_hand_over_data.booking_number };
-        let trip_status = { $set: { trip_status: 'finished' } };
+        // let trip_status = { $set: { trip_status: 'finished' } };
+        let trip_status = { $set: { trip_status: 'finished', transaction_status : 'successfull' } };
+        let trip_status2 = { $set: { trip_status: 'finished' } };
 
         var updateCarBooking = await CarBooking.updateOne(booking_number, trip_status);
 
         if (updateCarBooking && updateCarBooking.n > 0) {
             // var updateCarAssign = await CarAssign.updateOne(booking_number, trip_status);
-            var updateCarAssign = await CarAssign.updateMany(booking_number, trip_status, { multi: true });
+            var updateCarAssign = await CarAssign.updateMany(booking_number, trip_status2, { multi: true });
             if (updateCarAssign && updateCarAssign.n > 0) {
                 return { status: "success", message: "Car has been receive successfully" };
             }

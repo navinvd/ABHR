@@ -310,7 +310,7 @@ userHelper.logOut = async function (user_id, deviceToken) {
             return { status: 'success', message: "You have been logout successfully" }
         }
         else{
-            return { status: 'failed', message: "You have not been logout" }
+            return { status: 'success', message: "You have been logout successfully" }
         }
     } catch (err) {
         return { status: 'failed', message: "Error occured while logout user", err };
