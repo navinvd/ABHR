@@ -1208,6 +1208,8 @@ router.post('/book', async (req, res) => {
 
                 /* coupon over */
 
+                res.status(config.OK_STATUS).json(bookingResp)
+
 
                 // after car booking need to send push notification ther user on IOS APP & Android app 
                 /** push notification process to user app start */
@@ -1306,7 +1308,8 @@ router.post('/book', async (req, res) => {
                     res.status(config.OK_STATUS).json(bookingResp);
                 }
                 */
-                res.status(config.OK_STATUS).json(bookingResp)
+
+                // res.status(config.OK_STATUS).json(bookingResp) // set this line after coupon entry
             }
             else {
                 res.status(config.BAD_REQUEST).json(bookingResp);
@@ -3537,6 +3540,9 @@ router.post('/booking-details-ios', async (req, res) => {
     if (!errors) {
         // req.body.booking_number
 
+        var phone_no = await Users.findOne({type : 'admin', isDeleted : false},{_id : 0, support_phone_number : 1}).lean().exec();
+        var support_phone_number = phone_no != null ? phone_no.support_phone_number : '9876543210';
+
         var defaultQuery = [
             {
                 $match: {
@@ -3621,7 +3627,8 @@ router.post('/booking-details-ios', async (req, res) => {
                     "car_details.car_model_release_year": "$model_details.release_year",
                     "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
                     "car_details.cancellation_policy": "$car_company_terms_and_condition_Details.cancellation_policy_criteria",
-                    "phone_number": "$companyDetails.phone_number"
+                    // "phone_number": "$companyDetails.phone_number"
+                    "phone_number": support_phone_number
                 }
             }
         ];
@@ -3638,13 +3645,14 @@ router.post('/booking-details-ios', async (req, res) => {
                 if (data && data.length > 0) {
 
                     var currentDate = moment().toDate().toISOString(Date.now());
+                   
                     if (moment(currentDate) >= moment(data[0].from_time)) {
                         data[0].call_or_not = 'yes' // place manual call
                     }
                     else {
                         data[0].call_or_not = 'no' // not call 
                     }
-
+                    
                     if(data[0].vat === undefined){
                         data[0].vat = null
                     }
