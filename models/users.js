@@ -94,6 +94,15 @@ var UserSchema = new Schema({
         enum: ["only registered", "rented"],
         default: "only registered"
     },
+    support_phone_number: {
+        type: String
+    },
+    support_email: {
+        type: String
+    },
+    support_site_url:{
+        type:String
+    },
     socialmediaID :{
         type: String,
     },
