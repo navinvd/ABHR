@@ -336,13 +336,7 @@ router.put('/update', async (req, res, next) => {
         if (!errors) {
             var userId = await User.findOne({"_id" : new ObjectId(req.body.user_id), "isDeleted" : false, "type": "admin"});
             if(userId){ 
-                var userData = {
-                    first_name: req.body.first_name,
-                    last_name: req.body.last_name,
-                    phone_number: req.body.phone_number,
-                    email: req.body.email
-                };
-                User.update({ "_id": new ObjectId(req.body.user_id), "type": "admin" }, { $set: userData }, async function (err, data) {
+                User.update({ "_id": new ObjectId(req.body.user_id), "type": "admin" }, { $set: req.body }, async function (err, data) {
                     var userId = await User.findOne({ "_id": new ObjectId(req.body.user_id), "isDeleted": false, "type":"admin" }).exec();
                     if (err) {
                         return next(err);
