@@ -287,6 +287,63 @@ define({ "api": [
     "groupTitle": "Admin"
   },
   {
+    "type": "get",
+    "url": "/admin/vat",
+    "title": "get VAT TAX",
+    "name": "GET_AdminVAT",
+    "description": "<p>Used to get VAT rate</p>",
+    "group": "Admin___Admin",
+    "version": "0.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/index.js",
+    "groupTitle": "Admin___Admin"
+  },
+  {
     "type": "put",
     "url": "/admin/update",
     "title": "update Admin details",
@@ -303,6 +360,104 @@ define({ "api": [
             "optional": false,
             "field": "user_id",
             "description": "<p>User Id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "first_name",
+            "description": "<p>FirstName</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "last_name",
+            "description": "<p>LastName</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phone_number",
+            "description": "<p>User User Phone Number</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>User email address</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/index.js",
+    "groupTitle": "Admin___Admin"
+  },
+  {
+    "type": "put",
+    "url": "/admin/vat/update",
+    "title": "update VAT TAX",
+    "name": "Update_AdminVAT",
+    "description": "<p>Used to update VAT rate</p>",
+    "group": "Admin___Admin",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "rate",
+            "description": "<p>VAT value</p>"
           },
           {
             "group": "Parameter",
@@ -612,6 +767,13 @@ define({ "api": [
             "optional": false,
             "field": "end",
             "description": "<p>pagination length no of page length</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "agent_id",
+            "description": "<p>list for perticular agentId</p>"
           }
         ]
       }
@@ -2474,76 +2636,6 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/company/details/:id?",
-    "title": "Company Details By Id",
-    "name": "company_Details_By_Id",
-    "description": "<p>Get Company details By company id</p>",
-    "group": "Admin___Companies",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p>company Id</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Users unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/company/index.js",
-    "groupTitle": "Admin___Companies"
-  },
-  {
-    "type": "get",
     "url": "/admin/company/details/:id?",
     "title": "Company Details By Id",
     "name": "company_Details_By_Id",
@@ -2610,6 +2702,76 @@ define({ "api": [
       }
     },
     "filename": "controllers/admin/companies.js",
+    "groupTitle": "Admin___Companies"
+  },
+  {
+    "type": "get",
+    "url": "/company/details/:id?",
+    "title": "Company Details By Id",
+    "name": "company_Details_By_Id",
+    "description": "<p>Get Company details By company id</p>",
+    "group": "Admin___Companies",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>company Id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/index.js",
     "groupTitle": "Admin___Companies"
   },
   {
@@ -3276,7 +3438,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/company/dashboard.js",
+    "filename": "controllers/admin/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -3333,7 +3495,7 @@ define({ "api": [
         ]
       }
     },
-    "filename": "controllers/admin/dashboard.js",
+    "filename": "controllers/company/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -3392,6 +3554,314 @@ define({ "api": [
     },
     "filename": "controllers/admin/dashboard.js",
     "groupTitle": "Admin___Dashboard"
+  },
+  {
+    "type": "post",
+    "url": "/admin/help/add",
+    "title": "Add help article",
+    "name": "Add_New_article",
+    "description": "<p>Used to add new help article</p>",
+    "group": "Admin___Help",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "topic",
+            "description": "<p>Add topic</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "description",
+            "description": "<p>Add description here</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "userId",
+            "description": "<p>userId</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "userType",
+            "description": "<p>userType [&quot;admin&quot;, &quot;agent&quot;]</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/user_help.js",
+    "groupTitle": "Admin___Help"
+  },
+  {
+    "type": "put",
+    "url": "/admin/help/delete",
+    "title": "Delete Article",
+    "name": "Delete_Article",
+    "description": "<p>Used to Delete article</p>",
+    "group": "Admin___Help",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "article_id",
+            "description": "<p>articleId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/user_help.js",
+    "groupTitle": "Admin___Help"
+  },
+  {
+    "type": "post",
+    "url": "/admin/help/list",
+    "title": "List of all superadmin help",
+    "name": "Help_List",
+    "description": "<p>To display help list with pagination</p>",
+    "group": "Admin___Help",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "length",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/user_help.js",
+    "groupTitle": "Admin___Help"
+  },
+  {
+    "type": "put",
+    "url": "/admin/help/update",
+    "title": "Update help article",
+    "name": "Update_Article",
+    "description": "<p>Used to update article</p>",
+    "group": "Admin___Help",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "article_id",
+            "description": "<p>articleId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/user_help.js",
+    "groupTitle": "Admin___Help"
   },
   {
     "type": "post",
@@ -4523,6 +4993,83 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/admin/user/report_list",
+    "title": "create report list for cars",
+    "name": "Listing_of_users_report",
+    "description": "<p>This is for listing user report</p>",
+    "group": "Admin___Users",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/users.js",
+    "groupTitle": "Admin___Users"
+  },
+  {
+    "type": "post",
     "url": "/company/users/report_list",
     "title": "create report list for cars",
     "name": "Listing_of_users_report",
@@ -4603,83 +5150,6 @@ define({ "api": [
       }
     },
     "filename": "controllers/company/users.js",
-    "groupTitle": "Admin___Users"
-  },
-  {
-    "type": "post",
-    "url": "/admin/user/report_list",
-    "title": "create report list for cars",
-    "name": "Listing_of_users_report",
-    "description": "<p>This is for listing user report</p>",
-    "group": "Admin___Users",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "start",
-            "description": "<p>pagination start page no</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "end",
-            "description": "<p>pagination length no of page length</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Admin unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/admin/users.js",
     "groupTitle": "Admin___Users"
   },
   {
@@ -5665,7 +6135,168 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/app/user/addresses/delete-v2",
+    "title": "Delete user addresses",
+    "name": "Delete_user_addresses_for_version_2",
+    "description": "<p>Used to delete user signle or multiple addresses at a time</p>",
+    "group": "AppUser",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>User Id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "addresses_id",
+            "description": "<p>array of address ids (eg. [&quot;5c31cc44ee8cb81ef4d66b87&quot;,&quot;5c3469462d159a027718aea9&quot;])</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/app/user.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "post",
     "url": "/app/social_login",
+    "title": "Facebook Login",
+    "name": "Facebook_Login",
+    "description": "<p>Used for user facebook login</p>",
+    "group": "AppUser",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>User email address</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "socialmediaID",
+            "description": "<p>User socialmediaID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "socialmediaType",
+            "description": "<p>User socialmediaType [&quot;facebook&quot;,&quot;google&quot;]</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_type",
+            "description": "<p>Type of User [&quot;user&quot;, &quot;agent&quot;]</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/app/index.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "post",
+    "url": "/app/social_login-v2",
     "title": "Facebook Login",
     "name": "Facebook_Login",
     "description": "<p>Used for user facebook login</p>",
@@ -7058,6 +7689,97 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/app/car/cancel-booking-v2",
+    "title": "Cancel Car Booking",
+    "name": "Cancel_Car_Booking",
+    "description": "<p>Cancel Car Booking</p>",
+    "group": "App___Car",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>User ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>Car ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "cancel_date",
+            "description": "<p>Car booking cancel date</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "cancel_reason",
+            "description": "<p>Reason for cancelling car booking</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
+    "type": "post",
     "url": "/app/car/book",
     "title": "Book Car",
     "name": "Car_Booking",
@@ -7710,6 +8432,90 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/app/car/change-booking-v2",
+    "title": "Change Car booking details",
+    "name": "Change_Car_Booking_Details",
+    "description": "<p>change car booking details like delivery address &amp; delivery time</p>",
+    "group": "App___Car",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "booking_number",
+            "description": "<p>Car booking id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "delivery_address",
+            "description": "<p>Car Delivery Address (eg. 320, regent square surat india)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "delivery_time",
+            "description": "<p>Car Delivery Time (eg. 7am - 9am)</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
+    "type": "post",
     "url": "/app/car/change-booking",
     "title": "Change Car booking details",
     "name": "Change_Car_Booking_Details",
@@ -7797,6 +8603,90 @@ define({ "api": [
     "url": "/app/car/checkCarAvailability",
     "title": "Checking is car available on specific date?",
     "name": "Check_availability_car",
+    "description": "<p>Check whether car is available or not on some specific date</p>",
+    "group": "App___Car",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>Id of car</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "fromDate",
+            "description": "<p>Available from date</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "days",
+            "description": "<p>Number of days car needed</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/car.js",
+    "groupTitle": "App___Car"
+  },
+  {
+    "type": "post",
+    "url": "/app/car/checkCarAvailability-v3",
+    "title": "Checking is car available on specific date?",
+    "name": "Check_availability_car_varsion_3",
     "description": "<p>Check whether car is available or not on some specific date</p>",
     "group": "App___Car",
     "parameter": {
@@ -8874,7 +9764,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/app/coupon.js",
+    "filename": "controllers/admin/coupons.js",
     "groupTitle": "App___Coupon"
   },
   {
@@ -8951,7 +9841,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/admin/coupons.js",
+    "filename": "controllers/app/coupon.js",
     "groupTitle": "App___Coupon"
   },
   {
@@ -9537,69 +10427,6 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/company/car/details",
-    "title": "Add car",
-    "name": "add_Car",
-    "description": "<p>Used for Display details Car</p>",
-    "group": "CompanyAdmin___Car",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "car_id",
-            "optional": false,
-            "field": "car_id",
-            "description": "<p>id of Car</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/company/cars.js",
-    "groupTitle": "CompanyAdmin___Car"
-  },
-  {
-    "type": "post",
     "url": "/company/car/add",
     "title": "Add car",
     "name": "add_Car",
@@ -9720,6 +10547,69 @@ define({ "api": [
             "optional": false,
             "field": "deposit",
             "description": "<p>deposit for car</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/cars.js",
+    "groupTitle": "CompanyAdmin___Car"
+  },
+  {
+    "type": "post",
+    "url": "/company/car/details",
+    "title": "Add car",
+    "name": "add_Car",
+    "description": "<p>Used for Display details Car</p>",
+    "group": "CompanyAdmin___Car",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "car_id",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>id of Car</p>"
           }
         ]
       }
