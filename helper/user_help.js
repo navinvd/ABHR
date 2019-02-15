@@ -48,7 +48,7 @@ user_help_Helper.UpdateArticle = async (updateData) => {
     } 
 };
 
-// update article
+// delete article
 user_help_Helper.DeleteArticle = async (updateData) => {
     try{
         let Articles = await Help.updateOne({"_id": new ObjectId(updateData.article_id)}, { $set: {"isDeleted": true} });
@@ -60,6 +60,21 @@ user_help_Helper.DeleteArticle = async (updateData) => {
         }
     } catch(e){
         return { status: 'failed', message: "Error occured while deleting article", e};
+    } 
+};
+
+// view article
+user_help_Helper.ViewArticle = async (article_id) => {
+    try{
+        let Articles = await Help.findOne({"_id": new ObjectId(article_id), "isDeleted": false});
+        if (Articles !== null && Articles !== '') {
+            return { status: 'success', message: "Article Found Successfully", data: Articles}
+        }
+        else {
+            return { status: 'success', message: "Article Not found Successfully" };
+        }
+    } catch(e){
+        return { status: 'failed', message: "Error occured while fetching article", e};
     } 
 };
 

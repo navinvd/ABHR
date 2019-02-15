@@ -281,6 +281,47 @@ router.put('/update', async (req, res) => {
 });
 
 /**
+ * @api {post} /admin/help/details View Article 
+ * @apiName View Article
+ * @apiDescription Used to View article
+ * @apiGroup Admin - Help
+ * 
+ * @apiParam {String} article_id articleId 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// add coupon
+router.post('/details', async (req, res) => {
+    var schema = {
+        'article_id':{
+            notEmpty: true,
+            errorMessage: "Please enter article_id",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var articleRep = await articleHelper.ViewArticle(req.body.article_id);
+        if(articleRep.status === 'success'){
+            res.status(config.OK_STATUS).json(articleRep);
+        } else{
+            res.status(config.BAD_REQUEST).json(articleRep);
+        }   
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+/**
  * @api {put} /admin/help/delete Delete Article 
  * @apiName Delete Article
  * @apiDescription Used to Delete article
