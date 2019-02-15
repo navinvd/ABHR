@@ -328,6 +328,7 @@ router.post('/booking-details', async (req, res) => {
                     coupon_code: 1,
                     coupon_percentage: 1,
                     isDeleted: 1,
+                    vat : 1,
                     agent_assign_for_handover: 1,
                     agent_assign_for_receive: 1,
                     car_handover_by_agent_id: 1,
@@ -1960,6 +1961,7 @@ router.post('/car-list-v3', async (req, res) => {
                 car_rental_company_id: 1,
                 isDeleted: 1,
                 trip_status: 1,
+                vat :"$bookingDetails.vat",
 
                 car_book_from_date: {
                     $dateToString: {
@@ -2142,6 +2144,7 @@ router.post('/car-list-v3', async (req, res) => {
                 car_rental_company_id: "$carDetails.car_rental_company_id",
                 isDeleted: 1,
                 trip_status: 1,
+                vat : 1,
 
                 car_book_from_date: {
                     $dateToString: {
@@ -2256,7 +2259,7 @@ router.post('/car-list-v3', async (req, res) => {
 
     if (finalData.length > 0) {
 
-        var finalData = finalData.map((c) => {
+        var finalData = finalData.map((c) => {            
             if (c['image_name'] === undefined) {
                 c['image_name'] = null
             }
