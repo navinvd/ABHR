@@ -3,7 +3,8 @@ const CarBooking = require('./../models/car_booking');
 const CarBrand = require('./../models/car_brand');
 const CarCompany = require('./../models/car_company');
 const CarModel = require('./../models/car_model');
-const Help = require('./../models/help')
+const Help = require('./../models/help');
+const Help2 = require('./../models/user_help');
 const Term_Condition = require('./../models/terms_conditions')
 const CarNotification = require('./../models/car_notification');
 const CarNotificationSetting = require('./../models/car_notification_settings');
@@ -66,6 +67,7 @@ commonHelper.getDatabyId = async function (model, id) {
     }
 };
 
+// help
 commonHelper.getHelp = async function (help_type) {
     try {
         // Help
@@ -102,6 +104,23 @@ commonHelper.getHelp = async function (help_type) {
         return { status: 'failed', message: "Error occured while get help" };
     }
 };
+
+// help-v2
+commonHelper.getHelp_v2 = async function () {
+    try {
+        // Help
+        const helpDetail = await Help2.find({isDeleted : false}).lean().exec();
+        
+        if (helpDetail) {
+            return { status: 'success', message: "Help has been found", data: { help : helpDetail } }
+        } else {
+            return { status: 'failed', message: "Sorry, currently there is no help" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while get help" };
+    }
+};
+
 
 
 commonHelper.aboutus = async function (help_type) {
