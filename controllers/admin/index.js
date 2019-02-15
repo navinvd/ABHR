@@ -324,6 +324,7 @@ router.get('/details/:id', (req, res, next) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.put('/update', async (req, res, next) => {
+    console.log('reqbodyy===>', req.body);
     try {
         var schema = {
             'user_id': {
