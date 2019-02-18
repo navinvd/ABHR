@@ -211,29 +211,16 @@ router.post('/list',(req, res, next) => {
                 }
             },
             {
-                $match: {"isDeleted": false,}
-            },
-            {
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT",
-                    }
+                $match: {
+                    "isDeleted": false,
+                    "car_rental_company_id": new ObjectId(req.body.company_id)
                 }
             },
             {
-                $project: {
-                    "_id": 1,
-                    "recordsTotal": 1,
-                    "modelDetails": 1,
-                    "brandDetails":1,
-                    "data": {"$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]}
+                $sort: {
+                    'createdAt': -1
                 }
-            }
-        ];
+            }];
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
@@ -281,16 +268,15 @@ router.post('/list',(req, res, next) => {
                 }
             }
         }
-        if (req.body.search != undefined) {
-            if (req.body.search.value != undefined) {
+        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+            if (req.body.search.value != undefined && req.body.search.value !== '') {
                 var regex = new RegExp(req.body.search.value);
-                var match = {
-                    $or: []
-                };
+                var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
                         if (obj.isNumber) {
+                            console.log(typeof parseInt(req.body.search.value));
                             json[obj.name] = parseInt(req.body.search.value)
                         } else if (obj.isBoolean) {
                             var check = req.body.search.value.toLowerCase();
@@ -299,7 +285,7 @@ router.post('/list',(req, res, next) => {
                             } else {
                                 json[obj.name] = false;
                             }
-                        } else {
+                        }else {
                             json[obj.name] = {
                                 "$regex": regex,
                                 "$options": "i"
@@ -309,11 +295,43 @@ router.post('/list',(req, res, next) => {
                     }
                 });
             }
+            console.log('re.body.search==>', req.body.search.value);
             var searchQuery = {
                 $match: match
             }
-            defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+            defaultQuery.push(searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
         }
+
+        defaultQuery = defaultQuery.concat({
+            $group: {
+                "_id": "",
+                "recordsTotal": {
+                    "$sum": 1
+                },
+                "data": {
+                    "$push": "$$ROOT"
+                }
+            }
+        },
+        {
+            $project: {
+                "_id": 1,
+                "recordsTotal": 1,
+                "data": "$data"
+                }
+        });
+        if (req.body.start) {
+            defaultQuery.push({
+                "$skip": req.body.start
+            })
+        }
+        if (req.body.length) {
+            defaultQuery.push({
+                "$limit": req.body.length
+            })
+        }
+
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>',err);

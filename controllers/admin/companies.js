@@ -803,7 +803,7 @@ router.post('/change_status', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/car_list', (req, res, next) => {
+router.post('/car_list', async (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -861,7 +861,6 @@ router.post('/car_list', (req, res, next) => {
                     'createdAt': -1
                 }
             }];
-
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
                 var colname = req.body.columns[colIndex].name;
@@ -929,16 +928,16 @@ router.post('/car_list', (req, res, next) => {
         //     }
         //     defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
         // }
-        if (req.body.search != undefined) {
-            if (req.body.search.value != undefined) {
+
+        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+            if (req.body.search.value != undefined && req.body.search.value !== '') {
                 var regex = new RegExp(req.body.search.value);
-                var match = {
-                    $or: []
-                };
+                var match = { $or: [] };
                 req.body['columns'].forEach(function (obj) {
                     if (obj.name) {
                         var json = {};
                         if (obj.isNumber) {
+                            console.log(typeof parseInt(req.body.search.value));
                             json[obj.name] = parseInt(req.body.search.value)
                         } else if (obj.isBoolean) {
                             var check = req.body.search.value.toLowerCase();
@@ -947,7 +946,7 @@ router.post('/car_list', (req, res, next) => {
                             } else {
                                 json[obj.name] = false;
                             }
-                        } else {
+                        }else {
                             json[obj.name] = {
                                 "$regex": regex,
                                 "$options": "i"
@@ -957,11 +956,47 @@ router.post('/car_list', (req, res, next) => {
                     }
                 });
             }
+            console.log('re.body.search==>', req.body.search.value);
             var searchQuery = {
                 $match: match
             }
-            defaultQuery.concat(searchQuery);
+            defaultQuery.push(searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
         }
+
+        // if (req.body.search != undefined) {
+        //     if (req.body.search.value != undefined) {
+        //         var regex = new RegExp(req.body.search.value);
+        //         var match = {
+        //             $or: []
+        //         };
+        //         req.body['columns'].forEach(function (obj) {
+        //             if (obj.name) {
+        //                 var json = {};
+        //                 if (obj.isNumber) {
+        //                     json[obj.name] = parseInt(req.body.search.value)
+        //                 } else if (obj.isBoolean) {
+        //                     var check = req.body.search.value.toLowerCase();
+        //                     if (check === "yes" || check === "ye" || check === "y") {
+        //                         json[obj.name] = true;
+        //                     } else {
+        //                         json[obj.name] = false;
+        //                     }
+        //                 } else {
+        //                     json[obj.name] = {
+        //                         "$regex": regex,
+        //                         "$options": "i"
+        //                     }
+        //                 }
+        //                 match['$or'].push(json)
+        //             }
+        //         });
+        //     }
+        //     var searchQuery = {
+        //         $match: match
+        //     }
+        //     defaultQuery.concat(searchQuery);
+        // }
         defaultQuery = defaultQuery.concat({
             $group: {
                 "_id": "",
@@ -977,11 +1012,19 @@ router.post('/car_list', (req, res, next) => {
             $project: {
                 "_id": 1,
                 "recordsTotal": 1,
-                "data": {
-                    "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)]
+                "data": "$data"
                 }
-            }
         });
+        if (req.body.start) {
+            defaultQuery.push({
+                "$skip": req.body.start
+            })
+        }
+        if (req.body.length) {
+            defaultQuery.push({
+                "$limit": req.body.length
+            })
+        }
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>', err);
