@@ -174,17 +174,19 @@ router.post('/list', (req, res, next) => {
                     "data": "$data"
                     }
             });
-            if (req.body.start) {
-                defaultQuery.push({
-                    "$skip": req.body.start
-                })
-            }
+            console.log(req.body);
             if (req.body.length) {
                 defaultQuery.push({
                     "$limit": req.body.length
-                })
+                });
             }
-    
+            if (req.body.start !== null) {
+                console.log('in skip===>', )
+                defaultQuery.push({
+                    "$skip": req.body.start
+                });
+            }
+
             console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
             Coupon.aggregate(defaultQuery, function (err, data) {
                 if (err) {
