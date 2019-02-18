@@ -303,6 +303,17 @@ router.post('/list',(req, res, next) => {
             console.log("==>", JSON.stringify(defaultQuery));
         }
 
+        if (req.body.start) {
+            defaultQuery.push({
+                "$skip": req.body.start
+            })
+        }
+        if (req.body.length) {
+            defaultQuery.push({
+                "$limit": req.body.length
+            })
+        }
+
         defaultQuery = defaultQuery.concat({
             $group: {
                 "_id": "",
@@ -321,16 +332,6 @@ router.post('/list',(req, res, next) => {
                 "data": "$data"
                 }
         });
-        if (req.body.start) {
-            defaultQuery.push({
-                "$skip": req.body.start
-            })
-        }
-        if (req.body.length) {
-            defaultQuery.push({
-                "$limit": req.body.length
-            })
-        }
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {

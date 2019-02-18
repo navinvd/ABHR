@@ -23,7 +23,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/list', (req, res, next) => {
+router.post('/list', async (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -155,13 +155,23 @@ router.post('/list', (req, res, next) => {
                     defaultQuery.push(searchQuery);
                 }
             }
+            var totalRecords = await Coupon.aggregate(defaultQuery);
+
+            if (req.body.start !== null) {
+                console.log('in skip===>', )
+                defaultQuery.push({
+                    "$skip": req.body.start
+                });
+            }
+            if (req.body.length) {
+                defaultQuery.push({
+                    "$limit": req.body.length
+                });
+            }
 
             defaultQuery = defaultQuery.concat({
                 $group: {
                     "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
                     "data": {
                         "$push": "$$ROOT"
                     }
@@ -169,23 +179,9 @@ router.post('/list', (req, res, next) => {
             },
             {
                 $project: {
-                    "_id": 1,
-                    "recordsTotal": 1,
                     "data": "$data"
                     }
             });
-            console.log(req.body);
-            if (req.body.length) {
-                defaultQuery.push({
-                    "$limit": req.body.length
-                });
-            }
-            if (req.body.start !== null) {
-                console.log('in skip===>', )
-                defaultQuery.push({
-                    "$skip": req.body.start
-                });
-            }
 
             console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
             Coupon.aggregate(defaultQuery, function (err, data) {
@@ -196,7 +192,7 @@ router.post('/list', (req, res, next) => {
                     // console.log('result===>', data);
                     res.status(config.OK_STATUS).json({
                         message: "Success",
-                        result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
+                        result: { recordsTotal: totalRecords.length, data: data[0].data}
                     });
                 }
             })
