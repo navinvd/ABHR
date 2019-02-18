@@ -75,7 +75,7 @@ router.post('/registration', async (req, res, next) => {
             errorMessage: "deviceToken is required"
         },
         'user_type': {
-            notEmpty:true,
+            notEmpty: true,
             errorMessage: "user_type is required"
         }
     };
@@ -88,70 +88,70 @@ router.post('/registration', async (req, res, next) => {
             password: req.body.password,
             email: req.body.email,
             deviceType: req.body.deviceType,
-            deviceToken:req.body.deviceToken,
+            deviceToken: req.body.deviceToken,
             type: req.body.user_type,
             app_user_status: "only registered"
         };
-        var usercheck  = await User.findOne({email: req.body.email, isDeleted: false});
+        var usercheck = await User.findOne({ email: req.body.email, isDeleted: false });
         console.log('usercheck====>', usercheck);
-        if(usercheck){
+        if (usercheck) {
             res.status(config.OK_STATUS).json({
                 status: 'failed',
                 message: "Email is already exist!!"
             });
-        }else{
-            var companycheck = await Company.findOne({email: req.body.email});
-            if(companycheck){
+        } else {
+            var companycheck = await Company.findOne({ email: req.body.email });
+            if (companycheck) {
                 res.status(config.OK_STATUS).json({
                     status: 'failed',
                     message: "Email is already exist!!"
                 });
-            }else{
-                    var userModel = new User(Data);
-                        userModel.save(function (err, userData) {
-                            userData = JSON.parse(JSON.stringify(userData));
-                            console.log("data:", userData);
-                            if (err) {
-                                res.status(config.BAD_REQUEST).json({
-                                    status: 'failed',
-                                    message: "could not register user please try again!!"
-                                });
-                            } else {
-                                var token = jwt.sign({id: userData._id, type: userData.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-                                    expiresIn: 60 * 60 * 24 // expires in 24 hours
-                                });
-                                delete userData.password;
-                                delete userData.otp_email;
-                                delete userData.otp;
-                                delete userData.isDeleted;
-
-                                console.log('userdata===>',userData);
-                                const u = userData;
-
-                                var option = {
-                                    to: userData.email,
-                                    subject: 'ABHR - Registration Notification'
-                                }
-                                var data = {
-                                    first_name: userData.first_name,
-                                    last_name: userData.last_name
-                                }
-                                mailHelper.send('/welcome_email', option, data, function (err, res) {
-                                    if (err) {
-                                        console.log('Mail Err:');
-                                    } else {
-                                        console.log('Mail Success:');
-                                    }
-                                })
-                                var result = {
-                                    status: 'success',
-                                    message: "User registered successfully.",
-                                    data: {user : userData},
-                                    token: token
-                                };
-                                res.status(config.OK_STATUS).json(result);
-                            }
+            } else {
+                var userModel = new User(Data);
+                userModel.save(function (err, userData) {
+                    userData = JSON.parse(JSON.stringify(userData));
+                    console.log("data:", userData);
+                    if (err) {
+                        res.status(config.BAD_REQUEST).json({
+                            status: 'failed',
+                            message: "could not register user please try again!!"
                         });
+                    } else {
+                        var token = jwt.sign({ id: userData._id, type: userData.type }, config.ACCESS_TOKEN_SECRET_KEY, {
+                            expiresIn: 60 * 60 * 24 // expires in 24 hours
+                        });
+                        delete userData.password;
+                        delete userData.otp_email;
+                        delete userData.otp;
+                        delete userData.isDeleted;
+
+                        console.log('userdata===>', userData);
+                        const u = userData;
+
+                        var option = {
+                            to: userData.email,
+                            subject: 'ABHR - Registration Notification'
+                        }
+                        var data = {
+                            first_name: userData.first_name,
+                            last_name: userData.last_name
+                        }
+                        mailHelper.send('/welcome_email', option, data, function (err, res) {
+                            if (err) {
+                                console.log('Mail Err:');
+                            } else {
+                                console.log('Mail Success:');
+                            }
+                        })
+                        var result = {
+                            status: 'success',
+                            message: "User registered successfully.",
+                            data: { user: userData },
+                            token: token
+                        };
+                        res.status(config.OK_STATUS).json(result);
+                    }
+                });
             }
         }
     } else {
@@ -206,7 +206,7 @@ router.post('/login', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}, function (err, data) {
+        User.findOne({ email: req.body.email, type: req.body.user_type, isDeleted: false }, function (err, data) {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',
@@ -217,30 +217,30 @@ router.post('/login', (req, res, next) => {
                 if (data) {
                     bcrypt.compare(req.body.password, data.password, async function (err, result) {
                         if (result) {
-                                var updateArray = {
-                                    "deviceType":req.body.deviceType,
-                                    "deviceToken": req.body.deviceToken,
-                                };
-                                data.deviceToken =  req.body.deviceToken;
-                                data.deviceType = req.body.deviceType;
-                                var updaterecord = await User.update({"_id": data._id}, { $set: updateArray});
-                                var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
-                                    expiresIn: 60 * 60 * 24 // expires in 24 hours
-                                });
+                            var updateArray = {
+                                "deviceType": req.body.deviceType,
+                                "deviceToken": req.body.deviceToken,
+                            };
+                            data.deviceToken = req.body.deviceToken;
+                            data.deviceType = req.body.deviceType;
+                            var updaterecord = await User.update({ "_id": data._id }, { $set: updateArray });
+                            var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
+                                expiresIn: 60 * 60 * 24 // expires in 24 hours
+                            });
 
-                                data = JSON.parse(JSON.stringify(data));
-                                delete data.password;
-                                delete data.otp_email;
-                                delete data.otp;
-                                delete data.isDeleted;
+                            data = JSON.parse(JSON.stringify(data));
+                            delete data.password;
+                            delete data.otp_email;
+                            delete data.otp;
+                            delete data.isDeleted;
 
-                                const u = data;
-                                res.status(config.OK_STATUS).json({
-                                    status: 'success',
-                                    message: "User authenticated successfully",
-                                    data: {user : data},
-                                    token: token
-                                });
+                            const u = data;
+                            res.status(config.OK_STATUS).json({
+                                status: 'success',
+                                message: "User authenticated successfully",
+                                data: { user: data },
+                                token: token
+                            });
                         } else {
                             res.status(config.BAD_REQUEST).json({
                                 status: "failed",
@@ -309,21 +309,21 @@ router.post('/social_login', async (req, res, next) => {
             errorMessage: "deviceToken is required"
         }
     };
-    
+
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, type: req.body.user_type, email:req.body.email}).exec();
-        console.log('user=====>',user);
+        var user = await User.findOne({ 'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, type: req.body.user_type, email: req.body.email }).exec();
+        console.log('user=====>', user);
         if (user) {
             var updateArray = {
-                "deviceType":req.body.deviceType,
+                "deviceType": req.body.deviceType,
                 "deviceToken": req.body.deviceToken,
             };
-            user.deviceToken =  req.body.deviceToken;
+            user.deviceToken = req.body.deviceToken;
             user.deviceType = req.body.deviceType;
-            var updaterecord = await User.update({"_id": user._id}, { $set: updateArray});
-            var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+            var updaterecord = await User.update({ "_id": user._id }, { $set: updateArray });
+            var token = jwt.sign({ id: user._id, type: user.type }, config.ACCESS_TOKEN_SECRET_KEY, {
                 expiresIn: 60 * 60 * 24 // expires in 24 hours
             });
 
@@ -337,7 +337,7 @@ router.post('/social_login', async (req, res, next) => {
             var result = {
                 status: 'success',
                 message: "Login Successfully",
-                data: {user : user, first_time_register : false},
+                data: { user: user, first_time_register: false },
                 token: token
             };
             res.status(config.OK_STATUS).json(result);
@@ -349,7 +349,7 @@ router.post('/social_login', async (req, res, next) => {
                 socialmediaType: req.body.socialmediaType,
                 email: req.body.email,
                 deviceType: req.body.device_type,
-                deviceToken:req.body.deviceToken,
+                deviceToken: req.body.deviceToken,
                 type: req.body.user_type
             };
             var userModel = new User(Data);
@@ -358,9 +358,9 @@ router.post('/social_login', async (req, res, next) => {
                     var result = {
                         status: 'failed',
                         message: err
-                    };   
+                    };
                 } else {
-                    var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                    var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
                         expiresIn: 60 * 60 * 24 // expires in 24 hours
                     });
                     var option = {
@@ -381,7 +381,7 @@ router.post('/social_login', async (req, res, next) => {
                     var result = {
                         status: 'success',
                         message: "Login Successfully",
-                        data: {user : data, first_time_register : true},
+                        data: { user: data, first_time_register: true },
                         token: token
                     };
                     res.status(config.OK_STATUS).json(result);
@@ -441,21 +441,21 @@ router.post('/social_login-v2', async (req, res, next) => {
             errorMessage: "deviceToken is required"
         }
     };
-    
+
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, type: req.body.user_type, email:req.body.email}).exec();
-        console.log('user=====>',user);
+        var user = await User.findOne({ 'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, type: req.body.user_type, email: req.body.email }).exec();
+        console.log('user=====>', user);
         if (user) {
             var updateArray = {
-                "deviceType":req.body.deviceType,
+                "deviceType": req.body.deviceType,
                 "deviceToken": req.body.deviceToken,
             };
-            user.deviceToken =  req.body.deviceToken;
+            user.deviceToken = req.body.deviceToken;
             user.deviceType = req.body.deviceType;
-            var updaterecord = await User.update({"_id": user._id}, { $set: updateArray});
-            var token = jwt.sign({id: user._id, type: user.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+            var updaterecord = await User.update({ "_id": user._id }, { $set: updateArray });
+            var token = jwt.sign({ id: user._id, type: user.type }, config.ACCESS_TOKEN_SECRET_KEY, {
                 expiresIn: 60 * 60 * 24 // expires in 24 hours
             });
 
@@ -469,7 +469,7 @@ router.post('/social_login-v2', async (req, res, next) => {
             var result = {
                 status: 'success',
                 message: "Login Successfully",
-                data: {user : user, first_time_register : false},
+                data: { user: user, first_time_register: false },
                 token: token
             };
             res.status(config.OK_STATUS).json(result);
@@ -481,7 +481,7 @@ router.post('/social_login-v2', async (req, res, next) => {
                 socialmediaType: req.body.socialmediaType,
                 email: req.body.email,
                 deviceType: req.body.device_type,
-                deviceToken:req.body.deviceToken,
+                deviceToken: req.body.deviceToken,
                 type: req.body.user_type
             };
             var userModel = new User(Data);
@@ -490,9 +490,9 @@ router.post('/social_login-v2', async (req, res, next) => {
                     var result = {
                         status: 'failed',
                         message: err
-                    };   
+                    };
                 } else {
-                    var token = jwt.sign({id: data._id, type: data.type}, config.ACCESS_TOKEN_SECRET_KEY, {
+                    var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
                         expiresIn: 60 * 60 * 24 // expires in 24 hours
                     });
                     // var option = {
@@ -543,7 +543,7 @@ router.post('/social_login-v2', async (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/forget_password', async(req, res, next) => {
+router.post('/forget_password', async (req, res, next) => {
     var schema = {
         'email': {
             notEmpty: true,
@@ -557,7 +557,7 @@ router.post('/forget_password', async(req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({email: req.body.email, type: req.body.user_type, isDeleted: false}).exec();
+        var user = await User.findOne({ email: req.body.email, type: req.body.user_type, isDeleted: false }).exec();
         if (user) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
@@ -568,7 +568,7 @@ router.post('/forget_password', async(req, res, next) => {
                 subject: 'ABHR - Request for reset password'
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
-            var data = {link: config.FRONT_END_URL + 'reset-password?detials=' + buffer};
+            var data = { link: config.FRONT_END_URL + 'reset-password?detials=' + buffer };
             mailHelper.send('forget_password', option, data, function (err, res) {
                 if (err) {
                     console.log("Mail Error:", err);
@@ -579,7 +579,7 @@ router.post('/forget_password', async(req, res, next) => {
             res.status(config.OK_STATUS).json({
                 status: "success",
                 message: "Check your mail to reset your account password",
-                data:{user : user}
+                data: { user: user }
             });
         } else {
             res.status(config.BAD_REQUEST).json({
@@ -619,15 +619,15 @@ router.post('/help', async (req, res) => {
             errorMessage: "Enter type from one of this (0, 1, 2, 3)"
         }
     };
-    
+
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
         var helpResp = await commonHelper.getHelp(req.body.help_type);
-        if(helpResp.status === 'success'){
+        if (helpResp.status === 'success') {
             res.status(config.OK_STATUS).json(helpResp)
         }
-        else{
+        else {
             res.status(config.BAD_REQUEST).json(helpResp)
         }
     } else {
@@ -639,28 +639,28 @@ router.post('/help', async (req, res) => {
     }
 });
 
- // help - v2
+// help - v2
 
- router.post('/help-v2', async (req, res) => {
-     /*
-    var schema = {
-        'help_type': {
-            notEmpty: true,
-            errorMessage: "Enter type from one of this (0, 1, 2, 3)"
-        }
-    };
-    
-    req.checkBody(schema);
-    var errors = req.validationErrors();
-    if (!errors) {
-        */
-        var helpResp = await commonHelper.getHelp_v2();
-        if(helpResp.status === 'success'){
-            res.status(config.OK_STATUS).json(helpResp)
-        }
-        else{
-            res.status(config.BAD_REQUEST).json(helpResp)
-        }
+router.post('/help-v2', async (req, res) => {
+    /*
+   var schema = {
+       'help_type': {
+           notEmpty: true,
+           errorMessage: "Enter type from one of this (0, 1, 2, 3)"
+       }
+   };
+   
+   req.checkBody(schema);
+   var errors = req.validationErrors();
+   if (!errors) {
+       */
+    var helpResp = await commonHelper.getHelp_v2();
+    if (helpResp.status === 'success') {
+        res.status(config.OK_STATUS).json(helpResp)
+    }
+    else {
+        res.status(config.BAD_REQUEST).json(helpResp)
+    }
     // } else {
     //     res.status(config.BAD_REQUEST).json({
     //         status: 'failed',
@@ -697,15 +697,15 @@ router.post('/aboutus', async (req, res) => {
             errorMessage: "Enter type from one of this (0, 1, 2, 3)"
         }
     };
-    
+
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
         var helpResp = await commonHelper.aboutus(req.body.help_type);
-        if(helpResp.status === 'success'){
+        if (helpResp.status === 'success') {
             res.status(config.OK_STATUS).json(helpResp)
         }
-        else{
+        else {
             res.status(config.BAD_REQUEST).json(helpResp)
         }
     } else {
@@ -718,6 +718,33 @@ router.post('/aboutus', async (req, res) => {
 });
 
 
+/**
+ * @api {get} /app/support support
+ * @apiName support
+ * @apiDescription support for user
+ * @apiGroup AppUser
+ * @apiVersion 0.0.0
+ *  
+ * @apiHeader {String}  Content-Type application/json    
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+router.get('/support', async (req, res) => {
+    try {
+        var supportResp = await User.findOne({"type" : "admin", "isDeleted" : false},{_id : 0, support_phone_number : 1, support_email : 1, support_site_url : 1});
+        if(supportResp != null){
+            res.status(config.OK_STATUS).json({status:'success', message:'Support data has been found', data : { support :supportResp }})
+        }
+        else{
+            res.status(config.OK_STATUS).json({ status: 'failed', message: "No support data available"})
+        }
+    }
+    catch (err) {
+        res.status(config.OK_STATUS).json({ status: 'failed', message: "Error accured while fetching support data"})
+    }
+});
 
 
 module.exports = router;

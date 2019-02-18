@@ -3,6 +3,7 @@ var CarReview = require('./../models/car_review');
 var ObjectId = mongoose.Types.ObjectId;
 const Car = require('./../models/cars');
 const CarBooking = require('./../models/car_booking');
+const User = require('./../models/users');
 const CarAssign = require('./../models/car_assign_agent');
 const CarBrand = require('./../models/car_brand');
 const CarCompany = require('./../models/car_company');
@@ -618,7 +619,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                     "car_details.car_model_number": "$model_details.model_number",
                     "car_details.car_model_release_year": "$model_details.release_year",
                     "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
-                    "phone_number": "$companyDetails.phone_number"
+                    // "phone_number": "$companyDetails.phone_number"
                 }
             },
             {
@@ -652,6 +653,9 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
             // console.log('MOment Db Date = >', moment("2019-01-28T05:19:50.975Z"))
             // console.log('MOment Current Date = >', moment());
 
+            var phone_no = await User.findOne({type : 'admin', isDeleted : false},{_id : 0, support_phone_number : 1}).lean().exec();
+            var support_phone_number = phone_no != null ? phone_no.support_phone_number : '9876543210';
+
             var data1 = data.map((c) => {
                 // if(moment().diff(moment(c['from_time'])) > 0)
                 if (moment(currentDate) >= moment(c['from_time'])) {
@@ -660,9 +664,12 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                 else {
                     c['call_or_not'] = 'no' // not call 
                 }
-                if (c['phone_number'] === undefined) {
-                    c['phone_number'] = "9876543210" // dummy
-                }
+                // if (c['phone_number'] === undefined) {
+                //     c['phone_number'] = "9876543210" // dummy
+                // }
+                
+                c['phone_number'] = support_phone_number; // dynamic
+                
                 if(c['vat'] === undefined){
                     c['vat'] = null
                 }
@@ -768,7 +775,7 @@ carHelper.history = async (user_id, history_type) => {
                 "car_details.car_model_number": "$model_details.model_number",
                 "car_details.car_model_release_year": "$model_details.release_year",
                 "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
-                "phone_number": "$companyDetails.phone_number"
+                // "phone_number": "$companyDetails.phone_number"
             }
         }
         // {
@@ -834,6 +841,10 @@ carHelper.history = async (user_id, history_type) => {
         if (data && data.length > 0) {
 
             var currentDate = moment().toDate().toISOString(Date.now());
+
+            var phone_no = await User.findOne({type : 'admin', isDeleted : false},{_id : 0, support_phone_number : 1}).lean().exec();
+            var support_phone_number = phone_no != null ? phone_no.support_phone_number : '9876543210';
+
             var data1 = data.map((c) => {
                 // if(moment().diff(moment(c['from_time'])) > 0)
                 if (moment(currentDate) >= moment(c['from_time'])) {
@@ -842,9 +853,11 @@ carHelper.history = async (user_id, history_type) => {
                 else {
                     c['call_or_not'] = 'no' // not call 
                 }
-                if (c['phone_number'] === undefined) {
-                    c['phone_number'] = "9876543210" // dummy super admin
-                }
+                // if (c['phone_number'] === undefined) {
+                //     c['phone_number'] = "9876543210" // dummy super admin
+                // }
+                c['phone_number'] = support_phone_number; // dynamic
+                
                 if(c['vat'] === undefined){
                     c['vat'] = null
                 }
