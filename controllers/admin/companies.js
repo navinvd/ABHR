@@ -91,6 +91,8 @@ router.post('/add', async (req, res, next) => {
                         message = 'You are already a Agent.';
                     }else if(check_user_email.type === 'user'){
                         message = 'You are already a User.';
+                    }else if(check_user_email.type === 'admin'){
+                        message = 'You are already a Super Admin.';
                     }
                     res.status(config.BAD_REQUEST).json({
                         status: 'faild',
@@ -1433,6 +1435,8 @@ router.post('/checkemail', async (req, res, next) => {
                         message = 'You are already a Agent.';
                     }else if(userdata.type === 'user'){
                         message = 'You are already a User.';
+                    }else if(userdata.type === 'admin'){
+                        message = 'You are already a Super Admin.';
                     }
                     res.status(config.OK_STATUS).json({
                         status: "success",

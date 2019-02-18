@@ -403,6 +403,8 @@ router.post('/checkemail', async (req, res, next) => {
                     message = 'You are already a Agent.';
                 }else if(userId.type === 'user'){
                     message = 'You are already a User.';
+                }else if(userId.type === 'admin'){
+                    message = 'You are already a Super Admin.';
                 }
                 res.status(config.OK_STATUS).json({
                     status: "success",

@@ -60,24 +60,24 @@ router.post('/list', (req, res, next) => {
                 },
                 {
                     $sort: { 'createdAt': -1 }
-                },
-                {
-                    $group: {
-                        "_id": "",
-                        "recordsTotal": {
-                            "$sum": 1
-                        },
-                        "data": {
-                            "$push": "$$ROOT"
-                        }
-                    }
-                },
-                {
-                    $project: {
-                        "recordsTotal": 1,
-                        "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
-                    }
                 }
+                // {
+                //     $group: {
+                //         "_id": "",
+                //         "recordsTotal": {
+                //             "$sum": 1
+                //         },
+                //         "data": {
+                //             "$push": "$$ROOT"
+                //         }
+                //     }
+                // },
+                // {
+                //     $project: {
+                //         "recordsTotal": 1,
+                //         "data": "$data"
+                //     }
+                // }
             ];
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
@@ -131,6 +131,7 @@ router.post('/list', (req, res, next) => {
                     if(req.body.search.value === 'Admin' || req.body.search.value === 'admin' || req.body.search.value === 'ADMIN'){
                         var match = { 'car_rental_company_id' : {'$eq':null}};
                     }else{
+                        console.log('in seacrch valie');
                         var regex = new RegExp(req.body.search.value);
                         var match = { $or: [] };
                         req.body['columns'].forEach(function (obj) {
@@ -151,16 +152,46 @@ router.post('/list', (req, res, next) => {
                     var searchQuery = {
                         $match: match
                     }
-                    defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                    defaultQuery.push(searchQuery);
                 }
             }
+
+            defaultQuery = defaultQuery.concat({
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "_id": 1,
+                    "recordsTotal": 1,
+                    "data": "$data"
+                    }
+            });
+            if (req.body.start) {
+                defaultQuery.push({
+                    "$skip": req.body.start
+                })
+            }
+            if (req.body.length) {
+                defaultQuery.push({
+                    "$limit": req.body.length
+                })
+            }
+    
             console.log('this is query for sahil==>',JSON.stringify(defaultQuery));
             Coupon.aggregate(defaultQuery, function (err, data) {
                 if (err) {
                     console.log('err===>', err);
                     return next(err);
                 } else {
-                    console.log('result===>', data);
+                    // console.log('result===>', data);
                     res.status(config.OK_STATUS).json({
                         message: "Success",
                         result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
