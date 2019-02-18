@@ -453,9 +453,9 @@ router.put('/update', async (req, res, next) => {
                 if(check_user_email){
                     var message = '';
                     if(check_user_email.type === 'agent'){
-                        message = 'you are already a Agent.';
+                        message = 'You are already a Agent.';
                     }else if(check_user_email.type === 'user'){
-                        message = 'you are already a User.';
+                        message = 'You are already a User.';
                     }
                     res.status(config.BAD_REQUEST).json({
                         status: 'faild',

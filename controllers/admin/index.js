@@ -400,9 +400,9 @@ router.post('/checkemail', async (req, res, next) => {
             if(userId !== null && userId !== ''){
                 var message = '';
                 if(userId.type === 'agent'){
-                    message = 'you are already a Agent.';
+                    message = 'You are already a Agent.';
                 }else if(userId.type === 'user'){
-                    message = 'you are already a User.';
+                    message = 'You are already a User.';
                 }
                 res.status(config.OK_STATUS).json({
                     status: "success",
@@ -413,7 +413,7 @@ router.post('/checkemail', async (req, res, next) => {
                 if (CompanyCheck !== null && CompanyCheck !== '') {
                     res.status(config.OK_STATUS).json({
                         status: "success",
-                        message: "you are already Company Admin"
+                        message: "You are already Company Admin"
                     });
                 } else {
                     res.status(config.OK_STATUS).json({
