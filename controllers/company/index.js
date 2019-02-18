@@ -45,7 +45,7 @@ var User = require('./../../models/users');
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 
-router.post('/login', (req, res, next) => {
+router.post('/login', async (req, res, next) => {
     var schema = {
         'email': {
             notEmpty: true,
@@ -66,7 +66,7 @@ router.post('/login', (req, res, next) => {
                 if (data) {
                     bcrypt.compare(req.body.password, data.password, function (err, result) {
                         if (result) {
-                            if (data.is_verified) {
+                            if(data.is_Active){
                                 var token = jwt.sign({ id: data._id, email: data.email }, config.ACCESS_TOKEN_SECRET_KEY, {
                                     expiresIn: 60 * 60 * 24 // expires in 24 hours
                                 });
@@ -78,12 +78,7 @@ router.post('/login', (req, res, next) => {
                                 });
                             } else {
                                 res.status(config.BAD_REQUEST).json({
-                                    message: "Please verify your email for successfull login",
-                                    type: 'NOT_VERIFIED',
-                                    result: {
-                                        '_id': data._id,
-                                        'email': data.email
-                                    }
+                                    message: "You have deactivated from superadmin",
                                 });
                             }
                         } else {
@@ -469,9 +464,11 @@ router.put('/update', async (req, res, next) => {
                                 message: "Error occured while updating data"
                             });
                         } else {
+                            var companyData = await Company.findOne({_id: {$eq: req.body.company_id}});
                             res.status(config.OK_STATUS).json({
                                 status: 'success',
-                                message: "Company Updated Successfully"
+                                message: "Company Updated Successfully",
+                                result: {data: companyData}
                             });
                         }
                     });
