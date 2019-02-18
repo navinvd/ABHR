@@ -432,7 +432,7 @@ router.put('/update', async (req, res, next) => {
             }else{
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
-                    message: "Email already exist"
+                    message: "You are already Company Admin"
                 });
             }
         } else{

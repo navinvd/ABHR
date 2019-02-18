@@ -71,7 +71,7 @@ router.post('/add', async (req, res, next) => {
             }else{
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
-                    message: "Email already exist"
+                    message: "You are already Company Admin"
                 });
             }
         }
@@ -231,7 +231,7 @@ router.put('/update', async (req, res, next) => {
             }else{
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
-                    message: "Email already exist"
+                    message: "You are already Company Admin"
                 });
             }
         } else{
@@ -1425,7 +1425,7 @@ router.post('/checkemail', async (req, res, next) => {
             if (userId !== null && userId !== '') {
                 res.status(config.OK_STATUS).json({
                     status: "success",
-                    message: "You have already a Company admin"
+                    message: "You are already a Company admin"
                 });
             } else {
                 var userdata = await User.findOne({ "email": req.body.email, "isDeleted": false });
