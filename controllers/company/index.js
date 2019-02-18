@@ -451,9 +451,15 @@ router.put('/update', async (req, res, next) => {
             }else{
                 var check_user_email = await User.findOne({"email": req.body.email, "isDeleted": false});
                 if(check_user_email){
+                    var message = '';
+                    if(check_user_email.type === 'agent'){
+                        message = 'you are already a Agent.';
+                    }else if(check_user_email.type === 'user'){
+                        message = 'you are already a User.';
+                    }
                     res.status(config.BAD_REQUEST).json({
                         status: 'faild',
-                        message: "Email already exist"
+                        message: message
                     });
                 }else{
                     await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, function (err, response) {

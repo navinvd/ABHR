@@ -398,16 +398,22 @@ router.post('/checkemail', async (req, res, next) => {
             }
             var userId = await User.findOne(obj); 
             if(userId !== null && userId !== ''){
+                var message = '';
+                if(userId.type === 'agent'){
+                    message = 'you are already a Agent.';
+                }else if(userId.type === 'user'){
+                    message = 'you are already a User.';
+                }
                 res.status(config.OK_STATUS).json({
                     status: "success",
-                    message: "Record found"
+                    message: message
                 });
             }else{
                 var CompanyCheck = await Company.findOne(obj);
                 if (CompanyCheck !== null && CompanyCheck !== '') {
                     res.status(config.OK_STATUS).json({
                         status: "success",
-                        message: "Record found"
+                        message: "you are already Company Admin"
                     });
                 } else {
                     res.status(config.OK_STATUS).json({
