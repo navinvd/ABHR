@@ -964,39 +964,6 @@ router.post('/car_list', async (req, res, next) => {
             console.log("==>", JSON.stringify(defaultQuery));
         }
 
-        // if (req.body.search != undefined) {
-        //     if (req.body.search.value != undefined) {
-        //         var regex = new RegExp(req.body.search.value);
-        //         var match = {
-        //             $or: []
-        //         };
-        //         req.body['columns'].forEach(function (obj) {
-        //             if (obj.name) {
-        //                 var json = {};
-        //                 if (obj.isNumber) {
-        //                     json[obj.name] = parseInt(req.body.search.value)
-        //                 } else if (obj.isBoolean) {
-        //                     var check = req.body.search.value.toLowerCase();
-        //                     if (check === "yes" || check === "ye" || check === "y") {
-        //                         json[obj.name] = true;
-        //                     } else {
-        //                         json[obj.name] = false;
-        //                     }
-        //                 } else {
-        //                     json[obj.name] = {
-        //                         "$regex": regex,
-        //                         "$options": "i"
-        //                     }
-        //                 }
-        //                 match['$or'].push(json)
-        //             }
-        //         });
-        //     }
-        //     var searchQuery = {
-        //         $match: match
-        //     }
-        //     defaultQuery.concat(searchQuery);
-        // }
         defaultQuery = defaultQuery.concat({
             $group: {
                 "_id": "",
@@ -1456,11 +1423,17 @@ router.post('/checkemail', async (req, res, next) => {
             if (userId !== null && userId !== '') {
                 res.status(config.OK_STATUS).json({
                     status: "success",
-                    message: "Record found"
+                    message: "You have already a Company admin"
                 });
             } else {
                 var userdata = await User.findOne({ "email": req.body.email, "isDeleted": false });
                 if (userdata !== null && userdata !== '') {
+                    var message = '';
+                    if(userdata.type === 'agent'){
+                        message = 'You are already a Agent.';
+                    }else if(userdata.type === 'user'){
+                        message = 'You are already a User.';
+                    }
                     res.status(config.OK_STATUS).json({
                         status: "success",
                         message: "Record found"
