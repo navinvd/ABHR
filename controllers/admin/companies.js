@@ -1436,7 +1436,7 @@ router.post('/checkemail', async (req, res, next) => {
                     }
                     res.status(config.OK_STATUS).json({
                         status: "success",
-                        message: "Record found"
+                        message: message
                     });
                 } else {
                     res.status(config.OK_STATUS).json({
