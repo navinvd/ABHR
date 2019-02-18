@@ -457,7 +457,7 @@ router.put('/update', async (req, res, next) => {
                         message: message
                     });
                 }else{
-                    await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, function (err, response) {
+                    await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, async function (err, response) {
                         if (err) {
                             res.status(config.BAD_REQUEST).json({
                                 status: 'faild',
