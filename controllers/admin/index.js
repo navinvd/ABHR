@@ -135,7 +135,7 @@ router.post('/forget_password', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var user = await User.findOne({ email: req.body.email, type: 'admin' }).exec();
+        var user = await User.findOne({ email: req.body.email, type: 'admin', isDeleted: false }).exec();
         if (user) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
@@ -146,7 +146,7 @@ router.post('/forget_password', async (req, res, next) => {
                 subject: 'ABHR - Request for reset password'
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
-            var data = { link: config.FRONT_END_URL + '/reset-password?detials=' + buffer };
+            var data = { link: config.FRONT_END_URL + '/reset-password?detials=' + buffer, name: user.first_name };
             mailHelper.send('forget_password', option, data, function (err, res) {
                 if (err) {
                     console.log("Mail Error:", err);

@@ -212,7 +212,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
         {
             $lookup: {
                 from: 'car_company_terms_and_condition',
-                foreignField: 'companyId',
+                foreignField: 'CompanyId',
                 localField: 'car_rental_company_id',
                 as: "termandconditionDetails",
             }

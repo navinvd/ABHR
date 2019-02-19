@@ -137,7 +137,7 @@ router.post('/forget_password', async (req, res, next) => {
                 subject: 'ABHR - Request for reset password'
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
-            var data = { link: config.FRONT_END_URL + '/reset-password?detials=' + buffer };
+            var data = { link: config.FRONT_END_URL + '/reset-password?detials=' + buffer , name: company.name };
             console.log(data);
             mailHelper.send('forget_password', option, data, function (err, res) {
                 if (err) {
