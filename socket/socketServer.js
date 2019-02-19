@@ -126,6 +126,7 @@ socketFunction.socketStartUp = function (server) {
                     "source_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]},
                     "last_location" : {"longitude": location.last_location[0], "latitude" : location.last_location[1]}
                 }
+                console.log(obj);
                 io.to(client.id).emit("Joined", obj);
             }
             if(location.trip_status === "returning"){
