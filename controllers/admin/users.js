@@ -699,7 +699,8 @@ router.post('/report_list', async (req, res, next) => {
                     first_name: "$user_details.first_name",
                     last_name: "$user_details.last_name",
                     createdAt:1,
-                    booking_number:1
+                    booking_number:1,
+                    total_booking_amount:1
                 }
             });
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
