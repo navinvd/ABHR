@@ -25,7 +25,6 @@ socketFunction.socketStartUp = function (server) {
 		 * @apiParam {JSON} data Data of user
 		 */
         client.on('JoinGroup', async function (data) {
-            io.to(client.id).emit("test", 'hiiii');
             var BookingId = data.booking_id;
             var user_id = data.user_id;
             var type = data.type;
@@ -37,6 +36,7 @@ socketFunction.socketStartUp = function (server) {
             allSockets.set(client.id, allsocketobj);
             var Booking = Groups.get(BookingId);
             var location = await CarBooking.findOne({ "_id": new ObjectId(BookingId)});
+            console.log('location=======>', location);
             if (Booking) {
                 if (type === 'agent') {
                     if (typeof Booking['agentId'] === 'undefined' || Booking['agentId'] === null) { 
@@ -122,16 +122,16 @@ socketFunction.socketStartUp = function (server) {
             }
             if(location.trip_status === "delivering"){
                 var obj = {
-                    "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                    "destination_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]},
+                    "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                    "source_location": {"longitude": location.deliever_source_location[0], "latitude" : location.deliever_source_location[1]},
                     "last_location" : {"longitude": location.last_location[0], "latitude" : location.last_location[1]}
                 }
                 io.to(client.id).emit("Joined", obj);
             }
             if(location.trip_status === "returning"){
                 var obj = {
-                    "source_location": {"longitude": location.longitude, "latitude" : location.latitude},
-                    "destination_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]},
+                    "destination_location": {"longitude": location.longitude, "latitude" : location.latitude},
+                    "source_location": {"longitude": location.return_source_location[0], "latitude" : location.return_source_location[1]},
                     "last_location" : {"longitude": location.last_location[0], "latitude" : location.last_location[1]}
                 }
                 console.log('obj====>',obj);
