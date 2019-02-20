@@ -1043,6 +1043,8 @@ router.post('/car/details', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
+        console.log('req.body.dates', req.body.date);
+        console.log(carResp.data.carDetail.is_available);
         res.json(carResp);
     } else {
         res.status(config.BAD_REQUEST).json({
