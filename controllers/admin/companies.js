@@ -966,6 +966,17 @@ router.post('/car_list', async (req, res, next) => {
             console.log("==>", JSON.stringify(defaultQuery));
         }
 
+        if (req.body.start) {
+            defaultQuery.push({
+                "$skip": req.body.start
+            })
+        }
+        if (req.body.length) {
+            defaultQuery.push({
+                "$limit": req.body.length
+            })
+        }
+
         defaultQuery = defaultQuery.concat({
             $group: {
                 "_id": "",
@@ -984,16 +995,6 @@ router.post('/car_list', async (req, res, next) => {
                 "data": "$data"
                 }
         });
-        if (req.body.start) {
-            defaultQuery.push({
-                "$skip": req.body.start
-            })
-        }
-        if (req.body.length) {
-            defaultQuery.push({
-                "$limit": req.body.length
-            })
-        }
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>', err);
@@ -1043,7 +1044,6 @@ router.post('/car/details', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
-        console.log('req.body.dates', req.body.date);
         console.log(carResp.data.carDetail.is_available);
         res.json(carResp);
     } else {

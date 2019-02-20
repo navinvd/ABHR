@@ -551,6 +551,11 @@ router.post('/list', async (req, res, next) => {
     if (!errors) {
         var defaultQuery = [
             {
+                "$sort":{
+                    "createdAt": -1
+                }
+            },
+            {
               "$match": {
                 "isDeleted": false,
               }
@@ -671,12 +676,37 @@ router.post('/list', async (req, res, next) => {
                 "to_time": 1,
                 "total_booking_amount": 1,
                 "defect_amount":1,
-                "vat": 1,
                 "transaction_status":1,
-                // "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
-                // "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
-                // "car_receive_first_name": "$agent_for_receive.first_name",
-                // "car_receive_last_name": "$agent_for_receive.last_name",
+                "total_amount":{$multiply : ["$booking_rent", "$days"]},
+                "vat": {
+                    "$cond": {
+                      "if": {"$eq":["$coupon_code",null]},
+                      "then": {$divide :[
+                                    {$multiply : [
+                                        {$multiply : ["$booking_rent", "$days"]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]},
+                      "else":{
+                          $divide :[
+                                    {$multiply : [
+                                        {$subtract: [ 
+                                            {$multiply : ["$booking_rent", "$days"]},
+                                            {$divide :[
+                                                {$multiply : [
+                                                    {$multiply : ["$booking_rent", "$days"]}, 
+                                                    "$coupon_percentage"
+                                                ]},
+                                                100
+                                            ]}
+                                       ]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]}
+                            }
+                  },
                 "booking_number": 1,
                 "deposite_amount": 1,
                 "coupon_percentage": 1,
@@ -697,7 +727,7 @@ router.post('/list', async (req, res, next) => {
                         }
             })
         }
-        console.log('defaultQuery', JSON.stringify(defaultQuery));
+        // console.log('defaultQuery', JSON.stringify(defaultQuery));
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -707,7 +737,7 @@ router.post('/list', async (req, res, next) => {
                     if (obj.name) {
                         var json = {};
                         if (obj.isNumber) {
-                            console.log(typeof parseInt(req.body.search.value));
+                            // console.log(typeof parseInt(req.body.search.value));
                             json[obj.name] = parseInt(req.body.search.value)
                         } else {
                             json[obj.name] = {
@@ -719,12 +749,12 @@ router.post('/list', async (req, res, next) => {
                     }
                 });
             }
-            console.log('re.body.search==>', req.body.search.value);
+            // console.log('re.body.search==>', req.body.search.value);
             var searchQuery = {
                 $match: match
             }
             defaultQuery.push(searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
+            // console.log("==>", JSON.stringify(defaultQuery));
         }
         if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
             var colIndex = req.body.order[0].column;
@@ -784,9 +814,9 @@ router.post('/list', async (req, res, next) => {
                 "$limit": req.body.length
             })
         }
-        console.log('defaultQuery===>', JSON.stringify(defaultQuery));
+        // console.log('defaultQuery===>', JSON.stringify(defaultQuery));
         CarBooking.aggregate(defaultQuery, function (err, data) {
-            console.log('data===>', data);
+            // console.log('data===>', data);
             if (err) {
                 return next(err);
             } else {

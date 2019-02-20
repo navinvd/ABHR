@@ -151,7 +151,11 @@ socketFunction.socketStartUp = function (server) {
                 var location = [ data.Longitude, data.Latitude ];
                 var BookingId = data.booking_id;
                 var agent_id = data.agent_id;
-                var update = CarBooking.update({ "_id": new ObjectId(BookingId)}, { $set : { "last_location": location}});
+                var update = CarBooking.update({ "_id": new ObjectId(BookingId)}, { $set : { "last_location": location}}, function(err, res){
+                    console.log( err, res);
+                });
+                
+                console.log('update query======>', update);
                 var checkBooking = Groups.get(BookingId);
                 if(checkBooking){
                     var checkadmin = AdminSockets.get(checkBooking['adminId']);

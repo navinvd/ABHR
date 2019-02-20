@@ -29,12 +29,13 @@
     user.on('test', () => { console.log('I am test') });
     user.emit('myowntest', { "name": "riddhi", "long": "564.56345653" });
 
-    user.emit('JoinGroup', { booking_id: "5c5e648a0176bd60fad21fe0", user_id: "5c1485b2c6143978fa01d948", type: "agent" });
+    // user.emit('JoinGroup', { booking_id: "5c5e648a0176bd60fad21fe0", user_id: "5c1485b2c6143978fa01d948", type: "agent" });
 
-    user.on('Joined', (data) => {
-      console.log('joined====>', data);
-    });
+    // user.on('Joined', (data) => {
+    //   console.log('joined====>', data);
+    // });
 
+    user.emit('sendTrakingObject',  { booking_id: "5c6cda29733ca3102ec3eb5a", Longitude: 11111, Latitude: 222222 });
 
     function SendMessage() {
       var ride_id = document.getElementById("ride_id").value;
