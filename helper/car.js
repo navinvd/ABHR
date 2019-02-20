@@ -2385,12 +2385,12 @@ carHelper.resend_invoice = async (booking_number, email) => {
                 to: email,
                 subject: 'ABHR - Resend Invoice'
             }
-            let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data);
+            let mail_resp = await mail_helper.Resend_Invoice("resend_invoice", options, data[0]);
 
             console.log('Mail Response ===>', mail_resp);
 
             if (mail_resp.status === 'success') {
-                return { status: 'success', message: "Email has been sent to your email address", data: { emailData: mail_resp.data } }
+                return { status: 'success', message: "Email has been sent to your email address" }
             }
             else {
                 return { status: 'failed', message: "Error accures while sending email to you" }

@@ -78,8 +78,26 @@ mail_helper.sendEmail = async (template_name, options, data, user_id) => {
 };
 
 
-// Send email when car will book or send email for re-sending invoice to customer
+// Send email when car will book to customer
 mail_helper.sendEmail_carBook = async (template_name, options, data) => {
+
+    var template_sender = transporter.templateSender(new EmailTemplate('emails/' + template_name), {
+        from: "ABHR <noreply@gmail.com>"
+    });
+    try {
+        // console.log("Mail DAta :",data);
+        data = JSON.parse(JSON.stringify(data));
+        var email_data = await template_sender({ to: options.to, subject: options.subject }, data);
+        return { status: 'success', message: "Email has been sent"}      
+    }
+    catch (err) {
+        return { status: 'failed', message: "Error occured while sending email to your email address", error : err }
+    }
+};
+
+
+// Resend invoice to customer
+mail_helper.Resend_Invoice = async (template_name, options, data) => {
 
     var template_sender = transporter.templateSender(new EmailTemplate('emails/' + template_name), {
         from: "ABHR <noreply@gmail.com>"
