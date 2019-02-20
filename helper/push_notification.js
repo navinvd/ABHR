@@ -124,7 +124,7 @@ push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, 
     }
 }
 
-// send notification to user when new car has been booked 
+// send notification to agent when new car booking has been cancelled
 push_notification_helper.sendToAndroidAgent = (device_token, car_booking_number, message_text) => {
     console.log('Agent Token ARRAY =>>>>', device_token);
 
