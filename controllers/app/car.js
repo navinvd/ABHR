@@ -1214,7 +1214,7 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification ther user on IOS APP & Android app 
                 /** push notification process to user app start */
 
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1 }).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name : 1 }).lean().exec();
 
                 // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
 
@@ -1267,9 +1267,33 @@ router.post('/book', async (req, res) => {
                     subject: 'ABHR - New car has been booked'
                 }
 
-                var data1 = bookingResp.data.booking_data;
+                // var data1 = bookingResp.data.booking_data;
+                const carResp = await carHelper.getcarDetailbyId(new ObjectId(data.carId)); // resuable api
+                var data1 = JSON.parse(JSON.stringify(bookingResp.data.booking_data));
 
-                // console.log('Booking Response DATA=>',data1);
+                data1.rent_price = carResp.data.carDetail.rent_price;
+
+                data1.no_of_person = carResp.data.carDetail.no_of_person;
+                data1.transmission = carResp.data.carDetail.transmission === 'manual' ?  'M' : 'A';
+
+                data1.milage = carResp.data.carDetail.milage;
+                data1.car_class = carResp.data.carDetail.car_class;
+
+                data1.driving_eligibility_criteria = carResp.data.carDetail.driving_eligibility_criteria;
+
+                data1.car_brand = carResp.data.carDetail.car_brand;
+                data1.car_model = carResp.data.carDetail.car_model;
+                data1.car_model_number = carResp.data.carDetail.car_model_number;
+                data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+                data1.image_name = carResp.data.carDetail.image_name;
+                data1.user_name = userDeviceToken[0].first_name ;
+                // data1.user_name = 'dipesh';
+                data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+                data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+
+
+                // console.log('Booking Response Final DATA=>',data1);
 
                 let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
                 console.log('Mail sending response =>', mail_resp);
@@ -4354,7 +4378,226 @@ router.post('/filter-v5', async (req, res) => {
     }
 });
 
+//////////////////////////////////////
 
+
+router.post('/book-v2', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter login user id",
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id which you are going to book",
+        },
+        'carCompanyId': {
+            notEmpty: true,
+            errorMessage: "Please enter car rental company id",
+        },
+        'vat': {
+            notEmpty: true,
+            errorMessage: "Please enter car vat rate",
+        },
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify date from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you needed car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        },
+        'rent_per_day': {
+            notEmpty: true,
+            errorMessage: "Please enter car rent",
+        },
+        'delivery_address': {
+            notEmpty: true,
+            errorMessage: "Please enter delivery address",
+        },
+        'delivery_time': {
+            notEmpty: true,
+            errorMessage: "Please enter delivery time",
+        },
+        'latitude': {
+            notEmpty: true,
+            errorMessage: "Please enter lattitude",
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Please enter longitude",
+        },
+        'total_booking_amount': {
+            notEmpty: true,
+            errorMessage: "Please enter total booking amount",
+        },
+        'deposite_amount': {
+            notEmpty: true,
+            errorMessage: "Please enter car deposite amount",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
+
+        var fromDate = req.body.fromDate;
+        console.log('From date =>', fromDate);
+        console.log('To date =>', toDate);
+
+        // check for already book or not first 
+
+        // var carData = await Car.find({_id : ObjectId(req.body.car_id)},{is_available : 1}).lean().exec();
+
+        var updateUserStatus = await Users.updateOne({ "_id": new ObjectId(req.body.user_id) }, { $set: { "app_user_status": "rented" } });
+
+        var carData = await CarBooking.find(
+            {
+
+                // $match : {
+                $and: [
+                    { "carId": new ObjectId(req.body.car_id) },
+                    { "from_time": { $lte: toDate } },
+                    { "to_time": { $gte: fromDate } },
+                    // { "trip_status": { $ne: 'cancelled' } },
+                    { "trip_status": { $nin: ['cancelled','finished'] } },
+                ]
+            }
+            // }
+
+        )
+
+        console.log('CAR DATA ->', carData);
+        console.log('CAR DATA Len->', carData.length);
+
+        if (carData && carData.length > 0) {
+            // already book
+            res.status(config.OK_STATUS).json({ status: "failed", message: "Opps this car has been already booked" });
+        } else {
+
+            var data = {
+                "userId": req.body.user_id,
+                "carId": req.body.car_id,
+                "carCompanyId": req.body.carCompanyId, // add later on
+                "vat": req.body.vat, // add later on
+                "from_time": req.body.fromDate,
+                "to_time": toDate, // auto calculation
+                "days": req.body.days,
+                "booking_rent": req.body.rent_per_day,
+                "delivery_address": req.body.delivery_address, // add field in db as well,
+                "delivery_time": req.body.delivery_time, // add field in db as well',
+                "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
+                "coupon_percentage": req.body.coupon_percentage ? req.body.coupon_percentage : null,
+                "total_booking_amount": req.body.total_booking_amount, // add this field to db
+                "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
+                "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
+                "trip_status": "upcoming",
+                "transaction_status" : "inprogress",
+                "deposite_amount" : req.body.deposite_amount
+            }
+
+
+            const bookingResp = await carHelper.carBook(data);
+
+            if (bookingResp.status === 'success') {
+
+                const deposit = await Car.findOne({ "_id": new ObjectId(req.body.car_id) });
+                var car_booking_number = bookingResp.data.booking_data['booking_number'];
+
+                console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
+
+                //start
+                const carResp = await carHelper.getcarDetailbyId(new ObjectId(data.carId)); // resuable api
+                console.log('Car Details 2 ==>', carResp);
+               
+                // console.log('Car Details 3 ==>', carResp.data.carDetail.no_of_person);
+
+                var data1 = JSON.parse(JSON.stringify(bookingResp.data.booking_data));
+
+                data1.rent_price = carResp.data.carDetail.rent_price;
+
+                data1.no_of_person = carResp.data.carDetail.no_of_person;
+                data1.transmission = carResp.data.carDetail.transmission === 'manual' ?  'M' : 'A';
+
+                data1.milage = carResp.data.carDetail.milage;
+                data1.car_class = carResp.data.carDetail.car_class;
+
+                data1.driving_eligibility_criteria = carResp.data.carDetail.driving_eligibility_criteria;
+
+                data1.car_brand = carResp.data.carDetail.car_brand;
+                data1.car_model = carResp.data.carDetail.car_model;
+                data1.car_model_number = carResp.data.carDetail.car_model_number;
+                data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+                data1.image_name = carResp.data.carDetail.image_name;
+                data1.user_name = 'dipesh';
+                data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+                data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+                // data1.user_name = userDeviceToken[0].first_name ;;
+                
+                console.log('Final data send =>',data1);
+
+                
+                /*store coupon entry in user_coupon collection*/
+
+
+                /* coupon over */
+
+                res.status(config.OK_STATUS).json(bookingResp)
+
+
+                
+
+
+                /* send email to user after car has been booked start*/
+
+                
+                
+                var options = {
+                    // to: userDeviceToken[0].email,
+                    to: 'cofomitazi@webmail24.top',
+                    subject: 'ABHR - New car has been booked'
+                }
+
+                // var data1 = bookingResp.data.booking_data;
+
+                console.log('Booking Response DATA=>',data1);
+
+                let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
+                console.log('Mail sending response =>', mail_resp);
+                
+                
+                /** Sending email is over */
+
+
+              
+
+                // res.status(config.OK_STATUS).json(bookingResp) // set this line after coupon entry
+            }
+            else {
+                res.status(config.BAD_REQUEST).json(bookingResp);
+            }
+        }
+
+
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+////////////////////////////////////////
 
 
 
