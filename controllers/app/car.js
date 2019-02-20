@@ -1589,6 +1589,22 @@ router.post('/cancel-booking-v2', async (req, res) => {
                 var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your booking is cancelled successfully');
             }
 
+            if(user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null){
+                var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email:1, phone_number: 1 }).lean().exec();
+                var deviceToken = '';
+
+                // Push notification //
+                console.log('User token =>', agentData);
+                if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
+                    if (agentData[0].deviceToken.length > 10) { // temp condition
+                        // agentDeviceTokenArray.push(agent.deviceToken);
+                        deviceToken = agentData[0].deviceToken;
+                        var notificationType = 1; // means notification for booking 
+                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, 'Your agent is on delivering track');
+                    }
+                }
+            }
+
             // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
 
 

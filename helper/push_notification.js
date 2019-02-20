@@ -119,21 +119,42 @@ push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, 
 
     return promise;
 
-        // const promise = new Promise(((resolve) => {
+    } catch (err) {
+        return { status: 'failed', "message": "Error occured while sending push notification to android device", err }
+    }
+}
 
-        //     fcm.send(message, async (err, result) => {
-        //         if (err) {
-        //             console.log('Not Send =>', err);
-        //             resolve({ status: 'failed', message: 'Notification has not been sent', data: err })
-        //         } else {
-        //             console.log('Send =>', result);
-        //             resolve({ status: 'success', message: 'Notification has been sent successfully', data: result })
-        //         }
-        //     });
+// send notification to user when new car has been booked 
+push_notification_helper.sendToAndroidAgent = (device_token, car_booking_number, message_text) => {
+    console.log('Token ARRAY =>>>>', device_token);
 
-        // }));
+    try {
+        var message = {
+            to: device_token,  // single device
+            // registration_ids: device_token,// one or more device token,
+            priority: 'high',
+            data: {  //you can send only notification or only data(or include both)
+                booking_number: car_booking_number,
+                title: 'ABHR',
+                message: message_text,
+                body: message_text
+            }
+        };
 
-        // return promise;
+        const promise = new Promise(((resolve) => {
+            fcm_agent.send(message, function(err, response){
+            // console.log('res===>',err, 'response==>',response);
+            if (err) {
+                console.log('Send notification to android agent =>',err);
+                resolve({status : 'failed', message : 'Notification has not been sent', data : err });
+            } else {
+                console.log('Send notification to android agent =>',response);
+                resolve({status : 'success', message : 'Notification has been sent successfully', data : response});
+            }
+        });
+    }));
+
+    return promise;
 
     } catch (err) {
         return { status: 'failed', "message": "Error occured while sending push notification to android device", err }
