@@ -1124,7 +1124,7 @@ router.post('/book', async (req, res) => {
                     { "from_time": { $lte: toDate } },
                     { "to_time": { $gte: fromDate } },
                     // { "trip_status": { $ne: 'cancelled' } },
-                    { "trip_status": { $nin: ['cancelled','finished'] } },
+                    { "trip_status": { $nin: ['cancelled', 'finished'] } },
                 ]
             }
             // }
@@ -1156,8 +1156,8 @@ router.post('/book', async (req, res) => {
                 "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
                 "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
                 "trip_status": "upcoming",
-                "transaction_status" : "inprogress",
-                "deposite_amount" : req.body.deposite_amount
+                "transaction_status": "inprogress",
+                "deposite_amount": req.body.deposite_amount
             }
 
 
@@ -1214,7 +1214,7 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification ther user on IOS APP & Android app 
                 /** push notification process to user app start */
 
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name : 1 }).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
 
                 // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
 
@@ -1274,7 +1274,7 @@ router.post('/book', async (req, res) => {
                 data1.rent_price = carResp.data.carDetail.rent_price;
 
                 data1.no_of_person = carResp.data.carDetail.no_of_person;
-                data1.transmission = carResp.data.carDetail.transmission === 'manual' ?  'M' : 'A';
+                data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
 
                 data1.milage = carResp.data.carDetail.milage;
                 data1.car_class = carResp.data.carDetail.car_class;
@@ -1286,7 +1286,7 @@ router.post('/book', async (req, res) => {
                 data1.car_model_number = carResp.data.carDetail.car_model_number;
                 data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
                 data1.image_name = carResp.data.carDetail.image_name;
-                data1.user_name = userDeviceToken[0].first_name ;
+                data1.user_name = userDeviceToken[0].first_name;
                 // data1.user_name = 'dipesh';
                 data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
                 data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
@@ -1413,7 +1413,7 @@ router.post('/change-booking', async (req, res) => {
     }
 });
 
-// Change Car Booking  Details
+// Change Car Booking  Details v2
 /**
  * @api {post} /app/car/change-booking-v2 Change Car booking details
  * @apiName Change Car Booking Details
@@ -1458,8 +1458,10 @@ router.post('/change-booking-v2', async (req, res) => {
 
         if (bookingResp.status === 'success') {
 
+            res.status(config.OK_STATUS).json(bookingResp);
+
             var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
-            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1 }).lean().exec();
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
             var deviceToken = '';
             console.log('User token =>', userDeviceToken);
             if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
@@ -1478,7 +1480,31 @@ router.post('/change-booking-v2', async (req, res) => {
             }
 
 
+            // new changes start
+            var bookData = await CarBooking.findOne({ "booking_number": req.body.booking_number }).lean().exec();
+            const carResp = await carHelper.getcarDetailbyId(new ObjectId(bookData.carId)); // re-usable api
+            var data1 = bookData;
 
+            data1.rent_price = carResp.data.carDetail.rent_price;
+            data1.no_of_person = carResp.data.carDetail.no_of_person;
+            data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
+
+            data1.milage = carResp.data.carDetail.milage;
+            data1.car_class = carResp.data.carDetail.car_class;
+
+            data1.driving_eligibility_criteria = carResp.data.carDetail.driving_eligibility_criteria;
+
+            data1.car_brand = carResp.data.carDetail.car_brand;
+            data1.car_model = carResp.data.carDetail.car_model;
+            data1.car_model_number = carResp.data.carDetail.car_model_number;
+            data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+            data1.image_name = carResp.data.carDetail.image_name;
+            data1.user_name = userDeviceToken[0].first_name;
+            // data1.user_name = 'dipesh';
+            data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+            data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+            // changes over
 
             /* send email to user after car booking has been cancelled start*/
             var options = {
@@ -1486,7 +1512,7 @@ router.post('/change-booking-v2', async (req, res) => {
                 subject: 'ABHR - Car booking has been changed'
             }
 
-            var data1 = { booking_number: req.body.booking_number }
+            // var data1 = { booking_number: req.body.booking_number }
 
             console.log('Booking Response DATA=>', data1);
 
@@ -1514,7 +1540,7 @@ router.post('/change-booking-v2', async (req, res) => {
             /** Send sms over */
 
 
-            res.status(config.OK_STATUS).json(bookingResp);
+
         }
         else {
             res.status(config.BAD_REQUEST).json(bookingResp);
@@ -1594,8 +1620,8 @@ router.post('/cancel-booking-v2', async (req, res) => {
 
         if (cancelBookingResp.status === 'success') {
 
-            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, car_handover_by_agent_id : 1 }).lean().exec();
-            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name : 1 }).lean().exec();
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, car_handover_by_agent_id: 1 }).lean().exec();
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
             var deviceToken = '';
             // console.log('USER IDDD ==>', user_id);
             console.log('User token =>', userDeviceToken);
@@ -1613,9 +1639,9 @@ router.post('/cancel-booking-v2', async (req, res) => {
             } else if (userDeviceToken[0].deviceType === 'android') {
                 var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your booking is cancelled successfully');
             }
-            
-            if(user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null){
-                var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email:1, phone_number: 1 }).lean().exec();
+
+            if (user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null) {
+                var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                 var deviceToken = '';
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
@@ -1637,7 +1663,7 @@ router.post('/cancel-booking-v2', async (req, res) => {
                 subject: 'ABHR - Car booking has been cancelled'
             }
 
-            var data1 = { booking_number: req.body.booking_number, user_name : userDeviceToken[0].first_name }
+            var data1 = { booking_number: req.body.booking_number, user_name: userDeviceToken[0].first_name }
 
             console.log('Booking Response DATA=>', data1);
 
@@ -3579,7 +3605,7 @@ router.post('/booking-details-ios', async (req, res) => {
     if (!errors) {
         // req.body.booking_number
 
-        var phone_no = await Users.findOne({type : 'admin', isDeleted : false},{_id : 0, support_phone_number : 1}).lean().exec();
+        var phone_no = await Users.findOne({ type: 'admin', isDeleted: false }, { _id: 0, support_phone_number: 1 }).lean().exec();
         var support_phone_number = phone_no != null ? phone_no.support_phone_number : '9876543210';
 
         var defaultQuery = [
@@ -3684,15 +3710,15 @@ router.post('/booking-details-ios', async (req, res) => {
                 if (data && data.length > 0) {
 
                     var currentDate = moment().toDate().toISOString(Date.now());
-                   
+
                     if (moment(currentDate) >= moment(data[0].from_time)) {
                         data[0].call_or_not = 'yes' // place manual call
                     }
                     else {
                         data[0].call_or_not = 'no' // not call 
                     }
-                    
-                    if(data[0].vat === undefined){
+
+                    if (data[0].vat === undefined) {
                         data[0].vat = null
                     }
 
@@ -4468,7 +4494,7 @@ router.post('/book-v2', async (req, res) => {
                     { "from_time": { $lte: toDate } },
                     { "to_time": { $gte: fromDate } },
                     // { "trip_status": { $ne: 'cancelled' } },
-                    { "trip_status": { $nin: ['cancelled','finished'] } },
+                    { "trip_status": { $nin: ['cancelled', 'finished'] } },
                 ]
             }
             // }
@@ -4500,8 +4526,8 @@ router.post('/book-v2', async (req, res) => {
                 "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
                 "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
                 "trip_status": "upcoming",
-                "transaction_status" : "inprogress",
-                "deposite_amount" : req.body.deposite_amount
+                "transaction_status": "inprogress",
+                "deposite_amount": req.body.deposite_amount
             }
 
 
@@ -4517,7 +4543,7 @@ router.post('/book-v2', async (req, res) => {
                 //start
                 const carResp = await carHelper.getcarDetailbyId(new ObjectId(data.carId)); // resuable api
                 console.log('Car Details 2 ==>', carResp);
-               
+
                 // console.log('Car Details 3 ==>', carResp.data.carDetail.no_of_person);
 
                 var data1 = JSON.parse(JSON.stringify(bookingResp.data.booking_data));
@@ -4525,7 +4551,7 @@ router.post('/book-v2', async (req, res) => {
                 data1.rent_price = carResp.data.carDetail.rent_price;
 
                 data1.no_of_person = carResp.data.carDetail.no_of_person;
-                data1.transmission = carResp.data.carDetail.transmission === 'manual' ?  'M' : 'A';
+                data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
 
                 data1.milage = carResp.data.carDetail.milage;
                 data1.car_class = carResp.data.carDetail.car_class;
@@ -4541,10 +4567,10 @@ router.post('/book-v2', async (req, res) => {
                 data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
                 data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
                 // data1.user_name = userDeviceToken[0].first_name ;;
-                
-                console.log('Final data send =>',data1);
 
-                
+                console.log('Final data send =>', data1);
+
+
                 /*store coupon entry in user_coupon collection*/
 
 
@@ -4553,13 +4579,13 @@ router.post('/book-v2', async (req, res) => {
                 res.status(config.OK_STATUS).json(bookingResp)
 
 
-                
+
 
 
                 /* send email to user after car has been booked start*/
 
-                
-                
+
+
                 var options = {
                     // to: userDeviceToken[0].email,
                     to: 'cofomitazi@webmail24.top',
@@ -4568,16 +4594,16 @@ router.post('/book-v2', async (req, res) => {
 
                 // var data1 = bookingResp.data.booking_data;
 
-                console.log('Booking Response DATA=>',data1);
+                console.log('Booking Response DATA=>', data1);
 
                 let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
                 console.log('Mail sending response =>', mail_resp);
-                
-                
+
+
                 /** Sending email is over */
 
 
-              
+
 
                 // res.status(config.OK_STATUS).json(bookingResp) // set this line after coupon entry
             }
