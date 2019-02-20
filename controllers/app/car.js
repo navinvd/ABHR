@@ -1570,7 +1570,7 @@ router.post('/cancel-booking-v2', async (req, res) => {
 
         if (cancelBookingResp.status === 'success') {
 
-            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, car_handover_by_agent_id:1 }).lean().exec();
             var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1 }).lean().exec();
             var deviceToken = '';
             console.log('User token =>', userDeviceToken);
@@ -1589,21 +1589,21 @@ router.post('/cancel-booking-v2', async (req, res) => {
                 var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your booking is cancelled successfully');
             }
 
-            if(user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null){
-                var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email:1, phone_number: 1 }).lean().exec();
-                var deviceToken = '';
+                console.log('user_id.car_handover_by_agent_id===>', user_id);
+            // if(user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null){
+            //     var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email:1, phone_number: 1 }).lean().exec();
+            //     var deviceToken = '';
 
-                // Push notification //
-                console.log('User token =>', agentData);
-                if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
-                    if (agentData[0].deviceToken.length > 10) { // temp condition
-                        // agentDeviceTokenArray.push(agent.deviceToken);
-                        deviceToken = agentData[0].deviceToken;
-                        var notificationType = 1; // means notification for booking 
-                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, 'Your agent is on delivering track');
-                    }
-                }
-            }
+            //     // Push notification //
+            //     console.log('agent token =>', agentData);
+            //     if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
+            //         if (agentData[0].deviceToken.length > 10) { // temp condition
+            //             // agentDeviceTokenArray.push(agent.deviceToken);
+            //             deviceToken = agentData[0].deviceToken;
+            //             var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, 'Booking is cancelled for this BookingID : '+req.body.booking_number);
+            //         }
+            //     }
+            // }
 
             // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
 
