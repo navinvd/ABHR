@@ -618,7 +618,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                     "car_details.car_model": "$model_details.model_name",
                     "car_details.car_model_number": "$model_details.model_number",
                     "car_details.car_model_release_year": "$model_details.release_year",
-                    "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
+                    "car_details.terms_and_conditions": "$car_company_terms_and_condition_Details.terms_and_conditions",
                     // "phone_number": "$companyDetails.phone_number"
                 }
             },
@@ -774,7 +774,7 @@ carHelper.history = async (user_id, history_type) => {
                 "car_details.car_model": "$model_details.model_name",
                 "car_details.car_model_number": "$model_details.model_number",
                 "car_details.car_model_release_year": "$model_details.release_year",
-                "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
+                "car_details.terms_and_conditions": "$car_company_terms_and_condition_Details.terms_and_conditions",
                 // "phone_number": "$companyDetails.phone_number"
             }
         }

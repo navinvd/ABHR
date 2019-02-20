@@ -3640,7 +3640,7 @@ router.post('/booking-details-ios', async (req, res) => {
                     "car_details.car_model": "$model_details.model_name",
                     "car_details.car_model_number": "$model_details.model_number",
                     "car_details.car_model_release_year": "$model_details.release_year",
-                    "car_details.term_condition": "$car_company_terms_and_condition_Details.terms_and_conditions",
+                    "car_details.terms_and_conditions": "$car_company_terms_and_condition_Details.terms_and_conditions",
                     "car_details.cancellation_policy": "$car_company_terms_and_condition_Details.cancellation_policy_criteria",
                     // "phone_number": "$companyDetails.phone_number"
                     "phone_number": support_phone_number
