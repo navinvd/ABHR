@@ -358,7 +358,7 @@ router.post('/returning', (req, res, next) => {
             {
                 $match: {
                     $or: [
-                        { "trip_status": "return"},
+                        { "trip_status": "finished"},
                         {"trip_status": "returning"}
                     ]  
                 }
