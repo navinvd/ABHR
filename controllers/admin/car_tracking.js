@@ -455,7 +455,7 @@ router.post('/returning', (req, res, next) => {
             if(req.body.search.value != undefined){
                 var string = "returned";
                 if(string.includes(req.body.search.value.toLowerCase())){
-                    var match = { 'trip_status' : "return"};
+                    var match = { 'trip_status' : "finished"};
                 }else{
                     var regex = new RegExp(req.body.search.value);
                     var match = {$or: []};
