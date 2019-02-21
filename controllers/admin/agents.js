@@ -71,7 +71,7 @@ router.post('/add', (req, res, next) => {
             password: generatepassword
         };
 
-        if(req.body.phone_number !== null && typeof req.body.phone_number !== 'undefined'){
+        if(req.body.phone_number && req.body.phone_number !== null && typeof req.body.phone_number !== 'undefined'){
             userData = Object.assign(userData, {"phone_number_verified" : 2});
         }
         try{
