@@ -694,7 +694,6 @@ router.post('/list', async (req, res, next) => {
                 "from_time": 1,
                 "to_time": 1,
                 "total_booking_amount": 1,
-                "vat": 1,
                 "vat": {
                     "$cond": {
                       "if": {"$eq":["$coupon_code",null]},
