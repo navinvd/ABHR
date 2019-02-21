@@ -59,6 +59,8 @@ router.post('/add', (req, res, next) => {
             numbers: true
         });
 
+
+
         var userData = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
@@ -68,6 +70,10 @@ router.post('/add', (req, res, next) => {
             deviceType: 'android',
             password: generatepassword
         };
+
+        if(req.body.phone_number !== null && typeof req.body.phone_number !== 'undefined'){
+            userData = Object.assign(userData, {"phone_number_verified" : 2});
+        }
         try{
         async.waterfall([
             function (callback) {
