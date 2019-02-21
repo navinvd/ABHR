@@ -862,74 +862,72 @@ router.post('/car_list', async (req, res, next) => {
                 $sort: {
                     'createdAt': -1
                 }
-            }];
-            if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-                var colIndex = req.body.order[0].column;
-                var colname = req.body.columns[colIndex].name;
-                var order = req.body.order[0].dir;
-                if(req.body.columns[colIndex].isNumber){
-                    if(order == "asc"){
-                        defaultQuery = defaultQuery.concat({
-                            $sort: { [colname]: 1 }
-                        });
-                    }else{
-                        defaultQuery = defaultQuery.concat({
-                            $sort: { [colname]: -1 }
-                        });
+            },
+            {
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
                     }
+                }
+            },
+            {
+                $project: {
+                    "recordsTotal": 1,
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                }
+            }];
+
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if(req.body.columns[colIndex].isNumber){
+                if(order == "asc"){
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: 1 }
+                    });
                 }else{
-                    colname = '$' + colname;
-                    if (order == "asc") {
-                        defaultQuery = defaultQuery.concat({
-                            $project: {
-                                "records": "$$ROOT",
-                                "sort_index": { "$toLower": [colname] }
-                            }
-                        },
-                            {
-                                $sort: { "sort_index": 1 }
-                            },
-                            {
-                                $replaceRoot: { newRoot: "$records" }
-                            })
-                    } else {
-                        defaultQuery = defaultQuery.concat({
-                            $project: {
-                                "records": "$$ROOT",
-                                "sort_index": { "$toLower": [colname] }
-                            }
-                        },
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: -1 }
+                    });
+                }
+            }else{
+                colname = '$' + colname;
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
                         {
-                            $sort: {
-                                "sort_index": -1
-                            }
+                            $sort: { "sort_index": 1 }
                         },
                         {
                             $replaceRoot: { newRoot: "$records" }
                         })
-                    }
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
+                    {
+                        $sort: {
+                            "sort_index": -1
+                        }
+                    },
+                    {
+                        $replaceRoot: { newRoot: "$records" }
+                    })
                 }
             }
-
-        // if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-        //     var colIndex = req.body.order[0].column;
-        //     var colname = req.body.columns[colIndex].name;
-        //     var order = req.body.order[0].dir;
-        //     if (order == "asc") {
-        //         var sortableQuery = {
-        //             $sort: {
-        //                 [colname]: 1
-        //             }
-        //         }
-        //     } else {
-        //         var sortableQuery = {
-        //             $sort: {
-        //                 [colname]: -1
-        //             }
-        //         }
-        //     }
-        //     defaultQuery.splice(defaultQuery.length - 2, 0, sortableQuery);
-        // }
+        }
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -962,9 +960,23 @@ router.post('/car_list', async (req, res, next) => {
             var searchQuery = {
                 $match: match
             }
-            defaultQuery.push(searchQuery);
+            defaultQuery.concat(searchQuery);
             console.log("==>", JSON.stringify(defaultQuery));
         }
+        // defaultQuery = defaultQuery.concat({
+        //     $group: {
+        //         "_id": "",
+        //         "data": {
+        //             "$push": "$$ROOT"
+        //         }
+        //     }
+        // },
+        // {
+        //     $project: {
+        //         "_id": 1,
+        //         "data": "$data"
+        //         }
+        // });
 
         if (req.body.start) {
             defaultQuery.push({
@@ -976,25 +988,6 @@ router.post('/car_list', async (req, res, next) => {
                 "$limit": req.body.length
             })
         }
-
-        defaultQuery = defaultQuery.concat({
-            $group: {
-                "_id": "",
-                "recordsTotal": {
-                    "$sum": 1
-                },
-                "data": {
-                    "$push": "$$ROOT"
-                }
-            }
-        },
-        {
-            $project: {
-                "_id": 1,
-                "recordsTotal": 1,
-                "data": "$data"
-                }
-        });
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 console.log('err===>', err);

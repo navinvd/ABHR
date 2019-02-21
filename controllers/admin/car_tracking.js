@@ -431,7 +431,7 @@ router.post('/returning', (req, res, next) => {
                     "model_name": "$car_model.model_name",
                     "brand_name": "$car_brand.brand_name",
                     "agent_assign_for_handover": 1,
-                    "createdAt":1
+                    "createdAt": 1
                 }
             },
             {
