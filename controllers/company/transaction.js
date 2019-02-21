@@ -695,10 +695,35 @@ router.post('/list', async (req, res, next) => {
                 "to_time": 1,
                 "total_booking_amount": 1,
                 "vat": 1,
-                // "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
-                // "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
-                // "car_receive_first_name": "$agent_for_receive.first_name",
-                // "car_receive_last_name": "$agent_for_receive.last_name",
+                "vat": {
+                    "$cond": {
+                      "if": {"$eq":["$coupon_code",null]},
+                      "then": {$divide :[
+                                    {$multiply : [
+                                        {$multiply : ["$booking_rent", "$days"]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]},
+                      "else":{
+                          $divide :[
+                                    {$multiply : [
+                                        {$subtract: [ 
+                                            {$multiply : ["$booking_rent", "$days"]},
+                                            {$divide :[
+                                                {$multiply : [
+                                                    {$multiply : ["$booking_rent", "$days"]}, 
+                                                    "$coupon_percentage"
+                                                ]},
+                                                100
+                                            ]}
+                                       ]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]}
+                            }
+                  },
                 "booking_number": 1,
                 "deposite_amount": 1,
                 "coupon_percentage": 1,
