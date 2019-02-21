@@ -582,18 +582,6 @@ router.post('/report_list', async (req, res, next) => {
             {
                 $unwind: '$car_brand'
             }];
-        if (req.body.selectFromDate && req.body.selectToDate) {
-            var From_date = moment(req.body.selectFromDate).utc().startOf('day');
-            var To_date = moment(req.body.selectToDate).utc().startOf('day');
-            defaultQuery.push({
-                $match: {
-                      $and: [
-                                { "from_time": { $gte: new Date(From_date) } },
-                                { "to_time": { $lte: new Date(To_date) } },
-                            ]
-                        }
-            })
-        }
         defaultQuery.push(
             {
                 $project: {
@@ -612,6 +600,19 @@ router.post('/report_list', async (req, res, next) => {
                     total_booking_amount:1
                 }
             });
+
+            if (req.body.selectFromDate && req.body.selectToDate) {
+                var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+                var To_date = moment(req.body.selectToDate).utc().startOf('day');
+                defaultQuery.push({
+                    $match: {
+                          $and: [
+                                    { "from_time": { $gte: new Date(From_date) } },
+                                    { "to_time": { $lte: new Date(To_date) } },
+                                ]
+                            }
+                })
+            }
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined) {
                 var regex = new RegExp(req.body.search.value);

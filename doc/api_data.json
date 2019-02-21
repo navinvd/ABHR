@@ -1200,6 +1200,76 @@
   },
   {
     "type": "post",
+    "url": "/admin/tracking/delivered/details",
+    "title": "Details of car delievered",
+    "name": "Car_Delivered_Details",
+    "description": "<p>To display cars which is delievered</p>",
+    "group": "Admin___Car_Tracking",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "booking_id",
+            "description": "<p>booking id of car</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/car_tracking.js",
+    "groupTitle": "Admin___Car_Tracking"
+  },
+  {
+    "type": "post",
     "url": "/admin/tracking/delivering",
     "title": "List of car which is in delivering process",
     "name": "Car_Delivering_List",
@@ -1222,6 +1292,76 @@
             "optional": false,
             "field": "end",
             "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/car_tracking.js",
+    "groupTitle": "Admin___Car_Tracking"
+  },
+  {
+    "type": "post",
+    "url": "/admin/tracking/returned/details",
+    "title": "Details of car returned",
+    "name": "Car_Returned_Details",
+    "description": "<p>To display cars which is returned</p>",
+    "group": "Admin___Car_Tracking",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "booking_id",
+            "description": "<p>booking id of car</p>"
           }
         ]
       }
@@ -7667,6 +7807,56 @@
     "groupTitle": "AppUser"
   },
   {
+    "type": "get",
+    "url": "/app/support",
+    "title": "support",
+    "name": "support",
+    "description": "<p>support for user</p>",
+    "group": "AppUser",
+    "version": "0.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/app/index.js",
+    "groupTitle": "AppUser"
+  },
+  {
     "type": "post",
     "url": "/app/car/cancel-booking",
     "title": "Cancel Car Booking",
@@ -9071,7 +9261,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/app/car.js",
+    "filename": "controllers/agentApp/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -9204,7 +9394,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/agentApp/car.js",
+    "filename": "controllers/app/car.js",
     "groupTitle": "App___Car"
   },
   {

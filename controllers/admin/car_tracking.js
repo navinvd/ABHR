@@ -3,6 +3,8 @@ var router = express.Router();
 var config = require('./../../config');
 var CarBooking = require('./../../models/car_booking');
 var _ = require('underscore');
+var async = require("async");
+var ObjectId = require('mongoose').Types.ObjectId;
 
 /**
  * @api {post} /admin/tracking/delivering List of car which is in delivering process
@@ -37,7 +39,10 @@ router.post('/delivering', (req, res, next) => {
         var defaultQuery = [
             {
                 $match: {
-                    "trip_status": "delivering",
+                    $or: [
+                        { "trip_status": "inprogress"},
+                        {"trip_status": "delivering"}
+                    ]  
                 }
             },
             {
@@ -130,22 +135,27 @@ router.post('/delivering', (req, res, next) => {
             }];
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
             if(req.body.search.value != undefined){
-                var regex = new RegExp(req.body.search.value);
-                var match = {$or: []};
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
+                var string = "delivered";
+                if(string.includes(req.body.search.value.toLowerCase())){
+                    var match = { 'trip_status' : "inprogress"};
+                }else{
+                    var regex = new RegExp(req.body.search.value);
+                    var match = {$or: []};
+                    req.body['columns'].forEach(function (obj) {
+                        if (obj.name) {
+                            var json = {};
+                            if (obj.isNumber) {
+                                json[obj.name] = parseInt(req.body.search.value)
+                            } else {
+                                json[obj.name] = {
+                                    "$regex": regex,
+                                    "$options": "i"
+                                }
                             }
+                            match['$or'].push(json)
                         }
-                        match['$or'].push(json)
-                    }
-                });
+                    });
+                }
             }
             console.log('re.body.search==>', req.body.search.value);
             var searchQuery = {
@@ -221,6 +231,98 @@ router.post('/delivering', (req, res, next) => {
     }
 });
 
+/**
+ * @api {post} /admin/tracking/delivered/details Details of car delievered
+ * @apiName Car Delivered Details
+ * @apiDescription To display cars which is delievered
+ * @apiGroup Admin - Car-Tracking
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} booking_id booking id of car
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/delivered/details', async (req, res, next) => {
+    var schema = {
+        'booking_id': {
+            notEmpty: true,
+            errorMessage: "booking_id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var TrackingDetails = await CarBooking.findOne({"_id": new ObjectId(req.body.booking_id)},{ "deliever_source_location":1, "last_location":1, "longitude":1, "latitude":1, "booking_number":1});
+        if(typeof TrackingDetails !== 'undefined' && TrackingDetails !==null){
+            res.status(config.OK_STATUS).json({
+                message: "Success",
+                result: TrackingDetails
+            });
+        }else{
+            res.status(config.OK_STATUS).json({
+                message: "Success",
+                result: null
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+
+/**
+ * @api {post} /admin/tracking/returned/details Details of car returned
+ * @apiName Car Returned Details
+ * @apiDescription To display cars which is returned
+ * @apiGroup Admin - Car-Tracking
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} booking_id booking id of car
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/returned/details', async (req, res, next) => {
+    var schema = {
+        'booking_id': {
+            notEmpty: true,
+            errorMessage: "booking_id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var TrackingDetails = await CarBooking.findOne({"_id": new ObjectId(req.body.booking_id)},{ "return_source_location":1, "last_location":1, "longitude":1, "latitude":1, "booking_number":1});
+        if(typeof TrackingDetails !== 'undefined' && TrackingDetails !==null){
+            res.status(config.OK_STATUS).json({
+                message: "Success",
+                result: TrackingDetails
+            });
+        }else{
+            res.status(config.OK_STATUS).json({
+                message: "Success",
+                result: null
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+
 
 /**
  * @api {post} /admin/tracking/returning List of car which is in delivering process
@@ -255,7 +357,10 @@ router.post('/returning', (req, res, next) => {
         var defaultQuery = [
             {
                 $match: {
-                    "trip_status": "returning",
+                    $or: [
+                        { "trip_status": "return"},
+                        {"trip_status": "returning"}
+                    ]  
                 }
             },
             {
@@ -348,22 +453,27 @@ router.post('/returning', (req, res, next) => {
             }];
         if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
             if(req.body.search.value != undefined){
-                var regex = new RegExp(req.body.search.value);
-                var match = {$or: []};
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
+                var string = "returned";
+                if(string.includes(req.body.search.value.toLowerCase())){
+                    var match = { 'trip_status' : "return"};
+                }else{
+                    var regex = new RegExp(req.body.search.value);
+                    var match = {$or: []};
+                    req.body['columns'].forEach(function (obj) {
+                        if (obj.name) {
+                            var json = {};
+                            if (obj.isNumber) {
+                                json[obj.name] = parseInt(req.body.search.value)
+                            } else {
+                                json[obj.name] = {
+                                    "$regex": regex,
+                                    "$options": "i"
+                                }
                             }
+                            match['$or'].push(json)
                         }
-                        match['$or'].push(json)
-                    }
-                });
+                    });
+                }
             }
             console.log('re.body.search==>', req.body.search.value);
             var searchQuery = {
