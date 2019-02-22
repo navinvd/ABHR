@@ -4,6 +4,7 @@ var express = require('express');
 var path = require('path');
 var async = require("async");
 var User = require('./../../models/users');
+var Notification = require('./../../models/car_notification_settings');
 var Company = require('./../../models/car_company');
 var config = require('./../../config');
 var jwt = require('jsonwebtoken');
@@ -117,6 +118,13 @@ router.post('/registration', async (req, res, next) => {
                             message: "could not register user please try again!!"
                         });
                     } else {
+                        var notifcationData = {
+                            "userId": userData._id
+                        }
+                        var notificationModel = new Notification(notifcationData);
+                        notificationModel.save(function (err, notificationData){
+                            console.log('err====>', err, 'data====>', notificationData);
+                        });
                         var token = jwt.sign({ id: userData._id, type: userData.type }, config.ACCESS_TOKEN_SECRET_KEY, {
                             expiresIn: 60 * 60 * 24 // expires in 24 hours
                         });
@@ -125,7 +133,7 @@ router.post('/registration', async (req, res, next) => {
                         delete userData.otp;
                         delete userData.isDeleted;
 
-                        console.log('userdata===>', userData);
+                        // console.log('userdata===>', userData);
                         const u = userData;
 
                         var option = {
@@ -360,6 +368,13 @@ router.post('/social_login', async (req, res, next) => {
                         message: err
                     };
                 } else {
+                    var notifcationData = {
+                        "userId": data._id
+                    }
+                    var notificationModel = new Notification(notifcationData);
+                    notificationModel.save(function (err, notificationData){
+                        console.log('err====>', err, 'data====>', notificationData);
+                    });
                     var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
                         expiresIn: 60 * 60 * 24 // expires in 24 hours
                     });

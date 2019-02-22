@@ -9,11 +9,13 @@ var CarNotificationSettingSchema = new Schema({
     },
     account_updates_status: {
         type: Boolean,
-        required: true
+        required: true,
+        default: true
     },
     accoundiscount_new_status: {
         type: Boolean,
-        required: true
+        required: true,
+        default:true
     },
     isDeleted: {
         type: Boolean,
