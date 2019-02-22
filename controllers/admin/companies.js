@@ -878,29 +878,41 @@ router.post('/car_list', async (req, res, next) => {
                 }
             },
             {
-                "$project": {
-                    "_id": 1,
-                    "model_name": "$modelDetails.model_name",
-                    "brand_name": "$brandDetails.brand_name",
-                    "release_year": "$modelDetails.release_year",
-                    "rent_price": 1,
-                    "availableData": "$is_available",
-                    "createdAt": 1,
-                    "carBookingDetails":"$carBookingDetails",
-                    "car_book_from_date": {
-                        $dateToString: {
-                            date: "$carBookingDetails.from_time",
-                            format: "%Y-%m-%d"
-                        }
-                    },
-                    "car_book_to_date": {
-                        $dateToString: {
-                            date: "$carBookingDetails.to_time",
-                            format: "%Y-%m-%d"
-                        }
-                    }
+                "$group":{
+                    "_id":"$_id",
+                    "model_name": {"$first":"$modelDetails.model_name"},
+                    "brand_name": {"$first":"$brandDetails.brand_name"},
+                    "release_year": {"$first":"$modelDetails.release_year"},
+                    "rent_price": {"$first":"$rent_price"},
+                    "availableData": {"$first":"$is_available"},
+                    "createdAt": {"$first":"$createdAt"},
+                    "carBookingDetails":{$push: "$carBookingDetails"}
                 }
             },
+            // {
+            //     "$project": {
+            //         "_id": 1,
+            //         "model_name": "$modelDetails.model_name",
+            //         "brand_name": "$brandDetails.brand_name",
+            //         "release_year": "$modelDetails.release_year",
+            //         "rent_price": 1,
+            //         "availableData": "$is_available",
+            //         "createdAt": 1,
+            //         "carBookingDetails":"$carBookingDetails",
+            //         "car_book_from_date": {
+            //             $dateToString: {
+            //                 date: "$carBookingDetails.from_time",
+            //                 format: "%Y-%m-%d"
+            //             }
+            //         },
+            //         "car_book_to_date": {
+            //             $dateToString: {
+            //                 date: "$carBookingDetails.to_time",
+            //                 format: "%Y-%m-%d"
+            //             }
+            //         }
+            //     }
+            // },
             {
                 $group: {
                     "_id": "",
@@ -1016,69 +1028,80 @@ router.post('/car_list', async (req, res, next) => {
         //         }
         // });
 
-        if (req.body.start) {
-            defaultQuery.push({
-                "$skip": req.body.start
-            })
-        }
-        if (req.body.length) {
-            defaultQuery.push({
-                "$limit": req.body.length
-            })
-        }
-        // console.log('defaulQuery====>', JSON.stringify(defaultQuery));
+        // if (req.body.start) {
+        //     defaultQuery.push({
+        //         "$skip": req.body.start
+        //     })
+        // }
+        // if (req.body.length) {
+        //     defaultQuery.push({
+        //         "$limit": req.body.length
+        //     })
+        // }
+
+        console.log('defaulQuery====>', JSON.stringify(defaultQuery));
+        
         Car.aggregate(defaultQuery, function (err, data) {
+            console.log('err====>', err, 'data=====>', data[0].data)
             if (err) {
-                // console.log('err===>', err);
                 return next(err);
             } else {
-                // console.log('result===>', data[0].data);
                 var todayDate = moment().utc().startOf('days');
                 var todayMonth = new Date(todayDate).getMonth() + 1;
+                console.log('todayDate===>', todayDate);
+                console.log('todayMonth======>',todayMonth);
                 var finalArray = [];
-                if(data[0].data && data[0].data.length > 0) {
-                    var finalDaata = data[0].data.filter((c) => {
-                        if(c.car_book_from_date !== null && c.car_book_to_date !==null){
-                            let toDate = moment(c.car_book_to_date).utc().startOf('days');
-                            let fromDate = moment(c.car_book_from_date).utc().startOf('days');
-                            console.log('today=================>', toDate);
-                            console.log('fromDate=================>', fromDate);
-                            console.log('todayDate=================>', todayDate);
-                            if (moment(todayDate).isBetween(fromDate, toDate, null, '[]')) {
+                if(data && data.length > 0 && data[0].data && data[0].data.length > 0) {
+                    data[0].data.filter((c) => {
+                        console.log('c================>', c);
+                        if(c.carBookingDetails && c.carBookingDetails.length > 0){
+                            var flag = false;
+                            c.carBookingDetails.map((booking) =>{
+                                let toDate = moment(booking.to_time).utc().startOf('days');
+                                let fromDate = moment(booking.from_time).utc().startOf('days');
+                                if (moment(todayDate).isBetween(fromDate, toDate, null, '[]')) {
+                                    flag = true;
+                                }
+                            });
+                            if(flag === true){
                                 c['is_available'] = false;
                             }else{
-                                var flag = false;
-                                if (c.availableData && c.availableData !== true) {
-                                    c.availableData.map((data, index) => {
+                                var flag1 = false;
+                                if (c.availableData && c.availableData.length > 0) {
+                                    c.availableData.map((data) => {
                                         if (data.month === todayMonth) {
-                                            data.availability.map((av, i) => {
+                                            data.availability.map((av) => {
                                                 let date = moment(av).utc().startOf('days');
                                                 if (moment(date).isSame(todayDate)) {
-                                                    flag = true;
+                                                    flag1 = true;
                                                 }
                                             });
                                         }
                                     });
                                 }
-                                c['is_available'] = flag;
+                                c['is_available'] = flag1;
                             }
-                        } else {
-                            var flag = false;
-                                if (c.availableData && c.availableData !== true) {
-                                    c.availableData.map((data, index) => {
-                                        if (data.month === todayMonth) {
-                                            data.availability.map((av, i) => {
-                                                let date = moment(av).utc().startOf('days');
-                                                if (moment(date).isSame(todayDate)) {
-                                                    flag = true;
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                                c['is_available'] = flag;
+                        }else{
+                            console.log('in else=====');
+                            var flag2 = false;
+                            if (c.availableData && c.availableData.length > 0) {
+                                console.log('c.available======>', c.availableData);
+                                c.availableData.map((data) => {
+                                    if (data.month === todayMonth) {
+                                        data.availability.map((av) => {
+                                            let date = moment(av).utc().startOf('days');
+                                            if (moment(date).isSame(todayDate)) {
+                                                flag2 = true;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                            c['flag'] = flag2;
+                            c['is_available'] = flag2;
                         }
-                        delete c['availableData'];
+                        
+                        // delete c['availableData'];
                         finalArray.push(c);
                     }); 
                     data[0].data = finalArray;
