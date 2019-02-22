@@ -869,8 +869,7 @@ router.post('/car_list', async (req, res, next) => {
             {
                 $match: {
                     "isDeleted": false,
-                    "car_rental_company_id": new ObjectId(req.body.company_id),
-                    "_id": new ObjectId("5c617c70a3f0725d7c1d3712")
+                    "car_rental_company_id": new ObjectId(req.body.company_id)
                 }
             },
             {
