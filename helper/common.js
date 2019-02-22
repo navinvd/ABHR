@@ -10,7 +10,9 @@ const CarNotification = require('./../models/car_notification');
 const CarNotificationSetting = require('./../models/car_notification_settings');
 const Keywords = require('./../models/keyword');
 const place = require('./../models/places');
-const User = require('./../models/users');
+const Users = require('./../models/users');
+const pushNotificationHelper = require('./../helper/push_notification');
+var ObjectId = require('mongoose').Types.ObjectId;
 
 let commonHelper = {};
 
@@ -159,5 +161,34 @@ commonHelper.aboutus = async function (help_type) {
         return { status: 'failed', message: "Error occured while get terms and conditions" };
     }
 };
+
+
+
+// send notification to user when car assign-v2 by agent for delivery or retun process
+commonHelper.sendNoti = async function (userId,booking_number,msg){
+    // when car assign by agent for delivery or return send notification to user
+    /** push notification process to user app start */
+    var userDeviceToken = await Users.find({ '_id': new ObjectId(userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
+
+    var deviceToken = '';
+    console.log('User token =>', userDeviceToken);
+    if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+        if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+            deviceToken = userDeviceToken[0].deviceToken;
+        }
+    }
+//"Your car is getting ready we will notify you once our agent is on their way to deliver you car"
+    var notificationType = 1; // means notification for booking 
+    console.log('Dev Token=>', deviceToken);
+    if (userDeviceToken[0].deviceType === 'ios') {
+        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, booking_number, notificationType, msg);
+        return sendNotification;
+    } else if (userDeviceToken[0].deviceType === 'android') {
+        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, booking_number, msg);
+        return sendNotification;
+    }
+}
+
+
 
 module.exports = commonHelper;
