@@ -1033,7 +1033,7 @@ router.post('/car_list', async (req, res, next) => {
                 return next(err);
             } else {
                 // console.log('result===>', data[0].data);
-                var todayDate = moment('2019-02-07').utc().startOf('days');
+                var todayDate = moment('').utc().startOf('days');
                 var todayMonth = new Date(todayDate).getMonth() + 1;
                 var finalArray = [];
                 if(data[0].data && data[0].data.length > 0) {
@@ -1078,13 +1078,14 @@ router.post('/car_list', async (req, res, next) => {
                                 }
                                 c['is_available'] = flag;
                         }
+                        delete c['availableData'];
                         finalArray.push(c);
-                    });
-                     
+                    }); 
+                    data[0].data = finalArray;
                 }
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? finalArray : {
+                    result: data.length != 0 ? data[0] : {
                         recordsTotal: 0,
                         data: []
                     }
