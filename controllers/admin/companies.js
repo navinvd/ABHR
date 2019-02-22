@@ -1033,7 +1033,7 @@ router.post('/car_list', async (req, res, next) => {
                 return next(err);
             } else {
                 // console.log('result===>', data[0].data);
-                var todayDate = moment().utc().startOf('days');
+                var todayDate = moment('2019-02-07').utc().startOf('days');
                 var todayMonth = new Date(todayDate).getMonth() + 1;
                 var finalArray = [];
                 if(data[0].data && data[0].data.length > 0) {
