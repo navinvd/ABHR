@@ -128,7 +128,8 @@ router.post('/list', async (req, res, next) => {
             }
             if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length >0) {
                 if (req.body.search.value) {
-                    if(req.body.search.value === 'Admin' || req.body.search.value === 'admin' || req.body.search.value === 'ADMIN'){
+                    var string = "admin";
+                    if(string.includes(req.body.search.value.toLowerCase())){
                         var match = { 'car_rental_company_id' : {'$eq':null}};
                     }else{
                         console.log('in seacrch valie');
