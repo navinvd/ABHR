@@ -266,7 +266,6 @@ router.post('/filter', async (req, res) => {
                         { isDeleted: false }
                     ]
                 }
-
             },
             {
                 $lookup: {

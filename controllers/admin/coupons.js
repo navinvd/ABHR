@@ -469,7 +469,7 @@ router.post('/apply', async (req, res) => {
 });
 
 /**
- * @api {get} /app/coupon/companies list of companies
+ * @api {get} /admin/coupon/companies list of companies
  * @apiName List of company 
  * @apiDescription Used to list of company
  * @apiGroup Admin - Coupon

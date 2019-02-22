@@ -853,6 +853,20 @@ router.post('/car_list', async (req, res, next) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'car_booking',
+                    foreignField: 'carId',
+                    localField: '_id',
+                    as: "carBookingDetails",
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$carBookingDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $match: {
                     "isDeleted": false,
                     "car_rental_company_id": new ObjectId(req.body.company_id)
@@ -861,6 +875,30 @@ router.post('/car_list', async (req, res, next) => {
             {
                 $sort: {
                     'createdAt': -1
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "model_name": "$modelDetails.model_name",
+                    "brand_name": "$brandDetails.brand_name",
+                    "release_year": "$modelDetails.release_year",
+                    "rent_price": 1,
+                    "availableData": "$is_available",
+                    "createdAt": 1,
+                    "carBookingDetails":"$carBookingDetails",
+                    "car_book_from_date": {
+                        $dateToString: {
+                            date: "$carBookingDetails.from_time",
+                            format: "%Y-%m-%d"
+                        }
+                    },
+                    "car_book_to_date": {
+                        $dateToString: {
+                            date: "$carBookingDetails.to_time",
+                            format: "%Y-%m-%d"
+                        }
+                    }
                 }
             },
             {
@@ -988,15 +1026,65 @@ router.post('/car_list', async (req, res, next) => {
                 "$limit": req.body.length
             })
         }
+        // console.log('defaulQuery====>', JSON.stringify(defaultQuery));
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>', err);
+                // console.log('err===>', err);
                 return next(err);
             } else {
-                console.log('result===>', data);
+                // console.log('result===>', data[0].data);
+                var todayDate = moment().utc().startOf('days');
+                var todayMonth = new Date(todayDate).getMonth() + 1;
+                var finalArray = [];
+                if(data[0].data && data[0].data.length > 0) {
+                    var finalDaata = data[0].data.filter((c) => {
+                        if(c.car_book_from_date !== null && c.car_book_to_date !==null){
+                            let toDate = moment(c.car_book_to_date).utc().startOf('days');
+                            let fromDate = moment(c.car_book_from_date).utc().startOf('days');
+                            console.log('today=================>', toDate);
+                            console.log('fromDate=================>', fromDate);
+                            console.log('todayDate=================>', todayDate);
+                            if (moment(todayDate).isBetween(fromDate, toDate, null, '[]')) {
+                                c['is_available'] = false;
+                            }else{
+                                var flag = false;
+                                if (c.availableData && c.availableData !== true) {
+                                    c.availableData.map((data, index) => {
+                                        if (data.month === todayMonth) {
+                                            data.availability.map((av, i) => {
+                                                let date = moment(av).utc().startOf('days');
+                                                if (moment(date).isSame(todayDate)) {
+                                                    flag = true;
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                                c['is_available'] = flag;
+                            }
+                        } else {
+                            var flag = false;
+                                if (c.availableData && c.availableData !== true) {
+                                    c.availableData.map((data, index) => {
+                                        if (data.month === todayMonth) {
+                                            data.availability.map((av, i) => {
+                                                let date = moment(av).utc().startOf('days');
+                                                if (moment(date).isSame(todayDate)) {
+                                                    flag = true;
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                                c['is_available'] = flag;
+                        }
+                        finalArray.push(c);
+                    });
+                     
+                }
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {
+                    result: data.length != 0 ? finalArray : {
                         recordsTotal: 0,
                         data: []
                     }

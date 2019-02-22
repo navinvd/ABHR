@@ -144,7 +144,7 @@ couponHelper.applyCoupon = async (user_id, coupon_code) => {
 // list of companies 
 couponHelper.companiList = async () => {
     try{
-        let companies = await Company.find({"isDeleted": false}, {"name": 1});
+        let companies = await Company.find({"isDeleted": false}, {"name": 1}).collation({locale: "en" }).sort({"name": 1});
         if (companies !== null && companies !== '') {
             return { status: 'success', message: "Coupon data found", data: companies}
         }

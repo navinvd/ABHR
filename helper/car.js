@@ -882,7 +882,7 @@ carHelper.history = async (user_id, history_type) => {
 
 carHelper.getBrandList = async () => {
     try {
-        const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 });
+        const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 }).collation({locale: "en" }).sort({"brand_name": 1});
         if (carbrand && carbrand.length > 0) {
             return { status: 'success', message: "Car brand has been found", data: { brand: carbrand } }
         } else {
@@ -896,7 +896,7 @@ carHelper.getBrandList = async () => {
 //Get modellist by brand id
 carHelper.getModelList = async (brandArray) => {
     try {
-        const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } });
+        const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } }).collation({locale: "en" }).sort({"model_name": 1});
         if (carmodels && carmodels.length > 0) {
             return { status: 'success', message: "Car Models has been found", data: { model: carmodels } }
         } else {
