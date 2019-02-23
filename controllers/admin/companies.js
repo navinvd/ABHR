@@ -1101,7 +1101,7 @@ router.post('/car_list', async (req, res, next) => {
                             c['is_available'] = flag2;
                         }
                         
-                        // delete c['availableData'];
+                        delete c['availableData'];
                         finalArray.push(c);
                     }); 
                     data[0].data = finalArray;
