@@ -12,6 +12,7 @@ const CarHandOver = require('./../../models/car_hand_over');
 const CarHelper = require('./../../helper/car');
 const smsHelper = require('./../../helper/sms');
 const pushNotificationHelper = require('./../../helper/push_notification');
+const commonHelper = require('./../../helper/common');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 const moment = require('moment');
@@ -328,7 +329,7 @@ router.post('/booking-details', async (req, res) => {
                     coupon_code: 1,
                     coupon_percentage: 1,
                     isDeleted: 1,
-                    vat : 1,
+                    vat: 1,
                     agent_assign_for_handover: 1,
                     agent_assign_for_receive: 1,
                     car_handover_by_agent_id: 1,
@@ -425,7 +426,7 @@ router.post('/booking-details', async (req, res) => {
                         /** ----------------------------------------------- */
                         c.car['total_avg_rating'] = c.total_avg_rating;
 
-                        if(c.car['vat'] === undefined){
+                        if (c.car['vat'] === undefined) {
                             c.car['vat'] = null
                         }
                         delete c.car.reviews;
@@ -599,6 +600,13 @@ router.post('/receive', async (req, res) => {
         if (carReceiveResp.status === 'success') {
             // var car_avaibility = await Car.updateOne({_id : new ObjectId(req.body.car_id)}, { $set : { 'is_available' : true } } );              
             res.status(config.OK_STATUS).json(carReceiveResp)
+
+            // send notification to user that your car is deliverd or handover to u
+            const booking_number = req.body.booking_number;
+            const userId =  req.body.user_id;
+
+            commonHelper.sendNoti(userId,booking_number,"Your car has been return successfully");
+
         }
         else {
             res.status(config.BAD_REQUEST).json(carReceiveResp)
@@ -851,6 +859,7 @@ router.post('/assign_or_not-v2', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+
         // req.body.booking_number
         try {
 
@@ -879,6 +888,10 @@ router.post('/assign_or_not-v2', async (req, res) => {
                         var carAssignResp = await CarHelper.assign_car_to_agent(agent_data);
 
                         if (carAssignResp.status === 'success') {
+                            
+                            // add this later on
+                            commonHelper.sendNoti(req.body.user_id, req.body.booking_number,"Your car is getting ready we will notify you once our agent is on their way to deliver you car");
+                            
                             // update car_booking table
 
                             var newdata = {
@@ -911,7 +924,6 @@ router.post('/assign_or_not-v2', async (req, res) => {
                         else {
                             res.status(config.BAD_REQUEST).json(carAssignResp)
                         }
-
                     }
                     else {
                         var searchData = {
@@ -945,11 +957,15 @@ router.post('/assign_or_not-v2', async (req, res) => {
                         }
 
 
-                        ///
+                        /// check same agent is requesting or not to assign car for return
 
                         var get_agent = await CarAssign.find(chk_agent);
 
                         if (get_agent && get_agent.length > 0) {
+
+                            //add this later
+                            commonHelper.sendNoti(req.body.user_id, req.body.booking_number, "Your car is getting ready we will notify you once our agent is on their way to returning car from you");
+
                             // alredy assign for handover so just update his entry
                             var data = await CarAssign.updateOne(chk_agent, { $set: { 'trip_status': 'return', 'assign_for_receive': true } });
 
@@ -975,7 +991,7 @@ router.post('/assign_or_not-v2', async (req, res) => {
                             else {
                                 res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accured while update car agent assign collection" })
                             }
-                            
+
                         }
                         else {
                             // make new entry
@@ -997,8 +1013,11 @@ router.post('/assign_or_not-v2', async (req, res) => {
                             var carAssignResp = await CarHelper.assign_car_to_agent(agent_data);
 
                             if (carAssignResp.status === 'success') {
-                                // update car_booking table
 
+                                //add this later
+                                commonHelper.sendNoti(req.body.user_id, req.body.booking_number,"Your car is getting ready we will notify you once our agent is on their way to returning car from you");
+
+                                // update car_booking table
                                 var newdata = {
                                     'car_receive_by_agent_id': new ObjectId(req.body.agent_id),
                                     'agent_assign_for_receive': true
@@ -1028,7 +1047,7 @@ router.post('/assign_or_not-v2', async (req, res) => {
                         var searchData = {
                             "agent_id": req.body.agent_id,
                             "booking_number": req.body.booking_number,
-                         //   "assign_for": "receive" // now
+                            //   "assign_for": "receive" // now
                             "assign_for_receive": true // now change
                         }
                         var data = await CarAssign.find(searchData);
@@ -1101,10 +1120,10 @@ router.post('/returning', async (req, res) => {
         // pending  (socket event receive from ANDROID and emit to IOS )
         try {
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
-            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: {'trip_status': 'returning'} });
+            var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'returning' } });
 
             if (booking_details && booking_details.n > 0) {
-                var cond = { 'booking_number': req.body.booking_number , 'assign_for_receive' : true }
+                var cond = { 'booking_number': req.body.booking_number, 'assign_for_receive': true }
                 var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
 
                 if (CarAssignData && CarAssignData.n > 0) {
@@ -1145,7 +1164,7 @@ router.post('/returning_v2', async (req, res) => {
         //     notEmpty: true,
         //     errorMessage: "Enter type eg( delivering or returning)"
         // }
-        'lattitude' : {
+        'lattitude': {
             notEmpty: true,
             errorMessage: "Enter current latitude"
         },
@@ -1161,14 +1180,14 @@ router.post('/returning_v2', async (req, res) => {
         try {
             var obj = {
                 'trip_status': 'returning',
-                'return_source_location': [ req.body.longitude, req.body.lattitude],
-                'last_location': [ req.body.longitude, req.body.lattitude]
+                'return_source_location': [req.body.longitude, req.body.lattitude],
+                'last_location': [req.body.longitude, req.body.lattitude]
             }
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
             var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj });
 
             if (booking_details && booking_details.n > 0) {
-                var cond = { 'booking_number': req.body.booking_number , 'assign_for_receive' : true }
+                var cond = { 'booking_number': req.body.booking_number, 'assign_for_receive': true }
                 var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
 
                 if (CarAssignData && CarAssignData.n > 0) {
@@ -1209,7 +1228,7 @@ router.post('/returning_v3', async (req, res) => {
         //     notEmpty: true,
         //     errorMessage: "Enter type eg( delivering or returning)"
         // }
-        'lattitude' : {
+        'lattitude': {
             notEmpty: true,
             errorMessage: "Enter current latitude"
         },
@@ -1225,17 +1244,17 @@ router.post('/returning_v3', async (req, res) => {
         try {
             var obj1 = {
                 'trip_status': 'returning',
-                'return_source_location': [ req.body.longitude, req.body.lattitude],
-                'last_location': [ req.body.longitude, req.body.lattitude]
+                'return_source_location': [req.body.longitude, req.body.lattitude],
+                'last_location': [req.body.longitude, req.body.lattitude]
             }
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
             var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj1 });
 
             if (booking_details && booking_details.n > 0) {
-                var cond = { 'booking_number': req.body.booking_number , 'assign_for_receive' : true }
+                var cond = { 'booking_number': req.body.booking_number, 'assign_for_receive': true }
                 var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
-                
-                var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number}, {_id: 0, userId: 1}).lean().exec();
+
+                var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
                 var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
                 var deviceToken = '';
                 console.log('User token =>', userDeviceToken);
@@ -1248,9 +1267,9 @@ router.post('/returning_v3', async (req, res) => {
 
                 var notificationType = 1; // means notification for booking 
                 console.log('Dev Token=>', deviceToken);
-                if(userDeviceToken[0].deviceType === 'ios'){
+                if (userDeviceToken[0].deviceType === 'ios') {
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your agent is on returning track");
-                }else if(userDeviceToken[0].deviceType === 'android'){
+                } else if (userDeviceToken[0].deviceType === 'android') {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your agent is on returning track');
                 }
 
@@ -1961,7 +1980,7 @@ router.post('/car-list-v3', async (req, res) => {
                 car_rental_company_id: 1,
                 isDeleted: 1,
                 trip_status: 1,
-                vat :"$bookingDetails.vat",
+                vat: "$bookingDetails.vat",
 
                 car_book_from_date: {
                     $dateToString: {
@@ -2144,7 +2163,7 @@ router.post('/car-list-v3', async (req, res) => {
                 car_rental_company_id: "$carDetails.car_rental_company_id",
                 isDeleted: 1,
                 trip_status: 1,
-                vat : 1,
+                vat: 1,
 
                 car_book_from_date: {
                     $dateToString: {
@@ -2259,11 +2278,11 @@ router.post('/car-list-v3', async (req, res) => {
 
     if (finalData.length > 0) {
 
-        var finalData = finalData.map((c) => {            
+        var finalData = finalData.map((c) => {
             if (c['image_name'] === undefined) {
                 c['image_name'] = null
             }
-            if(c['vat'] === undefined){
+            if (c['vat'] === undefined) {
                 c['vat'] = null
             }
             return c;
@@ -2395,7 +2414,7 @@ router.post('/delivering_v2', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter car booking number"
         },
-        'lattitude' : {
+        'lattitude': {
             notEmpty: true,
             errorMessage: "Enter current latitude"
         },
@@ -2426,8 +2445,8 @@ router.post('/delivering_v2', async (req, res) => {
         }
         var locationData = {
             'trip_status': 'delivering',
-            'deliever_source_location': [ req.body.longitude, req.body.lattitude],
-            'last_location': [ req.body.longitude, req.body.lattitude]
+            'deliever_source_location': [req.body.longitude, req.body.lattitude],
+            'last_location': [req.body.longitude, req.body.lattitude]
         }
 
         const carHandOverResp = await CarHelper.car_delivering_v2(req, hand_over_data, locationData);
@@ -2485,7 +2504,7 @@ router.post('/delivering_v3', async (req, res) => {
             notEmpty: true,
             errorMessage: "Please enter car booking number"
         },
-        'lattitude' : {
+        'lattitude': {
             notEmpty: true,
             errorMessage: "Enter current latitude"
         },
@@ -2516,8 +2535,8 @@ router.post('/delivering_v3', async (req, res) => {
         }
         var locationData = {
             'trip_status': 'delivering',
-            'deliever_source_location': [ req.body.longitude, req.body.lattitude],
-            'last_location': [ req.body.longitude, req.body.lattitude]
+            'deliever_source_location': [req.body.longitude, req.body.lattitude],
+            'last_location': [req.body.longitude, req.body.lattitude]
         }
 
         const carHandOverResp = await CarHelper.car_delivering_v2(req, hand_over_data, locationData);
@@ -2526,7 +2545,7 @@ router.post('/delivering_v3', async (req, res) => {
 
         if (carHandOverResp.status === 'success') {
 
-            var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email:1, phone_number: 1 }).lean().exec();
+            var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
             var deviceToken = '';
 
             // Push notification //
@@ -2536,9 +2555,9 @@ router.post('/delivering_v3', async (req, res) => {
                     // agentDeviceTokenArray.push(agent.deviceToken);
                     deviceToken = userData[0].deviceToken;
                     var notificationType = 1; // means notification for booking 
-                    if(userData[0].deviceType === 'ios'){
+                    if (userData[0].deviceType === 'ios') {
                         var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your agent is on delivering track");
-                    }else if(userData[0].deviceType === 'android'){
+                    } else if (userData[0].deviceType === 'android') {
                         var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your agent is on delivering track');
                     }
                 }
@@ -2661,6 +2680,12 @@ router.post('/handover-v2', async (req, res) => {
 
         if (carHandOverResp.status === 'success') {
             res.status(config.OK_STATUS).json(carHandOverResp)
+
+            // send notification to user that your car is deliverd or handover to u
+            const booking_number = req.body.booking_number;
+            const carBookingData = await CarBooking.findOne({'booking_number': booking_number}).lean().exec();
+            const userId = carBookingData.userId;
+            commonHelper.sendNoti(userId,booking_number,"Your car has been deliverd to you");
         }
         else {
             res.status(config.BAD_REQUEST).json(carHandOverResp)
