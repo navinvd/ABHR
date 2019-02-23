@@ -706,10 +706,23 @@ router.post('/list', async (req, res, next) => {
                                     100
                                 ]}
                             }
-                  },
+                },
                 "booking_number": 1,
                 "deposite_amount": 1,
-                "coupon_percentage": 1,
+                "coupon_percentage": {
+                    "$cond": {
+                      "if": {"$eq":["$coupon_code",null]},
+                      "then": 0,
+                      "else":{
+                        $divide :[
+                            {$multiply : [
+                                {$multiply : ["$booking_rent", "$days"]}, 
+                                "$coupon_percentage"
+                            ]},
+                            100
+                        ]}
+                    }
+                },
                 "coupon_code": 1,
                 "createdAt":1
               }
@@ -1045,6 +1058,187 @@ router.put('/edit', (req, res, next) => {
                     });
                 }
             });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+
+router.post('/invoice', (req, res, next) => {
+    var schema = {
+        'booking_id': {
+            notEmpty: true,
+            errorMessage: "booking_id is required"
+        },
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var defaultQuery = [
+            {
+              "$match": {
+                "isDeleted": false,
+                "_id": new ObjectId(req.body.booking_id)
+              }
+            },
+            {
+              "$lookup": {
+                "from": "cars",
+                "localField": "carId",
+                "foreignField": "_id",
+                "as": "car_details",
+              }
+            },
+            {
+              "$unwind": {
+                "path": "$car_details",
+                "preserveNullAndEmptyArrays": true
+              }
+            },
+            {
+              "$lookup": {
+                "from": "car_company",
+                "localField": "car_details.car_rental_company_id",
+                "foreignField": "_id",
+                "as": "car_compnay"
+              }
+            },
+            {
+              "$unwind": "$car_compnay"
+            },
+            {
+              "$lookup": {
+                "from": "car_model",
+                "localField": "car_details.car_model_id",
+                "foreignField": "_id",
+                "as": "car_model",
+              }
+            },
+            {
+              "$unwind": "$car_model"
+            },
+            {
+              "$lookup": {
+                "from": "car_brand",
+                "localField": "car_details.car_brand_id",
+                "foreignField": "_id",
+                "as": "car_brand",
+              }
+            },
+            {
+              "$unwind": "$car_brand"
+            },
+            {
+              "$lookup": {
+                "from": "users",
+                "localField": "userId",
+                "foreignField": "_id",
+                "as": "user_details",
+              }
+            },
+            {
+              "$unwind": {
+                "path":  "$user_details",
+                "preserveNullAndEmptyArrays": true,
+              }
+            },
+            {
+                "$lookup": {
+                  "from": "car_company",
+                  "localField": "car_details.car_rental_company_id",
+                  "foreignField": "_id",
+                  "as": "company_details",
+                }
+            },
+            {
+                "$unwind": {
+                  "path":  "$company_details",
+                  "preserveNullAndEmptyArrays": true,
+                }
+            },
+            {
+              "$project": {
+                "_id": 1,
+                "from_address": "$car_compnay.company_address.address",
+                "car_model": "$car_model.model_name",
+                "car_brand": "$car_brand.brand_name",
+                "user_name": { $concat: [ "$user_details.first_name", " ", "$user_details.last_name" ]},
+                "user_phone_number": "$user_details.phone_number",
+                "to_address": "$user_details.phone_number",
+                "delivery_address": 1,
+                "vat": 1,
+                "deposite_amount":1,
+                "vat_amount": {
+                    "$cond": {
+                      "if": {"$eq":["$coupon_code",null]},
+                      "then": {$divide :[
+                                    {$multiply : [
+                                        {$multiply : ["$booking_rent", "$days"]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]},
+                      "else":{
+                          $divide :[
+                                    {$multiply : [
+                                        {$subtract: [ 
+                                            {$multiply : ["$booking_rent", "$days"]},
+                                            {$divide :[
+                                                {$multiply : [
+                                                    {$multiply : ["$booking_rent", "$days"]}, 
+                                                    "$coupon_percentage"
+                                                ]},
+                                                100
+                                            ]}
+                                       ]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]}
+                            }
+                },
+                "car_class": 1,
+                "milage": 1,
+                "booking_number": 1,
+                "total_booking_amount": 1,
+                "release_year":"$car_model.release_year"
+                }   
+            }
+            // {
+            //     "$project": {
+            //       "_id": 1,
+            //       "from_address": 1,
+            //       "car_model": 1,
+            //       "car_brand": 1,
+            //       "user_name": 1,
+            //       "user_phone_number": 1,
+            //       "to_address": 1,
+            //       "delivery_address": 1,
+            //       "vat": 1,
+            //       "vat_amount": 1,
+            //       "car_class": 1,
+            //       "milage": 1,
+            //       "booking_number": 1,
+            //       "total_booking_amount": 1,
+            //       "AED" : { $add: [ "$total_booking_amount", "$vat_amount" ] },
+            //       "release_year":1
+            //       },
+                  
+            //   }
+          ];
+        CarBooking.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: { data: data[0]}
+                });
+            }
+        })
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
