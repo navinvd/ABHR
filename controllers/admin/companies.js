@@ -1422,7 +1422,7 @@ router.post('/car/edit', async (req, res, next) => {
                     return next(err);
                 } else {
                     res.status(config.OK_STATUS).json({
-                        message: "Car updated successfully"
+                        message: "Car Details updated successfully"
                     });
                 }
             });
