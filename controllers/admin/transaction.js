@@ -174,7 +174,6 @@ router.post('/report_list', async (req, res, next) => {
             })
         }
         console.log('defaultQuery', JSON.stringify(defaultQuery));
-        var totalrecords = await CarBooking.aggregate(defaultQuery);
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
                 var regex = new RegExp(req.body.search.value);
@@ -249,6 +248,7 @@ router.post('/report_list', async (req, res, next) => {
                 }
             }
         }
+        var totalrecords = await CarBooking.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start

@@ -127,6 +127,8 @@ router.post('/report_list', async (req, res, next) => {
                         booking_rent: 1,
                         isDeleted: 1,
                         trip_status:1,
+                        car_modal: "$car_model.model_name",
+                        car_brand: "$car_brand.brand_name",
                         first_name: "$user_details.first_name",
                         last_name:"$user_details.last_name",
                         createdAt:1
