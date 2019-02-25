@@ -20,7 +20,7 @@ var generator = require('generate-password');
 const carHelper = require('./../../helper/car');
 var fs = require('fs');
 var path = require('path');
-
+var Jimp = require('jimp');
 /**
  * @api {post} /admin/company/add create new company
  * @apiName Create Company
@@ -889,30 +889,6 @@ router.post('/car_list', async (req, res, next) => {
                     "carBookingDetails":{$push: "$carBookingDetails"}
                 }
             },
-            // {
-            //     "$project": {
-            //         "_id": 1,
-            //         "model_name": "$modelDetails.model_name",
-            //         "brand_name": "$brandDetails.brand_name",
-            //         "release_year": "$modelDetails.release_year",
-            //         "rent_price": 1,
-            //         "availableData": "$is_available",
-            //         "createdAt": 1,
-            //         "carBookingDetails":"$carBookingDetails",
-            //         "car_book_from_date": {
-            //             $dateToString: {
-            //                 date: "$carBookingDetails.from_time",
-            //                 format: "%Y-%m-%d"
-            //             }
-            //         },
-            //         "car_book_to_date": {
-            //             $dateToString: {
-            //                 date: "$carBookingDetails.to_time",
-            //                 format: "%Y-%m-%d"
-            //             }
-            //         }
-            //     }
-            // },
             {
                 $group: {
                     "_id": "",
@@ -1039,21 +1015,21 @@ router.post('/car_list', async (req, res, next) => {
         //     })
         // }
 
-        console.log('defaulQuery====>', JSON.stringify(defaultQuery));
+        // console.log('defaulQuery====>', JSON.stringify(defaultQuery));
         
         Car.aggregate(defaultQuery, function (err, data) {
-            console.log('err====>', err, 'data=====>', data[0].data)
+            // console.log('err====>', err, 'data=====>', data[0].data)
             if (err) {
                 return next(err);
             } else {
                 var todayDate = moment().utc().startOf('days');
                 var todayMonth = new Date(todayDate).getMonth() + 1;
-                console.log('todayDate===>', todayDate);
-                console.log('todayMonth======>',todayMonth);
+                // console.log('todayDate===>', todayDate);
+                // console.log('todayMonth======>',todayMonth);
                 var finalArray = [];
                 if(data && data.length > 0 && data[0].data && data[0].data.length > 0) {
                     data[0].data.filter((c) => {
-                        console.log('c================>', c);
+                        // console.log('c================>', c);
                         if(c.carBookingDetails && c.carBookingDetails.length > 0){
                             var flag = false;
                             c.carBookingDetails.map((booking) =>{
@@ -1082,10 +1058,8 @@ router.post('/car_list', async (req, res, next) => {
                                 c['is_available'] = flag1;
                             }
                         }else{
-                            console.log('in else=====');
                             var flag2 = false;
                             if (c.availableData && c.availableData.length > 0) {
-                                console.log('c.available======>', c.availableData);
                                 c.availableData.map((data) => {
                                     if (data.month === todayMonth) {
                                         data.availability.map((av) => {
@@ -1259,7 +1233,13 @@ router.post('/car/add', (req, res, next) => {
                     if (err) {
                         each_callback(each_callback)
                     } else {
-
+                        Jimp.read(filepath, async (err, lenna) => {
+                            if (!err) {
+                                lenna
+                                .quality(30) // set JPEG quality
+                                .write(filepath); // save
+                                }
+                        });
                     }
                 });
                 each_callback()
@@ -1376,7 +1356,13 @@ router.post('/car/edit', async (req, res, next) => {
                             if (err) {
                                 each_callback(each_callback)
                             } else {
-
+                                Jimp.read(filepath, async (err, lenna) => {
+                                    if (!err) {
+                                        lenna
+                                        .quality(30) // set JPEG quality
+                                        .write(filepath); // save
+                                        }
+                                });
                             }
                         });
                         each_callback()
