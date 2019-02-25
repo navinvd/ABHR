@@ -13,12 +13,6 @@ var CouponSchema = new Schema({
         type: Number,
         required: true
     },
-    from_date : {
-        type: Date
-    },
-    to_date : {
-        type: Date
-    },
     isDeleted: {
         type: Boolean,
         default: false

@@ -102,6 +102,8 @@ invoiceHelper.Userinvoice = async (booking_id) => {
                 "delivery_address": 1,
                 "vat": 1,
                 "deposite_amount":1,
+                "class": "$car_details.car_class",
+                "car_milage": "$car_details.milage",
                 "vat_amount": {
                     "$cond": {
                       "if": {"$eq":["$coupon_code", null]},
@@ -132,9 +134,11 @@ invoiceHelper.Userinvoice = async (booking_id) => {
                             }
                 },
                 "car_class": 1,
+                "booking_amount": {$multiply : ["$booking_rent", "$days"]},
                 "milage": 1,
                 "booking_number": 1,
                 "total_booking_amount": 1,
+                "AED": { $subtract : [ "$total_booking_amount", "$deposite_amount"]},
                 "release_year":"$car_model.release_year"
                 }   
             }
