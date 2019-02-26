@@ -252,7 +252,7 @@ router.post('/add', async (req, res) => {
             description : req.body.description ? req.body.description : '',
             banner : ''
         }
-        if ((mimetype.indexOf(req.files['banner_image'].mimetype) != -1)){
+        if (req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)){
             if (req.files['banner_image']) {
                 var file = req.files.banner_image;
                 var dir = "./upload/banner";
