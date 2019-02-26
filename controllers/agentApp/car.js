@@ -605,7 +605,7 @@ router.post('/receive', async (req, res) => {
             const booking_number = req.body.booking_number;
             const userId =  req.body.user_id;
 
-            commonHelper.sendNoti(userId,booking_number,"Your car has been return successfully");
+            commonHelper.sendNoti(userId, parseInt(booking_number),"Your car has been return successfully");
 
         }
         else {
@@ -2556,9 +2556,9 @@ router.post('/delivering_v3', async (req, res) => {
                     deviceToken = userData[0].deviceToken;
                     var notificationType = 1; // means notification for booking 
                     if (userData[0].deviceType === 'ios') {
-                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your agent is on delivering track");
+                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, parseInt(req.body.booking_number), notificationType, "Your agent is on delivering track");
                     } else if (userData[0].deviceType === 'android') {
-                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your agent is on delivering track');
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), 'Your agent is on delivering track');
                     }
                 }
             }
@@ -2685,7 +2685,7 @@ router.post('/handover-v2', async (req, res) => {
             const booking_number = req.body.booking_number;
             const carBookingData = await CarBooking.findOne({'booking_number': booking_number}).lean().exec();
             const userId = carBookingData.userId;
-            commonHelper.sendNoti(userId,booking_number,"Your car has been deliverd to you");
+            commonHelper.sendNoti(userId, parseInt(booking_number),"Your car has been deliverd to you");
         }
         else {
             res.status(config.BAD_REQUEST).json(carHandOverResp)
