@@ -1201,6 +1201,10 @@ router.post('/car/add', (req, res, next) => {
         'is_available': {
             notEmpty: true,
             errorMessage: "Avaibility is required"
+        },
+        'age_of_car':{
+            notEmpty: true,
+            errorMessage: "age of car is required"
         }
     };
     req.checkBody(schema);

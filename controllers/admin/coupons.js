@@ -5,7 +5,7 @@ var config = require('./../../config');
 const couponHelper = require('./../../helper/coupon');
 var Coupon = require('./../../models/coupon');
 var ObjectId = require('mongoose').Types.ObjectId;
-
+var path = require('path');
 
 /**
  * @api {post} /admin/coupon/list List of all superadmin coupon
@@ -244,9 +244,29 @@ router.post('/add', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+        console.log('here');
+        var mimetype = config.mimetypes;
         var data = {
             coupon_code : req.body.coupon_code,
-            discount_rate : parseInt(req.body.discount_rate)
+            discount_rate : req.body.discount_rate,
+            description : req.body.description ? req.body.description : '',
+            banner : ''
+        }
+        if ((mimetype.indexOf(req.files['banner_image'].mimetype) != -1)){
+            if (req.files['banner_image']) {
+                var file = req.files.banner_image;
+                var dir = "./upload/banner";
+                extention = path.extname(file.name);
+                filename = req.body.coupon_code + extention;
+                file.mv(dir + '/' + filename, function (err) {
+                    if (err) {
+                        return (err);
+                    } else {
+                        console.log('here in upload')
+                        data.banner = filename;
+                    }
+                });
+            }
         }
         if(req.body.idCompanyAdded){
             data = Object.assign(data, {"car_rental_company_id" : new ObjectId(req.body.company_id)});
@@ -295,7 +315,28 @@ router.put('/update', async (req, res) => {
     if (!errors) {
         var data = {
             coupon_code : req.body.coupon_code,
-            discount_rate : parseInt(req.body.discount_rate)
+            discount_rate : req.body.discount_rate,
+            description : req.body.description ? req.body.description : '',
+            banner : ''
+        }
+        var mimetype = config.mimetypes;
+        if ( req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)){
+            if (req.files['banner_image']) {
+                var file = req.files.banner_image;
+                var dir = "./upload/banner";
+                extention = path.extname(file.name);
+                filename = req.body.coupon_code + extention;
+                file.mv(dir + '/' + filename, function (err) {
+                    if (err) {
+                        return (err);
+                    } else {
+                        console.log('here in upload')
+                        data.banner = filename;
+                    }
+                });
+            }
+        }else{
+            data.banner = req.body.old_banner_image;
         }
         if(req.body.idCompanyAdded){
             isunset = false

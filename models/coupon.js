@@ -13,6 +13,12 @@ var CouponSchema = new Schema({
         type: Number,
         required: true
     },
+    description: {
+        type: String
+    },
+    banner : {
+        type: String
+    },
     isDeleted: {
         type: Boolean,
         default: false

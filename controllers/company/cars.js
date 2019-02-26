@@ -77,7 +77,11 @@ router.post('/add', (req, res, next) => {
         'is_available': {
             notEmpty: true,
             errorMessage: "Avaibility is required"
-        } 
+        },
+        'age_of_car': {
+            notEmpty: true,
+            errorMessage: "age_of_car is required"
+        },
     };
     req.checkBody(schema);
     var errors = req.validationErrors();

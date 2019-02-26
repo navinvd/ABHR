@@ -67,6 +67,9 @@ var CarSchema = new Schema({
         enum: [0, 1, 2], // 0 - resident yes , 1- no resident , 2 - both
         default: 0
     },
+    age_of_car: {
+        type: Number
+    },
     transmission: {
         type: String,
         enum: ["manual", "automatic"],
