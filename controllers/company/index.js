@@ -78,7 +78,7 @@ router.post('/login', async (req, res, next) => {
                                 });
                             } else {
                                 res.status(config.BAD_REQUEST).json({
-                                    message: "You have deactivated from superadmin",
+                                    message: "You have been deactivated by superadmin",
                                 });
                             }
                         } else {
@@ -361,7 +361,7 @@ router.post('/check_password', async (req, res, next) => {
 
 
 /**
- * @api {get} /company/details/:id? Company Details By Id
+ * @api {get} /company/details/:id Company Details By Id
  * @apiName company Details By Id
  * @apiDescription Get Company details By company id
  * @apiGroup Admin - Companies
