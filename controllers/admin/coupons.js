@@ -287,7 +287,7 @@ router.post('/add', async (req, res) => {
 });
 
 /**
- * @api {put} /admin/coupon/update Update coupon 
+ * @api {post} /admin/coupon/update Update coupon 
  * @apiName Update Coupon
  * @apiDescription Used to update coupon
  * @apiGroup Admin - Coupon
@@ -303,7 +303,7 @@ router.post('/add', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 // update coupon
-router.put('/update', async (req, res) => {
+router.post('/update', async (req, res) => {
     var schema = {
         'coupon_id': {
             notEmpty: true,
