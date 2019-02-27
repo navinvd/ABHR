@@ -882,11 +882,23 @@ router.post('/car_list', async (req, res, next) => {
                     "_id":"$_id",
                     "model_name": {"$first":"$modelDetails.model_name"},
                     "brand_name": {"$first":"$brandDetails.brand_name"},
-                    "release_year": {"$first":"$modelDetails.release_year"},
                     "rent_price": {"$first":"$rent_price"},
                     "availableData": {"$first":"$is_available"},
                     "createdAt": {"$first":"$createdAt"},
-                    "carBookingDetails":{$push: "$carBookingDetails"}
+                    "carBookingDetails":{$push: "$carBookingDetails"},
+                    "age_of_car": {"$first":"$age_of_car"}
+                }
+            },
+            {
+                "$project":{
+                    "_id":1,
+                    "model_name": 1,
+                    "brand_name": 1,
+                    "rent_price": 1,
+                    "availableData":1,
+                    "createdAt":1,
+                    "carBookingDetails":1,
+                    "age_of_car": 1
                 }
             },
             {
@@ -907,88 +919,189 @@ router.post('/car_list', async (req, res, next) => {
                 }
             }];
 
-        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-            var colIndex = req.body.order[0].column;
-            var colname = req.body.columns[colIndex].name;
-            var order = req.body.order[0].dir;
-            if(req.body.columns[colIndex].isNumber){
-                if(order == "asc"){
-                    defaultQuery = defaultQuery.concat({
-                        $sort: { [colname]: 1 }
-                    });
-                }else{
-                    defaultQuery = defaultQuery.concat({
-                        $sort: { [colname]: -1 }
+            if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+                if (req.body.search.value != undefined && req.body.search.value !== '') {
+                    var regex = new RegExp(req.body.search.value);
+                    var match = { $or: [] };
+                    req.body['columns'].forEach(function (obj) {
+                        if (obj.name) {
+                            var json = {};
+                            if (obj.isNumber) {
+                                console.log(typeof parseInt(req.body.search.value));
+                                json[obj.name] = parseInt(req.body.search.value)
+                            } else if (obj.isBoolean) {
+                                var check = req.body.search.value.toLowerCase();
+                                if (check === "yes" || check === "ye" || check === "y") {
+                                    json[obj.name] = true;
+                                } else {
+                                    json[obj.name] = false;
+                                }
+                            }else {
+                                json[obj.name] = {
+                                    "$regex": regex,
+                                    "$options": "i"
+                                }
+                            }
+                            match['$or'].push(json)
+                        }
                     });
                 }
-            }else{
-                colname = '$' + colname;
-                if (order == "asc") {
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
+                console.log('re.body.search==>', req.body.search.value);
+                var searchQuery = {
+                    $match: match
+                }
+                defaultQuery.push(searchQuery);
+                console.log("==>", JSON.stringify(defaultQuery));
+            }
+            if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+                var colIndex = req.body.order[0].column;
+                var colname = req.body.columns[colIndex].name;
+                var order = req.body.order[0].dir;
+                if(req.body.columns[colIndex].isNumber){
+                    if(order == "asc"){
+                        defaultQuery = defaultQuery.concat({
+                            $sort: { [colname]: 1 }
+                        });
+                    }else{
+                        defaultQuery = defaultQuery.concat({
+                            $sort: { [colname]: -1 }
+                        });
+                    }
+                }else{
+                    colname = '$' + colname;
+                    if (order == "asc") {
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
+                            {
+                                $sort: { "sort_index": 1 }
+                            },
+                            {
+                                $replaceRoot: { newRoot: "$records" }
+                            })
+                    } else {
+                        defaultQuery = defaultQuery.concat({
+                            $project: {
+                                "records": "$$ROOT",
+                                "sort_index": { "$toLower": [colname] }
+                            }
+                        },
                         {
-                            $sort: { "sort_index": 1 }
+                            $sort: {
+                                "sort_index": -1
+                            }
                         },
                         {
                             $replaceRoot: { newRoot: "$records" }
                         })
-                } else {
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
+                    }
                 }
             }
-        }
 
-        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
-            if (req.body.search.value != undefined && req.body.search.value !== '') {
-                var regex = new RegExp(req.body.search.value);
-                var match = { $or: [] };
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            console.log(typeof parseInt(req.body.search.value));
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else if (obj.isBoolean) {
-                            var check = req.body.search.value.toLowerCase();
-                            if (check === "yes" || check === "ye" || check === "y") {
-                                json[obj.name] = true;
-                            } else {
-                                json[obj.name] = false;
-                            }
-                        }else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
-                            }
-                        }
-                        match['$or'].push(json)
-                    }
-                });
-            }
-            console.log('re.body.search==>', req.body.search.value);
-            var searchQuery = {
-                $match: match
-            }
-            defaultQuery.concat(searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
-        }
+            // var totalrecords = await Car.aggregate(defaultQuery);
+            // if (req.body.start) {
+            //     defaultQuery.push({
+            //         "$skip": req.body.start
+            //     })
+            // }
+            // if (req.body.length) {
+            //     defaultQuery.push({
+            //         "$limit": req.body.length
+            //     })
+            // }
+
+
+
+
+
+
+        // if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+        //     var colIndex = req.body.order[0].column;
+        //     var colname = req.body.columns[colIndex].name;
+        //     var order = req.body.order[0].dir;
+        //     if(req.body.columns[colIndex].isNumber){
+        //         if(order == "asc"){
+        //             defaultQuery = defaultQuery.concat({
+        //                 $sort: { [colname]: 1 }
+        //             });
+        //         }else{
+        //             defaultQuery = defaultQuery.concat({
+        //                 $sort: { [colname]: -1 }
+        //             });
+        //         }
+        //     }else{
+        //         colname = '$' + colname;
+        //         if (order == "asc") {
+        //             defaultQuery = defaultQuery.concat({
+        //                 $project: {
+        //                     "records": "$$ROOT",
+        //                     "sort_index": { "$toLower": [colname] }
+        //                 }
+        //             },
+        //                 {
+        //                     $sort: { "sort_index": 1 }
+        //                 },
+        //                 {
+        //                     $replaceRoot: { newRoot: "$records" }
+        //                 })
+        //         } else {
+        //             defaultQuery = defaultQuery.concat({
+        //                 $project: {
+        //                     "records": "$$ROOT",
+        //                     "sort_index": { "$toLower": [colname] }
+        //                 }
+        //             },
+        //             {
+        //                 $sort: {
+        //                     "sort_index": -1
+        //                 }
+        //             },
+        //             {
+        //                 $replaceRoot: { newRoot: "$records" }
+        //             })
+        //         }
+        //     }
+        // }
+
+        // if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+        //     if (req.body.search.value != undefined && req.body.search.value !== '') {
+        //         console.log('here');
+        //         var regex = new RegExp(req.body.search.value);
+        //         var match = { $or: [] };
+        //         req.body['columns'].forEach(function (obj) {
+        //             if (obj.name) {
+        //                 var json = {};
+        //                 if (obj.isNumber) {
+        //                     console.log(typeof parseInt(req.body.search.value));
+        //                     json[obj.name] = parseInt(req.body.search.value)
+        //                 } else if (obj.isBoolean) {
+        //                     var check = req.body.search.value.toLowerCase();
+        //                     if (check === "yes" || check === "ye" || check === "y") {
+        //                         json[obj.name] = true;
+        //                     } else {
+        //                         json[obj.name] = false;
+        //                     }
+        //                 }else {
+        //                     console.log('here in string');
+        //                     json[obj.name] = {
+        //                         "$regex": regex,
+        //                         "$options": "i"
+        //                     }
+        //                 }
+        //                 match['$or'].push(json)
+        //             }
+        //         });
+        //         var searchQuery = {
+        //             $match: match
+        //         }
+        //         defaultQuery.concat(searchQuery);
+        //         console.log("==>", JSON.stringify(defaultQuery));
+        //     }
+        //     console.log('re.body.search==>', req.body.search.value);
+        // }
         // defaultQuery = defaultQuery.concat({
         //     $group: {
         //         "_id": "",
@@ -1018,7 +1131,7 @@ router.post('/car_list', async (req, res, next) => {
         // console.log('defaulQuery====>', JSON.stringify(defaultQuery));
         
         Car.aggregate(defaultQuery, function (err, data) {
-            // console.log('err====>', err, 'data=====>', data[0].data)
+            console.log('err====>', err, 'data=====>', data)
             if (err) {
                 return next(err);
             } else {
@@ -1076,12 +1189,14 @@ router.post('/car_list', async (req, res, next) => {
                         }
                         
                         delete c['availableData'];
+                        delete c['carBookingDetails'];
                         finalArray.push(c);
                     }); 
                     data[0].data = finalArray;
                 }
                 res.status(config.OK_STATUS).json({
                     message: "Success",
+                    // result: { data: data, recordsTotal: totalrecords.length }
                     result: data.length != 0 ? data[0] : {
                         recordsTotal: 0,
                         data: []
