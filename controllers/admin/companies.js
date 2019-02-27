@@ -900,23 +900,6 @@ router.post('/car_list', async (req, res, next) => {
                     "carBookingDetails":1,
                     "age_of_car": 1
                 }
-            },
-            {
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
-                    }
-                }
-            },
-            {
-                $project: {
-                    "recordsTotal": 1,
-                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
-                }
             }];
 
             if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
@@ -1000,6 +983,24 @@ router.post('/car_list', async (req, res, next) => {
                     }
                 }
             }
+
+            defaultQuery = defaultQuery.concat({
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "recordsTotal": 1,
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                }
+            });
 
             // var totalrecords = await Car.aggregate(defaultQuery);
             // if (req.body.start) {
