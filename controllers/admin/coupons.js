@@ -338,7 +338,7 @@ router.post('/update', async (req, res) => {
         } else {
             data.banner = req.body.old_banner_image;
         }
-        if (req.body.idCompanyAdded) {
+        if (typeof req.body.idCompanyAdded !== 'undefined' && req.body.idCompanyAdded == 'true') {
             isunset = false
             data = Object.assign(data, { "car_rental_company_id": new ObjectId(req.body.company_id) });
         } else {
