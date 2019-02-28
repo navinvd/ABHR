@@ -855,6 +855,10 @@ router.post('/assign_or_not-v2', async (req, res) => {
         'user_id': {
             notEmpty: true,
             errorMessage: "Please enter user id"
+        },
+        'agent_phone_number': {
+            notEmpty: true,
+            errorMessage: "Please enter agent phone number"
         }
     };
     req.checkBody(schema);
@@ -897,7 +901,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
 
                             var newdata = {
                                 'car_handover_by_agent_id': new ObjectId(req.body.agent_id),
-                                'agent_assign_for_handover': true
+                                'agent_assign_for_handover': true,
+                                'agent_phone_number' : req.body.agent_phone_number // add new
                             }
 
                             // boking update
@@ -974,7 +979,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
 
                                 var newdata = {
                                     'car_receive_by_agent_id': new ObjectId(req.body.agent_id),
-                                    'agent_assign_for_receive': true
+                                    'agent_assign_for_receive': true,
+                                    'agent_phone_number' : req.body.agent_phone_number // add new
                                 }
 
                                 var bookingUpdate = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: newdata })
@@ -1021,7 +1027,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
                                 // update car_booking table
                                 var newdata = {
                                     'car_receive_by_agent_id': new ObjectId(req.body.agent_id),
-                                    'agent_assign_for_receive': true
+                                    'agent_assign_for_receive': true,
+                                    'agent_phone_number' : req.body.agent_phone_number // add new
                                 }
 
                                 var bookingUpdate = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: newdata })
