@@ -82,7 +82,7 @@ router.post('/login', (req, res, next) => {
                     bcrypt.compare(req.body.password, data.password, function (err, result) {
                         if (result) {
                             var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
-                                expiresIn: 60 * 60 * 24 // expires in 24 hours
+                                expiresIn: 60 * 15 // expires in 15 min
                             });
 
                             res.status(config.OK_STATUS).json({

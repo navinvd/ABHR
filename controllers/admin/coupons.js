@@ -245,37 +245,48 @@ router.post('/add', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         console.log('here');
-        var mimetype = config.mimetypes;
-        var data = {
-            coupon_code: req.body.coupon_code,
-            discount_rate: req.body.discount_rate,
-            description: req.body.description ? req.body.description : '',
-            banner: ''
+        var obj = { "coupon_code" : { "$regex" : req.body.coupon_code , "$options" : "i"},
+                    "isDeleted": false
         }
-        if (req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)) {
-            if (req.files['banner_image']) {
-                var file = req.files.banner_image;
-                var dir = "./upload/banner";
-                extention = path.extname(file.name);
-                filename = req.body.coupon_code + extention;
-                file.mv(dir + '/' + filename, function (err) {
-                    if (err) {
-                        return (err);
-                    } else {
-                        console.log('here in upload')
-                        data.banner = filename;
-                    }
-                });
+        const couponResp = await Coupon.findOne(obj);
+        if(couponResp !== null && couponResp !== '' && typeof couponResp !== 'undefined'){
+            res.status(config.BAD_REQUEST).json({
+                status: 'failed',
+                message: "Coupon Code Already Exist"
+            });
+        }else{
+            var mimetype = config.mimetypes;
+            var data = {
+                coupon_code: req.body.coupon_code,
+                discount_rate: req.body.discount_rate,
+                description: req.body.description ? req.body.description : '',
+                banner: ''
             }
-        }
-        if (typeof req.body.idCompanyAdded !== 'undefined' && req.body.idCompanyAdded == 'true') {
-            data = Object.assign(data, { "car_rental_company_id": new ObjectId(req.body.company_id) });
-        }
-        const couponResp = await couponHelper.addCoupon(data);
-        if (couponResp.status === 'success') {
-            res.status(config.OK_STATUS).json(couponResp);
-        } else {
-            res.status(config.BAD_REQUEST).json(couponResp);
+            if (req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)) {
+                if (req.files['banner_image']) {
+                    var file = req.files.banner_image;
+                    var dir = "./upload/banner";
+                    extention = path.extname(file.name);
+                    filename = req.body.coupon_code + extention;
+                    data.banner = filename;
+                    file.mv(dir + '/' + filename, function (err) {
+                        if (err) {
+                            return (err);
+                        } else {
+                            data.banner = filename;
+                        }
+                    });
+                }
+            }
+            if (typeof req.body.idCompanyAdded !== 'undefined' && req.body.idCompanyAdded == 'true') {
+                data = Object.assign(data, { "car_rental_company_id": new ObjectId(req.body.company_id) });
+            }
+            const couponResp = await couponHelper.addCoupon(data);
+            if (couponResp.status === 'success') {
+                res.status(config.OK_STATUS).json(couponResp);
+            } else {
+                res.status(config.BAD_REQUEST).json(couponResp);
+            }
         }
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -414,7 +425,7 @@ router.put('/delete', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-// add coupon
+// check coupon
 router.post('/check_coupon', async (req, res) => {
     var schema = {
         'coupon_code': {
@@ -426,28 +437,20 @@ router.post('/check_coupon', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false };
+            var obj = { "coupon_code" : { "$regex" : req.body.coupon_code , "$options" : "i"},
+              "isDeleted": false
+            }
+            // var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false };
             if (req.body.coupon_id) {
-                var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false, "_id": { "$ne": new ObjectId(req.body.coupon_id) } };
+                obj = Object.assign(obj, { "_id" :{ "$ne": new ObjectId(req.body.coupon_id) }});
+                // var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false, "_id": { "$ne": new ObjectId(req.body.coupon_id) } };
             }
             const couponResp = await couponHelper.checkCoupon(obj);
             if (couponResp.status === 'success') {
-                res.status(config.OK_STATUS).json(couponResp);
+                res.status(config.OK_STATUS).json({status: "success", message: "Coupon Code Already Exist"});
             } else {
-                res.status(config.OK_STATUS).json(couponResp);
+                res.status(config.OK_STATUS).json({status: "failed"});
             }
-            // var userId = await Company.findOne(obj);
-            // if (userId !== null && userId !== '') {
-            //     res.status(config.OK_STATUS).json({
-            //         status: "success",
-            //         message: "Record found"
-            //     });
-            // } else {
-            //     res.status(config.OK_STATUS).json({
-            //         status: "failed",
-            //         message: "record not found"
-            //     });
-            // }
         } catch (error) {
             res.status(config.OK_STATUS).json({
                 status: "failed",
