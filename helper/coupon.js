@@ -100,7 +100,8 @@ couponHelper.checkCoupon = async (data) => {
 couponHelper.applyCoupon = async (user_id, coupon_code) => {
     try {
         // check in coupon table
-        var coupon = await Coupon.find({ coupon_code: { $eq: coupon_code } });
+        // var coupon = await Coupon.find({ coupon_code: { $eq: coupon_code } });
+        var coupon = await Coupon.find({ coupon_code: { $eq: coupon_code }, isDeleted : false });
         console.log('Coupon =>', coupon);
         if (coupon && coupon.length > 0) {
             // check appplied or not
