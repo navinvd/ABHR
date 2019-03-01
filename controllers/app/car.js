@@ -4045,6 +4045,7 @@ router.post('/filter-v5', async (req, res) => {
                     "car_brand_id": 1,
                     "isDeleted": 1,
                     "resident_criteria": 1,
+                    "age_of_car" : 1,
                     "image_name": {
                         "$arrayElemAt": [
                             "$car_gallery.name",

@@ -353,6 +353,7 @@ router.post('/booking-details', async (req, res) => {
                     car_model: "$modelDetails.model_name",
                     car_model_number: "$modelDetails.model_number",
                     car_model_release_year: "$modelDetails.release_year",
+                    age_of_car: "$carDetails.age_of_car",
                     first_name: "$userDetails.first_name",
                     last_name: "$userDetails.last_name",
                     phone_number: "$userDetails.phone_number",
@@ -584,7 +585,7 @@ router.post('/receive', async (req, res) => {
             'car_id': req.body.car_id,
             'agent_id': req.body.agent_id,
             'car_rental_company_id': req.body.car_rental_company_id,
-            'defected_points': req.body.defected_points,
+            'defected_points': req.body.defected_points ? req.body.defected_points : [],
             'milage': req.body.milage,
             'petrol_tank': req.body.petrol_tank,
             'notes': req.body.notes ? req.body.notes : null,
@@ -854,6 +855,10 @@ router.post('/assign_or_not-v2', async (req, res) => {
         'user_id': {
             notEmpty: true,
             errorMessage: "Please enter user id"
+        },
+        'agent_phone_number': {
+            notEmpty: true,
+            errorMessage: "Please enter agent phone number"
         }
     };
     req.checkBody(schema);
@@ -896,7 +901,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
 
                             var newdata = {
                                 'car_handover_by_agent_id': new ObjectId(req.body.agent_id),
-                                'agent_assign_for_handover': true
+                                'agent_assign_for_handover': true,
+                                'agent_phone_number' : req.body.agent_phone_number // add new
                             }
 
                             // boking update
@@ -973,7 +979,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
 
                                 var newdata = {
                                     'car_receive_by_agent_id': new ObjectId(req.body.agent_id),
-                                    'agent_assign_for_receive': true
+                                    'agent_assign_for_receive': true,
+                                    'agent_phone_number' : req.body.agent_phone_number // add new
                                 }
 
                                 var bookingUpdate = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: newdata })
@@ -1020,7 +1027,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
                                 // update car_booking table
                                 var newdata = {
                                     'car_receive_by_agent_id': new ObjectId(req.body.agent_id),
-                                    'agent_assign_for_receive': true
+                                    'agent_assign_for_receive': true,
+                                    'agent_phone_number' : req.body.agent_phone_number // add new
                                 }
 
                                 var bookingUpdate = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: newdata })
@@ -2021,6 +2029,7 @@ router.post('/car-list-v3', async (req, res) => {
                 car_class: "$carDetails.car_class",
                 licence_plate: "$carDetails.licence_plate",
                 car_color: "$carDetails.car_color",
+                age_of_car: "$carDetails.age_of_car",
                 car_brand: "$brandDetails.brand_name",
                 car_model: "$modelDetails.model_name",
                 car_model_number: "$modelDetails.model_number",
@@ -2204,6 +2213,7 @@ router.post('/car-list-v3', async (req, res) => {
                 car_class: "$carDetails.car_class",
                 licence_plate: "$carDetails.licence_plate",
                 car_color: "$carDetails.car_color",
+                age_of_car: "$carDetails.age_of_car",
                 car_brand: "$brandDetails.brand_name",
                 car_model: "$modelDetails.model_name",
                 car_model_number: "$modelDetails.model_number",
@@ -2525,7 +2535,7 @@ router.post('/delivering_v3', async (req, res) => {
             'car_id': req.body.car_id,
             'agent_id': req.body.agent_id,
             'car_rental_company_id': req.body.car_rental_company_id,
-            'defected_points': req.body.defected_points,
+            'defected_points': req.body.defected_points ? req.body.defected_points : [],
             'milage': req.body.milage,
             'petrol_tank': req.body.petrol_tank,
             'notes': req.body.notes ? req.body.notes : null,
