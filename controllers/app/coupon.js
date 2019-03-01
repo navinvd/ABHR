@@ -104,4 +104,48 @@ router.post('/apply', async (req, res) => {
 });
 
 
+
+/**
+ * @api {get} /app/coupon/list Get coupon list
+ * @apiName Get coupon list
+ * @apiDescription Used to get coupon list
+ * @apiGroup App - Coupon
+ * 
+ * @apiParam {String} car_rental_company_id id of car company
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// get coupon list
+router.post('/list', async (req, res) => {
+    var schema = {
+        'car_rental_company_id':{
+            notEmpty: true,
+            errorMessage: "Please enter car rentel company id",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const couponResp = await couponHelper.getCouponList(req.body.car_rental_company_id);
+        if(couponResp.status === 'success'){
+            res.status(config.OK_STATUS).json(couponResp);
+        } else{
+            res.status(config.BAD_REQUEST).json(couponResp);
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+
 module.exports = router;

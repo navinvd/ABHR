@@ -157,4 +157,39 @@ couponHelper.companiList = async () => {
     
 };
 
+
+
+// coupon list
+couponHelper.getCouponList = async (car_rental_company_id) => {
+    try{
+        // let coopan = await Coupon.find({isDeleted : false, car_rental_company_id: new ObjectId('5c454b325dfbfa318feb38a1')});
+        let coopan = await Coupon.find({
+            $and : [
+                        {
+                            $or : [
+                                    {"car_rental_company_id": { $exists : false }},
+                                    {"car_rental_company_id": { $eq : new ObjectId(car_rental_company_id)}}
+                                 ]
+                        },
+                        {
+                           "isDeleted" : false
+                        }
+                   ]
+            
+        });
+
+        if (coopan && coopan.length > 0) {
+            return { status: 'success', message: "Coupons has been found", data : { coupons : coopan}}
+        }
+        else {
+            return { status: 'failed', message: "No coupons has been found" };
+        }
+    } catch(e){
+        return { status: 'failed', message: "Error occured while fetching coupon" };
+    }
+    
+};
+
+
+
 module.exports = couponHelper;
