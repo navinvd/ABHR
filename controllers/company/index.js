@@ -68,7 +68,7 @@ router.post('/login', async (req, res, next) => {
                         if (result) {
                             if(data.is_Active){
                                 var token = jwt.sign({ id: data._id, email: data.email }, config.ACCESS_TOKEN_SECRET_KEY, {
-                                    expiresIn: 60 * 60 * 24 // expires in 24 hours
+                                    expiresIn: 60 * 15 // expires in 15 min
                                 });
 
                                 res.status(config.OK_STATUS).json({
@@ -387,6 +387,47 @@ router.get('/details/:id', (req, res, next) => {
             });
         }
     });
+});
+
+router.post('/check_status', async (req, res, next)=>{
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user_id",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+            var check = await Company.findOne({"_id": new ObjectId(req.body.user_id)});
+            if(check !== null && check !== ''){
+                if(check.isDeleted === true){
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message : "Your Company has beed deleted from Super Admin"
+                    });
+                }else if(check.is_Active === false){
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message : "Your Company has beed Deactivated from Super Admin"
+                    });
+                }else{
+                    res.status(config.OK_STATUS).json({
+                        status: "failed"
+                    }); 
+                }
+            }else{
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "Validation error"
+                });
+            }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message: "Validation error"
+        });
+    }
 });
 
 
