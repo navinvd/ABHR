@@ -876,137 +876,206 @@ router.post('/details', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var defaultQuery = [
-            {
-              "$match": {
-                "isDeleted": false,
-                "_id": new ObjectId(req.body.booking_id)
-              }
-            },
-            {
-              "$lookup": {
-                "from": "cars",
-                "localField": "carId",
-                "foreignField": "_id",
-                "as": "car_details",
-              }
-            },
-            {
-              "$unwind": {
-                "path": "$car_details",
-                "preserveNullAndEmptyArrays": true
-              }
-            },
-            {
-              "$lookup": {
-                "from": "users",
-                "localField": "car_handover_by_agent_id",
-                "foreignField": "_id",
-                "as": "agent_for_handover",
-              }
-            },
-            {
-              "$unwind": {
-                  "path": "$aget_for_handover",
-                  "preserveNullAndEmptyArrays": true
-              }
-            },
-            {
-              "$lookup": {
-                "from": "users",
-                "localField": "car_receive_by_agent_id",
-                "foreignField": "_id",
-                "as": "agent_for_receive",
-              }
-            },
-            {
-              "$unwind": {
-                  "path": "$agent_for_receive",
-                  "preserveNullAndEmptyArrays": true
-              }
-            },
-            {
-              "$lookup": {
-                "from": "car_company",
-                "localField": "car_details.car_rental_company_id",
-                "foreignField": "_id",
-                "as": "car_compnay"
-              }
-            },
-            {
-              "$unwind": "$car_compnay"
-            },
-            {
-              "$lookup": {
-                "from": "car_model",
-                "localField": "car_details.car_model_id",
-                "foreignField": "_id",
-                "as": "car_model",
-              }
-            },
-            {
-              "$unwind": "$car_model"
-            },
-            {
-              "$lookup": {
-                "from": "car_brand",
-                "localField": "car_details.car_brand_id",
-                "foreignField": "_id",
-                "as": "car_brand",
-              }
-            },
-            {
-              "$unwind": "$car_brand"
-            },
-            {
-              "$lookup": {
-                "from": "users",
-                "localField": "userId",
-                "foreignField": "_id",
-                "as": "user_details",
-              }
-            },
-            {
-              "$unwind": {
-                "path":  "$user_details",
-                "preserveNullAndEmptyArrays": true,
-              }
-            },
-            // {
-            //   "$project": {
-            //     "_id": 1,
-            //     "company_name": "$car_compnay.name",
-            //     "car_model": "$car_model.model_name",
-            //     "car_brand": "$car_brand.brand_name",
-            //     "isDeleted": 1,
-            //     "firts_name": "$user_details.first_name",
-            //     "last_name": "$user_details.last_name",
-            //     "from_time": 1,
-            //     "to_time": 1,
-            //     "Transaction_amount": 1,
-            //     "VAT": 1,
-            //     "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
-            //     "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
-            //     "car_receive_first_name": "$agent_for_receive.first_name",
-            //     "car_receive_last_name": "$agent_for_receive.last_name",
-            //     "booking_number": 1,
-            //     "deposite_amount": 1,
-            //     "coupon_rate": "$coupon_details.discount_rate",
-            //     "coupon_code": 1,
-            //     "status": 1,
-            //  }
-            // }
-          ];
-        CarBooking.aggregate(defaultQuery, function (err, data) {
-            if (err) {
-                return next(err);
-            } else {
-                res.status(config.OK_STATUS).json({
-                    message: "Success",
-                    result: { data: data[0]}
-                });
-            }
-        })
+        try{
+            var defaultQuery = [
+                {
+                "$match": {
+                    "isDeleted": false,
+                    "_id": new ObjectId(req.body.booking_id)
+                }
+                },
+                {
+                "$lookup": {
+                    "from": "cars",
+                    "localField": "carId",
+                    "foreignField": "_id",
+                    "as": "car_details",
+                }
+                },
+                {
+                "$unwind": {
+                    "path": "$car_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+                },
+                // {
+                //   "$lookup": {
+                //     "from": "users",
+                //     "localField": "car_handover_by_agent_id",
+                //     "foreignField": "_id",
+                //     "as": "agent_for_handover",
+                //   }
+                // },
+                // {
+                //   "$unwind": {
+                //       "path": "$aget_for_handover",
+                //       "preserveNullAndEmptyArrays": true
+                //   }
+                // },
+                // {
+                //   "$lookup": {
+                //     "from": "users",
+                //     "localField": "car_receive_by_agent_id",
+                //     "foreignField": "_id",
+                //     "as": "agent_for_receive",
+                //   }
+                // },
+                // {
+                //   "$unwind": {
+                //       "path": "$agent_for_receive",
+                //       "preserveNullAndEmptyArrays": true
+                //   }
+                // },
+                {
+                "$lookup": {
+                    "from": "car_company",
+                    "localField": "car_details.car_rental_company_id",
+                    "foreignField": "_id",
+                    "as": "car_compnay"
+                }
+                },
+                {
+                "$unwind": "$car_compnay"
+                },
+                {
+                "$lookup": {
+                    "from": "car_model",
+                    "localField": "car_details.car_model_id",
+                    "foreignField": "_id",
+                    "as": "car_model",
+                }
+                },
+                {
+                "$unwind": "$car_model"
+                },
+                {
+                "$lookup": {
+                    "from": "car_brand",
+                    "localField": "car_details.car_brand_id",
+                    "foreignField": "_id",
+                    "as": "car_brand",
+                }
+                },
+                {
+                "$unwind": "$car_brand"
+                },
+                {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "userId",
+                    "foreignField": "_id",
+                    "as": "user_details",
+                }
+                },
+                {
+                "$unwind": {
+                    "path":  "$user_details",
+                    "preserveNullAndEmptyArrays": true,
+                }
+                },
+                {
+                    "$project": {
+                        "_id": 1,
+                        "company_name": "$car_compnay.name",
+                        "car_model": "$car_model.model_name",
+                        "car_brand": "$car_brand.brand_name",
+                        "isDeleted": 1,
+                        "first_name": "$user_details.first_name",
+                        "last_name": "$user_details.last_name",
+                        "from_time": 1,
+                        "to_time": 1,
+                        "days": 1,
+                        "per_day_rent": "$booking_rent",
+                        "total_rent" : {$multiply : ["$booking_rent", "$days"]},
+                        "coupon_amount":{
+                            "$cond": {
+                            "if": {"$eq":["$coupon_code",null]},
+                            "then": 0,
+                            "else":{
+                                $divide :[
+                                    {$multiply : [
+                                        {$multiply : ["$booking_rent", "$days"]}, 
+                                        "$coupon_percentage"
+                                    ]},
+                                    100
+                                ]}
+                            }
+                        }, 
+                        "vat_amount": {
+                            "$cond": {
+                            "if": {"$eq":["$coupon_code",null]},
+                            "then": {$divide :[
+                                            {$multiply : [
+                                                {$multiply : ["$booking_rent", "$days"]}, 
+                                                "$vat"
+                                            ]},
+                                            100
+                                        ]},
+                            "else":{
+                                $divide :[
+                                    {
+                                        $multiply : [
+                                        {$subtract: [ 
+                                            {$multiply : ["$booking_rent", "$days"]},
+                                            {$divide :[
+                                                {$multiply : [
+                                                    {$multiply : ["$booking_rent", "$days"]}, 
+                                                    "$coupon_percentage"
+                                                ]},
+                                                100
+                                            ]}
+                                    ]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]}
+                            }
+                        },
+                        "total_booking_cost": {$subtract: ["$total_booking_amount", "$deposite_amount"]},
+                        // "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
+                        // "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
+                        // "car_receive_first_name": "$agent_for_receive.first_name",
+                        // "car_receive_last_name": "$agent_for_receive.last_name",
+                        "booking_number": 1,
+                        "deposite_amount": 1,
+                        "coupon_percentage": 1,
+                        "coupon_code": 1,
+                        "defect_amount": 1,
+                        "check_cancel": {$not: ["$cancel_date"]},
+                        "cancel_charge": {
+                            "$cond": {
+                                "if": {"$eq":["$cancel_date",null]},
+                                "then": 0,
+                                "else": "$cancellation_charge"
+                            }
+                        },
+                        "refundable_amount": {
+                            "$cond": {
+                                "if": {"$eq":["$cancel_date",null]},
+                                "then": 0,
+                                "else": {
+                                    $subtract: [{$subtract: ["$total_booking_amount", "$deposite_amount"]}, "$cancellation_charge"]},
+                            }
+                        }
+                    } 
+                }
+            ];
+            CarBooking.aggregate(defaultQuery, function (err, data) {
+                if (err) {
+                    return next(err);
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        message: "Success",
+                        result: { data: data[0]}
+                    });
+                }
+            })
+        }catch(e){
+            res.status(config.BAD_REQUEST).json({
+                message: "Something Went Wrong",
+                error: e
+            });
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",

@@ -6,6 +6,7 @@ const couponHelper = require('./../../helper/coupon');
 var Coupon = require('./../../models/coupon');
 var ObjectId = require('mongoose').Types.ObjectId;
 var path = require('path');
+var fs = require('fs');
 
 /**
  * @api {post} /admin/coupon/list List of all superadmin coupon
@@ -245,22 +246,23 @@ router.post('/add', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         console.log('here');
-        var obj = { "coupon_code" : { "$regex" : req.body.coupon_code , "$options" : "i"},
-                    "isDeleted": false
+        var obj = {
+            "coupon_code": { "$regex": req.body.coupon_code, "$options": "i" },
+            "isDeleted": false
         }
         const couponResp = await Coupon.findOne(obj);
-        if(couponResp !== null && couponResp !== '' && typeof couponResp !== 'undefined'){
+        if (couponResp !== null && couponResp !== '' && typeof couponResp !== 'undefined') {
             res.status(config.BAD_REQUEST).json({
                 status: 'failed',
                 message: "Coupon Code Already Exist"
             });
-        }else{
+        } else {
             var mimetype = config.mimetypes;
             var data = {
                 coupon_code: req.body.coupon_code,
                 discount_rate: req.body.discount_rate,
                 description: req.body.description ? req.body.description : '',
-                banner: ''
+                banner: null
             }
             if (req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)) {
                 if (req.files['banner_image']) {
@@ -328,7 +330,7 @@ router.post('/update', async (req, res) => {
             coupon_code: req.body.coupon_code,
             discount_rate: req.body.discount_rate,
             description: req.body.description ? req.body.description : '',
-            banner: ''
+            banner: null
         }
         var mimetype = config.mimetypes;
         if (req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)) {
@@ -337,6 +339,7 @@ router.post('/update', async (req, res) => {
                 var dir = "./upload/banner";
                 extention = path.extname(file.name);
                 filename = req.body.coupon_code + extention;
+                fs.unlinkSync(dir + '/' + req.body.old_banner_image);
                 file.mv(dir + '/' + filename, function (err) {
                     if (err) {
                         return (err);
@@ -437,19 +440,20 @@ router.post('/check_coupon', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            var obj = { "coupon_code" : { "$regex" : req.body.coupon_code , "$options" : "i"},
-              "isDeleted": false
+            var obj = {
+                "coupon_code": { "$regex": req.body.coupon_code, "$options": "i" },
+                "isDeleted": false
             }
             // var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false };
             if (req.body.coupon_id) {
-                obj = Object.assign(obj, { "_id" :{ "$ne": new ObjectId(req.body.coupon_id) }});
+                obj = Object.assign(obj, { "_id": { "$ne": new ObjectId(req.body.coupon_id) } });
                 // var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false, "_id": { "$ne": new ObjectId(req.body.coupon_id) } };
             }
             const couponResp = await couponHelper.checkCoupon(obj);
             if (couponResp.status === 'success') {
-                res.status(config.OK_STATUS).json({status: "success", message: "Coupon Code Already Exist"});
+                res.status(config.OK_STATUS).json({ status: "success", message: "Coupon Code Already Exist" });
             } else {
-                res.status(config.OK_STATUS).json({status: "failed"});
+                res.status(config.OK_STATUS).json({ status: "failed" });
             }
         } catch (error) {
             res.status(config.OK_STATUS).json({

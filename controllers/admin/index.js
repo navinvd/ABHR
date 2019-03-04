@@ -25,6 +25,7 @@ var dashboard = require('./dashboard');
 var transaction = require('./transaction');
 var tracking = require('./car_tracking');
 var help = require('./user_help');
+var report = require('./car_report');
 
 router.use('/user', users);
 router.use('/keyword', keywords);
@@ -38,6 +39,7 @@ router.use('/dashboard', dashboard);
 router.use('/transaction', transaction);
 router.use('/tracking', tracking);
 router.use('/help', help);
+router.use('/reports', report);
 
 //models
 var User = require('./../../models/users');

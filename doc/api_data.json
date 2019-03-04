@@ -2776,76 +2776,6 @@
   },
   {
     "type": "get",
-    "url": "/company/details/:id?",
-    "title": "Company Details By Id",
-    "name": "company_Details_By_Id",
-    "description": "<p>Get Company details By company id</p>",
-    "group": "Admin___Companies",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p>company Id</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Users unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/company/index.js",
-    "groupTitle": "Admin___Companies"
-  },
-  {
-    "type": "get",
     "url": "/admin/company/details/:id?",
     "title": "Company Details By Id",
     "name": "company_Details_By_Id",
@@ -2912,6 +2842,76 @@
       }
     },
     "filename": "controllers/admin/companies.js",
+    "groupTitle": "Admin___Companies"
+  },
+  {
+    "type": "get",
+    "url": "/company/details/:id",
+    "title": "Company Details By Id",
+    "name": "company_Details_By_Id",
+    "description": "<p>Get Company details By company id</p>",
+    "group": "Admin___Companies",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>company Id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/index.js",
     "groupTitle": "Admin___Companies"
   },
   {
@@ -3156,6 +3156,83 @@
       }
     },
     "version": "0.0.0",
+    "filename": "controllers/admin/car_report.js",
+    "groupTitle": "Admin___Coupon"
+  },
+  {
+    "type": "post",
+    "url": "/admin/coupon/check_coupon",
+    "title": "Check coupon code",
+    "name": "Check_Coupon",
+    "description": "<p>Used to check coupon</p>",
+    "group": "Admin___Coupon",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "coupon_code",
+            "description": "<p>Update coupon code</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "coupon_id",
+            "description": "<p>couponId</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
     "filename": "controllers/admin/coupons.js",
     "groupTitle": "Admin___Coupon"
   },
@@ -3308,7 +3385,84 @@
   },
   {
     "type": "get",
-    "url": "/app/coupon/companies",
+    "url": "/admin/coupon/companies",
+    "title": "list of companies",
+    "name": "List_of_company",
+    "description": "<p>Used to list of company</p>",
+    "group": "Admin___Coupon",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>id of user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "coupon_code",
+            "description": "<p>coupon code (eg &quot;ABCD&quot;)</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/car_report.js",
+    "groupTitle": "Admin___Coupon"
+  },
+  {
+    "type": "get",
+    "url": "/admin/coupon/companies",
     "title": "list of companies",
     "name": "List_of_company",
     "description": "<p>Used to list of company</p>",
@@ -3384,7 +3538,7 @@
     "groupTitle": "Admin___Coupon"
   },
   {
-    "type": "put",
+    "type": "post",
     "url": "/admin/coupon/update",
     "title": "Update coupon",
     "name": "Update_Coupon",
@@ -3694,6 +3848,300 @@
     },
     "filename": "controllers/admin/dashboard.js",
     "groupTitle": "Admin___Dashboard"
+  },
+  {
+    "type": "post",
+    "url": "/admin/reports/add/category",
+    "title": "Add category",
+    "name": "Add_New_Category",
+    "description": "<p>Used to add category</p>",
+    "group": "Admin___Feedback",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "category_name",
+            "description": "<p>Add category_name</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/car_report.js",
+    "groupTitle": "Admin___Feedback"
+  },
+  {
+    "type": "post",
+    "url": "/admin/reports/category_list",
+    "title": "List of all superadmin category",
+    "name": "Category_List",
+    "description": "<p>To display category list with pagination</p>",
+    "group": "Admin___Feedback",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "length",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/car_report.js",
+    "groupTitle": "Admin___Feedback"
+  },
+  {
+    "type": "put",
+    "url": "/admin/reports/delete/category",
+    "title": "Delete category",
+    "name": "Delete_Category",
+    "description": "<p>Used to Delete category</p>",
+    "group": "Admin___Feedback",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "category_id",
+            "description": "<p>category_id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/car_report.js",
+    "groupTitle": "Admin___Feedback"
+  },
+  {
+    "type": "post",
+    "url": "/admin/reports/update/category",
+    "title": "Update category",
+    "name": "Update_Category",
+    "description": "<p>Used to update category</p>",
+    "group": "Admin___Feedback",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "category_name",
+            "description": "<p>Update coupon code</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "category_id",
+            "description": "<p>unique id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/car_report.js",
+    "groupTitle": "Admin___Feedback"
   },
   {
     "type": "post",
@@ -6422,7 +6870,7 @@
   },
   {
     "type": "post",
-    "url": "/app/social_login",
+    "url": "/app/social_login-v2",
     "title": "Facebook Login",
     "name": "Facebook_Login",
     "description": "<p>Used for user facebook login</p>",
@@ -6506,7 +6954,7 @@
   },
   {
     "type": "post",
-    "url": "/app/social_login-v2",
+    "url": "/app/social_login",
     "title": "Facebook Login",
     "name": "Facebook_Login",
     "description": "<p>Used for user facebook login</p>",
@@ -9261,7 +9709,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/agentApp/car.js",
+    "filename": "controllers/app/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -9394,7 +9842,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/app/car.js",
+    "filename": "controllers/agentApp/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -10045,7 +10493,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/admin/coupons.js",
+    "filename": "controllers/admin/car_report.js",
     "groupTitle": "App___Coupon"
   },
   {
@@ -10071,6 +10519,153 @@
             "optional": false,
             "field": "coupon_code",
             "description": "<p>coupon code (eg &quot;ABCD&quot;)</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/coupon.js",
+    "groupTitle": "App___Coupon"
+  },
+  {
+    "type": "post",
+    "url": "/app/coupon/apply",
+    "title": "Apply coupon code when book car",
+    "name": "Apply_coupon_code",
+    "description": "<p>Used to use coupon code when book the car</p>",
+    "group": "App___Coupon",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>id of user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "coupon_code",
+            "description": "<p>coupon code (eg &quot;ABCD&quot;)</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/admin/coupons.js",
+    "groupTitle": "App___Coupon"
+  },
+  {
+    "type": "get",
+    "url": "/app/coupon/list",
+    "title": "Get coupon list",
+    "name": "Get_coupon_list",
+    "description": "<p>Used to get coupon list</p>",
+    "group": "App___Coupon",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "car_rental_company_id",
+            "description": "<p>id of car company</p>"
           }
         ]
       }

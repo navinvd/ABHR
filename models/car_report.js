@@ -8,7 +8,12 @@ var CarReportSChema = new Schema({
     car_id : mongoose.Schema.Types.ObjectId,
     car_rental_company_id :  mongoose.Schema.Types.ObjectId,
     booking_number : { type : Number, required : true},
-    report_type : { type : Boolean, required : true}, // 0 - Lost/Stolen (false)   &  1 - Problem in car (true)
+    report_type : mongoose.Schema.Types.ObjectId,
+    status: {
+        type: String,
+        enum: ["pending", "resolved"],
+        default: "pending"
+    },
     report_message: {
         type: String,
         required : true,
