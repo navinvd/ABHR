@@ -355,172 +355,16 @@ router.post('/list', async (req, res, next) => {
               }
             },
             {
-              "$lookup": {
-                "from": "users",
-                "localField": "car_handover_by_agent_id",
-                "foreignField": "_id",
-                "as": "agent_for_handover",
-              }
-            },
-            {
-              "$unwind": {
-                  "path": "$aget_for_handover",
-                  "preserveNullAndEmptyArrays": true
-              }
-            },
-            {
-              "$lookup": {
-                "from": "users",
-                "localField": "car_receive_by_agent_id",
-                "foreignField": "_id",
-                "as": "agent_for_receive",
-              }
-            },
-            {
-              "$unwind": {
-                  "path": "$agent_for_receive",
-                  "preserveNullAndEmptyArrays": true
-              }
-            },
-            {
-                "$lookup": {
-                  "from": "coupons",
-                  "localField": "coupon_code",
-                  "foreignField": "coupon_code",
-                  "as": "coupon_details",
-                }
-              },
-              {
-                "$unwind": {
-                    "path": "$coupon_details",
-                    "preserveNullAndEmptyArrays": true
-                }
-              },
-            {
-              "$lookup": {
-                "from": "car_company",
-                "localField": "car_details.car_rental_company_id",
-                "foreignField": "_id",
-                "as": "car_compnay"
-              }
-            },
-            {
-              "$unwind": "$car_compnay"
-            },
-            {
-              "$lookup": {
-                "from": "car_model",
-                "localField": "car_details.car_model_id",
-                "foreignField": "_id",
-                "as": "car_model",
-              }
-            },
-            {
-              "$unwind": "$car_model"
-            },
-            {
-              "$lookup": {
-                "from": "car_brand",
-                "localField": "car_details.car_brand_id",
-                "foreignField": "_id",
-                "as": "car_brand",
-              }
-            },
-            {
-              "$unwind": "$car_brand"
-            },
-            {
-              "$lookup": {
-                "from": "users",
-                "localField": "userId",
-                "foreignField": "_id",
-                "as": "user_details",
-              }
-            },
-            {
-              "$unwind": {
-                "path":  "$user_details",
-                "preserveNullAndEmptyArrays": true,
-              }
-            },
-            {
               "$project": {
                 "_id": 1,
-                "company_name": "$car_compnay.name",
-                // "car_model": "$car_model.model_name",
-                // "car_brand": "$car_brand.brand_name",
-                "isDeleted": 1,
-                // "firts_name": "$user_details.first_name",
-                // "last_name": "$user_details.last_name",
-                "from_time": 1,
-                "to_time": 1,
-                "total_booking_amount": 1,
-                "defect_amount":1,
-                "transaction_status":1,
-                "total_amount":{$multiply : ["$booking_rent", "$days"]},
-                "vat": {
-                    "$cond": {
-                      "if": {"$eq":["$coupon_code",null]},
-                      "then": {$divide :[
-                                    {$multiply : [
-                                        {$multiply : ["$booking_rent", "$days"]}, 
-                                        "$vat"
-                                    ]},
-                                    100
-                                ]},
-                      "else":{
-                          $divide :[
-                                    {$multiply : [
-                                        {$subtract: [ 
-                                            {$multiply : ["$booking_rent", "$days"]},
-                                            {$divide :[
-                                                {$multiply : [
-                                                    {$multiply : ["$booking_rent", "$days"]}, 
-                                                    "$coupon_percentage"
-                                                ]},
-                                                100
-                                            ]}
-                                       ]}, 
-                                        "$vat"
-                                    ]},
-                                    100
-                                ]}
-                            }
-                },
                 "booking_number": 1,
-                "deposite_amount": 1,
-                "coupon_percentage": {
-                    "$cond": {
-                      "if": {"$eq":["$coupon_code",null]},
-                      "then": 0,
-                      "else":{
-                        $divide :[
-                            {$multiply : [
-                                {$multiply : ["$booking_rent", "$days"]}, 
-                                "$coupon_percentage"
-                            ]},
-                            100
-                        ]}
-                    }
-                },
-                "coupon_code": 1,
+                "category_type": "$categoryDetails.category_name",
+                "report_message": 1,
+                "status":1,
                 "createdAt":1
               }
             }
           ];
-          if (req.body.selectFromDate && req.body.selectToDate) {
-            var From_date = moment(req.body.selectFromDate).utc().startOf('day');
-            var To_date = moment(req.body.selectToDate).utc().startOf('day');
-            defaultQuery.push({
-                $match: {
-                      $and: [
-                                { "from_time": { $gte: new Date(From_date) } },
-                                { "to_time": { $lte: new Date(To_date) } },
-                            ]
-                        }
-            })
-        }
-        // console.log('defaultQuery', JSON.stringify(defaultQuery));
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -596,7 +440,7 @@ router.post('/list', async (req, res, next) => {
                 }
             }
         }
-        var totalrecords = await CarBooking.aggregate(defaultQuery);
+        var totalrecords = await Report.aggregate(defaultQuery);
         if (req.body.start) {
             defaultQuery.push({
                 "$skip": req.body.start
@@ -608,14 +452,14 @@ router.post('/list', async (req, res, next) => {
             })
         }
         // console.log('defaultQuery===>', JSON.stringify(defaultQuery));
-        CarBooking.aggregate(defaultQuery, function (err, data) {
+        Report.aggregate(defaultQuery, function (err, data) {
             // console.log('data===>', data);
             if (err) {
                 return next(err);
             } else {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: { data: data, recordsTotal: totalrecords.length }
+                    result: { recordsTotal: totalrecords.length, data: data }
                 });
             }
         })
