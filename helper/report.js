@@ -19,7 +19,7 @@ ReportHelper.addCategory = async (data) => {
 ReportHelper.updateCategory = async (data) => {
     let category = await ReportCategory.update({ "_id": data.category_id , isDeleted: false}, { $set: { "category_name": data.category_name}});
     if (category) {
-        return { status: 'failed', message: "Category updated successfully" }
+        return { status: 'success', message: "Category updated successfully" }
     }
     else {
         return { status: 'failed', message: "Error occured while updating category" }
