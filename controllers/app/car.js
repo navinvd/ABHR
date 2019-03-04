@@ -5212,7 +5212,8 @@ router.post('/extend-booking', async (req, res) => {
         }
         else {
             var condition = {
-                "booking_number" : req.body.booking_number
+                "booking_number" : req.body.booking_number,
+                "trip_status" : "inprogress"
             }
             var setData = {
                 "extended_days": req.body.days,
