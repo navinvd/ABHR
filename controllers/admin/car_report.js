@@ -2,17 +2,18 @@ var express = require('express');
 var router = express.Router();
 
 var config = require('./../../config');
-const couponHelper = require('./../../helper/coupon');
-var Coupon = require('./../../models/coupon');
+const ReportHelper = require('./../../helper/report');
+var Categoy = require('./../../models/report_category');
+var Report = require('./../../models/car_report');
 var ObjectId = require('mongoose').Types.ObjectId;
 var path = require('path');
 var fs = require('fs');
 
 /**
- * @api {post} /admin/coupon/list List of all superadmin coupon
- * @apiName Coupon List
- * @apiDescription To display coupons list with pagination
- * @apiGroup Admin - Coupon
+ * @api {post} /admin/reports/category_list List of all superadmin category
+ * @apiName Category List
+ * @apiDescription To display category list with pagination
+ * @apiGroup Admin - Feedback
  * @apiVersion 0.0.0
  * 
  * @apiParam {String} start pagination start page no
@@ -24,7 +25,7 @@ var fs = require('fs');
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/list', async (req, res, next) => {
+router.post('/category_list', async (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -41,20 +42,6 @@ router.post('/list', async (req, res, next) => {
         try {
             var defaultQuery = [
                 {
-                    $lookup: {
-                        from: 'car_company',
-                        foreignField: '_id',
-                        localField: 'car_rental_company_id',
-                        as: "companyDetails",
-                    }
-                },
-                {
-                    $unwind: {
-                        "path": "$companyDetails",
-                        "preserveNullAndEmptyArrays": true
-                    }
-                },
-                {
                     $match: {
                         "isDeleted": false
                     }
@@ -62,23 +49,6 @@ router.post('/list', async (req, res, next) => {
                 {
                     $sort: { 'createdAt': -1 }
                 }
-                // {
-                //     $group: {
-                //         "_id": "",
-                //         "recordsTotal": {
-                //             "$sum": 1
-                //         },
-                //         "data": {
-                //             "$push": "$$ROOT"
-                //         }
-                //     }
-                // },
-                // {
-                //     $project: {
-                //         "recordsTotal": 1,
-                //         "data": "$data"
-                //     }
-                // }
             ];
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
@@ -129,11 +99,6 @@ router.post('/list', async (req, res, next) => {
             }
             if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length > 0) {
                 if (req.body.search.value) {
-                    var string = "admin";
-                    if (string.includes(req.body.search.value.toLowerCase())) {
-                        var match = { 'car_rental_company_id': { '$eq': null } };
-                    } else {
-                        console.log('in seacrch valie');
                         var regex = new RegExp(req.body.search.value);
                         var match = { $or: [] };
                         req.body['columns'].forEach(function (obj) {
@@ -150,14 +115,13 @@ router.post('/list', async (req, res, next) => {
                                 match['$or'].push(json)
                             }
                         });
-                    }
                     var searchQuery = {
                         $match: match
                     }
                     defaultQuery.push(searchQuery);
                 }
             }
-            var totalRecords = await Coupon.aggregate(defaultQuery);
+            var totalRecords = await Categoy.aggregate(defaultQuery);
 
             if (req.body.start !== null) {
                 console.log('in skip===>')
@@ -186,15 +150,15 @@ router.post('/list', async (req, res, next) => {
                 });
 
             console.log('this is query for sahil==>', JSON.stringify(defaultQuery));
-            Coupon.aggregate(defaultQuery, function (err, data) {
+            Categoy.aggregate(defaultQuery, function (err, data) {
                 if (err) {
                     console.log('err===>', err);
                     return next(err);
                 } else {
-                    // console.log('result===>', data);
+                    console.log('result===>', data);
                     res.status(config.OK_STATUS).json({
                         message: "Success",
-                        result: { recordsTotal: totalRecords.length, data: data[0].data }
+                        result: { recordsTotal: totalRecords.length, data: data.length > 0 ? data[0].data : [] }
                     });
                 }
             })
@@ -214,15 +178,12 @@ router.post('/list', async (req, res, next) => {
 
 
 /**
- * @api {post} /admin/coupon/add Add coupon 
- * @apiName Add New Coupon
- * @apiDescription Used to add coupon
- * @apiGroup Admin - Coupon
+ * @api {post} /admin/reports/add/category Add category 
+ * @apiName Add New Category
+ * @apiDescription Used to add category
+ * @apiGroup Admin - Feedback
  * 
- * @apiParam {String} coupon_code Add coupon code here
- * @apiParam {Number} discount_rate rate (eg. 50)
- * @apiParam {Boolean} idCompanyAdded rate (eg. 50)
- * @apiParam {String} company_id rate (eg. 50)
+ * @apiParam {String} category_name Add category_name 
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -230,66 +191,23 @@ router.post('/list', async (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-// add coupon
-router.post('/add', async (req, res) => {
+// add category
+router.post('/add/category', async (req, res) => {
     var schema = {
-        'coupon_code': {
+        'category_name': {
             notEmpty: true,
             errorMessage: "Please enter coupon code",
-        },
-        'discount_rate': {
-            notEmpty: true,
-            errorMessage: "Please enter discount rate for coupon (eg. 50)",
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        console.log('here');
-        var obj = {
-            "coupon_code": { "$regex": req.body.coupon_code, "$options": "i" },
-            "isDeleted": false
-        }
-        const couponResp = await Coupon.findOne(obj);
-        if (couponResp !== null && couponResp !== '' && typeof couponResp !== 'undefined') {
-            res.status(config.BAD_REQUEST).json({
-                status: 'failed',
-                message: "Coupon Code Already Exist"
-            });
-        } else {
-            var mimetype = config.mimetypes;
-            var data = {
-                coupon_code: req.body.coupon_code,
-                discount_rate: req.body.discount_rate,
-                description: req.body.description ? req.body.description : '',
-                banner: null
-            }
-            if (req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)) {
-                if (req.files['banner_image']) {
-                    var file = req.files.banner_image;
-                    var dir = "./upload/banner";
-                    extention = path.extname(file.name);
-                    filename = req.body.coupon_code + extention;
-                    data.banner = filename;
-                    file.mv(dir + '/' + filename, function (err) {
-                        if (err) {
-                            return (err);
-                        } else {
-                            data.banner = filename;
-                        }
-                    });
-                }
-            }
-            if (typeof req.body.idCompanyAdded !== 'undefined' && req.body.idCompanyAdded == 'true') {
-                data = Object.assign(data, { "car_rental_company_id": new ObjectId(req.body.company_id) });
-            }
-            const couponResp = await couponHelper.addCoupon(data);
-            if (couponResp.status === 'success') {
-                res.status(config.OK_STATUS).json(couponResp);
+            const categoryResp = await ReportHelper.addCategory({"category_name": req.body.category_name});
+            if (categoryResp.status === 'success') {
+                res.status(config.OK_STATUS).json(categoryResp);
             } else {
-                res.status(config.BAD_REQUEST).json(couponResp);
+                res.status(config.BAD_REQUEST).json(categoryResp);
             }
-        }
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -300,14 +218,13 @@ router.post('/add', async (req, res) => {
 });
 
 /**
- * @api {post} /admin/coupon/update Update coupon 
- * @apiName Update Coupon
- * @apiDescription Used to update coupon
- * @apiGroup Admin - Coupon
+ * @api {post} /admin/reports/update/category Update category 
+ * @apiName Update Category
+ * @apiDescription Used to update category
+ * @apiGroup Admin - Feedback
  * 
- * @apiParam {String} coupon_code Update coupon code
- * @apiParam {Number} discount_rate rate (eg. 50)
- * @apiParam {String} coupon_id couponId 
+ * @apiParam {String} [category_name] Update coupon code
+ * @apiParam {String} category_id unique id
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -315,54 +232,22 @@ router.post('/add', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-// update coupon
-router.post('/update', async (req, res) => {
+// update category
+router.post('/update/category', async (req, res) => {
     var schema = {
-        'coupon_id': {
+        'category_id': {
             notEmpty: true,
-            errorMessage: "Please enter coupon_id",
+            errorMessage: "Please enter category_id",
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var data = {
-            coupon_code: req.body.coupon_code,
-            discount_rate: req.body.discount_rate,
-            description: req.body.description ? req.body.description : '',
-            banner: null
-        }
-        var mimetype = config.mimetypes;
-        if (req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)) {
-            if (req.files['banner_image']) {
-                var file = req.files.banner_image;
-                var dir = "./upload/banner";
-                extention = path.extname(file.name);
-                filename = req.body.coupon_code + extention;
-                fs.unlinkSync(dir + '/' + req.body.old_banner_image);
-                file.mv(dir + '/' + filename, function (err) {
-                    if (err) {
-                        return (err);
-                    } else {
-                        console.log('here in upload')
-                        data.banner = filename;
-                    }
-                });
-            }
+        const categoryResp = await ReportHelper.updateCategory(req.body);
+        if (categoryResp.status === 'success') {
+            res.status(config.OK_STATUS).json(categoryResp);
         } else {
-            data.banner = req.body.old_banner_image;
-        }
-        if (typeof req.body.idCompanyAdded !== 'undefined' && req.body.idCompanyAdded == 'true') {
-            isunset = false
-            data = Object.assign(data, { "car_rental_company_id": new ObjectId(req.body.company_id) });
-        } else {
-            isunset = true;
-        }
-        const couponResp = await couponHelper.updateCoupon(req.body.coupon_id, data, isunset);
-        if (couponResp.status === 'success') {
-            res.status(config.OK_STATUS).json(couponResp);
-        } else {
-            res.status(config.BAD_REQUEST).json(couponResp);
+            res.status(config.BAD_REQUEST).json(categoryResp);
         }
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -374,12 +259,12 @@ router.post('/update', async (req, res) => {
 });
 
 /**
- * @api {put} /admin/coupon/delete Delete coupon 
- * @apiName Delete Coupon
- * @apiDescription Used to Delete coupon
- * @apiGroup Admin - Coupon
+ * @api {put} /admin/reports/delete/category Delete category 
+ * @apiName Delete Category
+ * @apiDescription Used to Delete category
+ * @apiGroup Admin - Feedback
  * 
- * @apiParam {String} coupon_id couponId 
+ * @apiParam {String} category_id category_id 
  * 
  * @apiHeader {String}  Content-Type application/json 
  * @apiHeader {String}  x-access-token Users unique access-key   
@@ -388,21 +273,21 @@ router.post('/update', async (req, res) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 // add coupon
-router.put('/delete', async (req, res) => {
+router.put('/delete/category', async (req, res) => {
     var schema = {
-        'coupon_id': {
+        'category_id': {
             notEmpty: true,
-            errorMessage: "Please enter coupon_id",
+            errorMessage: "Please enter category_id",
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        const couponResp = await couponHelper.deleteCoupon(req.body.coupon_id);
-        if (couponResp.status === 'success') {
-            res.status(config.OK_STATUS).json(couponResp);
+        const categoryResp = await ReportHelper.deleteCategory(req.body.category_id);
+        if (categoryResp.status === 'success') {
+            res.status(config.OK_STATUS).json(categoryResp);
         } else {
-            res.status(config.BAD_REQUEST).json(couponResp);
+            res.status(config.BAD_REQUEST).json(categoryResp);
         }
     } else {
         res.status(config.BAD_REQUEST).json({
