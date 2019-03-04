@@ -100,7 +100,8 @@ couponHelper.checkCoupon = async (data) => {
 couponHelper.applyCoupon = async (user_id, coupon_code) => {
     try {
         // check in coupon table
-        var coupon = await Coupon.find({ coupon_code: { $eq: coupon_code } });
+        // var coupon = await Coupon.find({ coupon_code: { $eq: coupon_code } });
+        var coupon = await Coupon.find({ coupon_code: { $eq: coupon_code }, isDeleted : false });
         console.log('Coupon =>', coupon);
         if (coupon && coupon.length > 0) {
             // check appplied or not
@@ -156,5 +157,40 @@ couponHelper.companiList = async () => {
     }
     
 };
+
+
+
+// coupon list
+couponHelper.getCouponList = async (car_rental_company_id) => {
+    try{
+        // let coopan = await Coupon.find({isDeleted : false, car_rental_company_id: new ObjectId('5c454b325dfbfa318feb38a1')});
+        let coopan = await Coupon.find({
+            $and : [
+                        {
+                            $or : [
+                                    {"car_rental_company_id": { $exists : false }},
+                                    {"car_rental_company_id": { $eq : new ObjectId(car_rental_company_id)}}
+                                 ]
+                        },
+                        {
+                           "isDeleted" : false
+                        }
+                   ]
+            
+        });
+
+        if (coopan && coopan.length > 0) {
+            return { status: 'success', message: "Coupons has been found", data : { coupons : coopan}}
+        }
+        else {
+            return { status: 'failed', message: "No coupons has been found" };
+        }
+    } catch(e){
+        return { status: 'failed', message: "Error occured while fetching coupon" };
+    }
+    
+};
+
+
 
 module.exports = couponHelper;

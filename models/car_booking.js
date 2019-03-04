@@ -131,7 +131,7 @@ var BookingSchema = new Schema({
     car_receive_by_agent_id : mongoose.Schema.Types.ObjectId,
     agent_assign_for_handover : { type : Boolean , default : false},
     agent_assign_for_receive : { type : Boolean , default : false},
-    agent_phone_number : { type : String, required: true},
+    agent_phone_number : { type : String },
     isDeleted: {
         type: Boolean,
         default: false
