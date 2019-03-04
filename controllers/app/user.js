@@ -10,6 +10,7 @@ var auth = require('./../../middlewares/auth');
 var path = require('path');
 var User = require('./../../models/users');
 var async = require("async");
+const moment = require('moment');
 
 /**
  * @api {Post} /app/user/notifications List of notifications for perticular user
@@ -458,7 +459,8 @@ router.post('/idDataUpdate', (req, res, next) => {
                             var file = req.files.front_image;
                             var dir = "./upload/user/id_images";
                             extention = path.extname(file.name);
-                            frontfilename = "front_" + req.body.user_id + extention;
+                            var date = moment().format("MMM-DD-YYYY");
+                            frontfilename = "front_" + req.body.user_id + date + extention;
                             file.mv(dir + '/' + frontfilename, function (err) {
                                 if (err) {
                                     callback(err);
@@ -477,7 +479,8 @@ router.post('/idDataUpdate', (req, res, next) => {
                             var file = req.files.back_image;
                             var dir = "./upload/user/id_images";
                             extention = path.extname(file.name);
-                            backfilename = "back_" + req.body.user_id + extention;
+                            var date = moment().format("MMM-DD-YYYY");
+                            backfilename = "back_" + req.body.user_id + date + extention;
                             file.mv(dir + '/' + backfilename, function (err) {
                                 if (err) {
                                     return err;
@@ -583,7 +586,7 @@ router.post('/licenceDataUpdate', (req, res, next) => {
                             var file = req.files.front_image;
                             var dir = "./upload/user/licence";
                             extention = path.extname(file.name);
-                            var date = new Date().format('YYYY-mm-dd');
+                            var date = moment().format("MMM-DD-YYYY");
                             frontfilename = "front_" + req.body.user_id + date + extention;
                             file.mv(dir + '/' + frontfilename, function (err) {
                                 if (err) {
@@ -603,7 +606,7 @@ router.post('/licenceDataUpdate', (req, res, next) => {
                             var file = req.files.back_image;
                             var dir = "./upload/user/licence";
                             extention = path.extname(file.name);
-                            var date = new Date().format('YYYY-mm-dd');
+                            var date = moment().format("MMM-DD-YYYY");
                             backfilename = "back_" + req.body.user_id + date + extention;
                             file.mv(dir + '/' + backfilename, function (err) {
                                 if (err) {

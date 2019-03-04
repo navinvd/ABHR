@@ -272,7 +272,7 @@ router.post('/update/category', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-// add coupon
+// delete category
 router.put('/delete/category', async (req, res) => {
     var schema = {
         'category_id': {
@@ -299,134 +299,331 @@ router.put('/delete/category', async (req, res) => {
 });
 
 /**
- * @api {post} /admin/coupon/check_coupon Check coupon code
- * @apiName Check Coupon
- * @apiDescription Used to check coupon
- * @apiGroup Admin - Coupon
+ * @api {post} /admin/reports/list create reported car list
+ * @apiName Listing of reported
+ * @apiDescription This is for listing reported car
+ * @apiGroup Admin - Feedback
+ * @apiVersion 0.0.0
  * 
- * @apiParam {String} coupon_code Update coupon code
- * @apiParam {String} coupon_id couponId 
+ * @apiParam {String} start pagination start page no
+ * @apiParam {String} end pagination length no of page length
  * 
- * @apiHeader {String}  Content-Type application/json 
- * @apiHeader {String}  x-access-token Users unique access-key   
- * 
- * @apiSuccess (Success 200) {String} message Success message.
- * @apiError (Error 4xx) {String} message Validation or error message.
- */
-// check coupon
-router.post('/check_coupon', async (req, res) => {
-    var schema = {
-        'coupon_code': {
-            notEmpty: true,
-            errorMessage: "Please enter coupon_code",
-        }
-    };
-    req.checkBody(schema);
-    var errors = req.validationErrors();
-    if (!errors) {
-        try {
-            var obj = {
-                "coupon_code": { "$regex": req.body.coupon_code, "$options": "i" },
-                "isDeleted": false
-            }
-            // var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false };
-            if (req.body.coupon_id) {
-                obj = Object.assign(obj, { "_id": { "$ne": new ObjectId(req.body.coupon_id) } });
-                // var obj = { "coupon_code": req.body.coupon_code, "isDeleted": false, "_id": { "$ne": new ObjectId(req.body.coupon_id) } };
-            }
-            const couponResp = await couponHelper.checkCoupon(obj);
-            if (couponResp.status === 'success') {
-                res.status(config.OK_STATUS).json({ status: "success", message: "Coupon Code Already Exist" });
-            } else {
-                res.status(config.OK_STATUS).json({ status: "failed" });
-            }
-        } catch (error) {
-            res.status(config.OK_STATUS).json({
-                status: "failed",
-                message: "something went wrong",
-                error: error
-            });
-        }
-    } else {
-        res.status(config.BAD_REQUEST).json({
-            status: "failed",
-            message: "Validation error"
-        });
-    }
-});
-
-/**
- * @api {post} /app/coupon/apply Apply coupon code when book car
- * @apiName Apply coupon code
- * @apiDescription Used to use coupon code when book the car
- * @apiGroup App - Coupon
- * 
- * @apiParam {String} user_id id of user
- * @apiParam {String} coupon_code coupon code (eg "ABCD")
-
- * 
- * @apiHeader {String}  Content-Type application/json 
- * @apiHeader {String}  x-access-token Users unique access-key   
+ * @apiHeader {String}  Content-Type application/json   
+ * @apiHeader {String}  x-access-token Admin unique access-key  
  * 
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-// apply coupon code
-router.post('/apply', async (req, res) => {
+router.post('/list', async (req, res, next) => {
+
     var schema = {
-        'user_id': {
+        'start': {
             notEmpty: true,
-            errorMessage: "Please enter user id",
+            errorMessage: "start is required"
         },
-        'coupon_code': {
+        'length': {
             notEmpty: true,
-            errorMessage: "Please enter coupon code",
+            errorMessage: "length is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        const couponResp = await couponHelper.applyCoupon(req.body.user_id, req.body.coupon_code);
-        if (couponResp.status === 'success') {
-            res.status(config.OK_STATUS).json(couponResp);
-        } else {
-            res.status(config.BAD_REQUEST).json(couponResp);
+        var defaultQuery = [
+            {
+                "$sort":{
+                    "createdAt": -1
+                }
+            },
+            {
+              "$match": {
+                "isDeleted": false,
+              }
+            },
+            {
+              "$lookup": {
+                "from": "report_category",
+                "localField": "report_type",
+                "foreignField": "_id",
+                "as": "categoryDetails",
+              }
+            },
+            {
+              "$unwind": {
+                "path": "$categoryDetails",
+                "preserveNullAndEmptyArrays": true
+              }
+            },
+            {
+              "$lookup": {
+                "from": "users",
+                "localField": "car_handover_by_agent_id",
+                "foreignField": "_id",
+                "as": "agent_for_handover",
+              }
+            },
+            {
+              "$unwind": {
+                  "path": "$aget_for_handover",
+                  "preserveNullAndEmptyArrays": true
+              }
+            },
+            {
+              "$lookup": {
+                "from": "users",
+                "localField": "car_receive_by_agent_id",
+                "foreignField": "_id",
+                "as": "agent_for_receive",
+              }
+            },
+            {
+              "$unwind": {
+                  "path": "$agent_for_receive",
+                  "preserveNullAndEmptyArrays": true
+              }
+            },
+            {
+                "$lookup": {
+                  "from": "coupons",
+                  "localField": "coupon_code",
+                  "foreignField": "coupon_code",
+                  "as": "coupon_details",
+                }
+              },
+              {
+                "$unwind": {
+                    "path": "$coupon_details",
+                    "preserveNullAndEmptyArrays": true
+                }
+              },
+            {
+              "$lookup": {
+                "from": "car_company",
+                "localField": "car_details.car_rental_company_id",
+                "foreignField": "_id",
+                "as": "car_compnay"
+              }
+            },
+            {
+              "$unwind": "$car_compnay"
+            },
+            {
+              "$lookup": {
+                "from": "car_model",
+                "localField": "car_details.car_model_id",
+                "foreignField": "_id",
+                "as": "car_model",
+              }
+            },
+            {
+              "$unwind": "$car_model"
+            },
+            {
+              "$lookup": {
+                "from": "car_brand",
+                "localField": "car_details.car_brand_id",
+                "foreignField": "_id",
+                "as": "car_brand",
+              }
+            },
+            {
+              "$unwind": "$car_brand"
+            },
+            {
+              "$lookup": {
+                "from": "users",
+                "localField": "userId",
+                "foreignField": "_id",
+                "as": "user_details",
+              }
+            },
+            {
+              "$unwind": {
+                "path":  "$user_details",
+                "preserveNullAndEmptyArrays": true,
+              }
+            },
+            {
+              "$project": {
+                "_id": 1,
+                "company_name": "$car_compnay.name",
+                // "car_model": "$car_model.model_name",
+                // "car_brand": "$car_brand.brand_name",
+                "isDeleted": 1,
+                // "firts_name": "$user_details.first_name",
+                // "last_name": "$user_details.last_name",
+                "from_time": 1,
+                "to_time": 1,
+                "total_booking_amount": 1,
+                "defect_amount":1,
+                "transaction_status":1,
+                "total_amount":{$multiply : ["$booking_rent", "$days"]},
+                "vat": {
+                    "$cond": {
+                      "if": {"$eq":["$coupon_code",null]},
+                      "then": {$divide :[
+                                    {$multiply : [
+                                        {$multiply : ["$booking_rent", "$days"]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]},
+                      "else":{
+                          $divide :[
+                                    {$multiply : [
+                                        {$subtract: [ 
+                                            {$multiply : ["$booking_rent", "$days"]},
+                                            {$divide :[
+                                                {$multiply : [
+                                                    {$multiply : ["$booking_rent", "$days"]}, 
+                                                    "$coupon_percentage"
+                                                ]},
+                                                100
+                                            ]}
+                                       ]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]}
+                            }
+                },
+                "booking_number": 1,
+                "deposite_amount": 1,
+                "coupon_percentage": {
+                    "$cond": {
+                      "if": {"$eq":["$coupon_code",null]},
+                      "then": 0,
+                      "else":{
+                        $divide :[
+                            {$multiply : [
+                                {$multiply : ["$booking_rent", "$days"]}, 
+                                "$coupon_percentage"
+                            ]},
+                            100
+                        ]}
+                    }
+                },
+                "coupon_code": 1,
+                "createdAt":1
+              }
+            }
+          ];
+          if (req.body.selectFromDate && req.body.selectToDate) {
+            var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+            var To_date = moment(req.body.selectToDate).utc().startOf('day');
+            defaultQuery.push({
+                $match: {
+                      $and: [
+                                { "from_time": { $gte: new Date(From_date) } },
+                                { "to_time": { $lte: new Date(To_date) } },
+                            ]
+                        }
+            })
         }
+        // console.log('defaultQuery', JSON.stringify(defaultQuery));
+
+        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+            if (req.body.search.value != undefined && req.body.search.value !== '') {
+                var regex = new RegExp(req.body.search.value);
+                var match = { $or: [] };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            // console.log(typeof parseInt(req.body.search.value));
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
+                        }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            // console.log('re.body.search==>', req.body.search.value);
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.push(searchQuery);
+            // console.log("==>", JSON.stringify(defaultQuery));
+        }
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if(req.body.columns[colIndex].isNumber){
+                if(order == "asc"){
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: 1 }
+                    });
+                }else{
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: -1 }
+                    });
+                }
+            }else{
+                colname = '$' + colname;
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
+                        {
+                            $sort: { "sort_index": 1 }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
+                    {
+                        $sort: {
+                            "sort_index": -1
+                        }
+                    },
+                    {
+                        $replaceRoot: { newRoot: "$records" }
+                    })
+                }
+            }
+        }
+        var totalrecords = await CarBooking.aggregate(defaultQuery);
+        if (req.body.start) {
+            defaultQuery.push({
+                "$skip": req.body.start
+            })
+        }
+        if (req.body.length) {
+            defaultQuery.push({
+                "$limit": req.body.length
+            })
+        }
+        // console.log('defaultQuery===>', JSON.stringify(defaultQuery));
+        CarBooking.aggregate(defaultQuery, function (err, data) {
+            // console.log('data===>', data);
+            if (err) {
+                return next(err);
+            } else {
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: { data: data, recordsTotal: totalrecords.length }
+                });
+            }
+        })
     } else {
         res.status(config.BAD_REQUEST).json({
-            status: 'failed',
             message: "Validation Error",
-            errors
+            error: errors
         });
-    }
-});
-
-/**
- * @api {get} /admin/coupon/companies list of companies
- * @apiName List of company 
- * @apiDescription Used to list of company
- * @apiGroup Admin - Coupon
- * 
- * @apiParam {String} user_id id of user
- * @apiParam {String} coupon_code coupon code (eg "ABCD")
- * 
- * @apiHeader {String}  Content-Type application/json 
- * @apiHeader {String}  x-access-token Users unique access-key   
- * 
- * @apiSuccess (Success 200) {String} message Success message.
- * @apiError (Error 4xx) {String} message Validation or error message.
- */
-// list of companies coupon code
-router.get('/companies', async (req, res) => {
-    try {
-        const couponResp = await couponHelper.companiList();
-        if (couponResp.status === 'success') {
-            res.status(config.OK_STATUS).json(couponResp);
-        } else {
-            res.status(config.BAD_REQUEST).json(couponResp);
-        }
-    } catch (e) {
-        res.status(config.BAD_REQUEST).json(couponResp);
     }
 });
 
