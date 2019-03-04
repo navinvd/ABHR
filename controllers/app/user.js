@@ -583,7 +583,8 @@ router.post('/licenceDataUpdate', (req, res, next) => {
                             var file = req.files.front_image;
                             var dir = "./upload/user/licence";
                             extention = path.extname(file.name);
-                            frontfilename = "front_" + req.body.user_id + extention;
+                            var date = new Date().format('YYYY-mm-dd');
+                            frontfilename = "front_" + req.body.user_id + date + extention;
                             file.mv(dir + '/' + frontfilename, function (err) {
                                 if (err) {
                                     callback(err);
@@ -602,7 +603,8 @@ router.post('/licenceDataUpdate', (req, res, next) => {
                             var file = req.files.back_image;
                             var dir = "./upload/user/licence";
                             extention = path.extname(file.name);
-                            backfilename = "back_" + req.body.user_id + extention;
+                            var date = new Date().format('YYYY-mm-dd');
+                            backfilename = "back_" + req.body.user_id + date + extention;
                             file.mv(dir + '/' + backfilename, function (err) {
                                 if (err) {
                                     return err;
