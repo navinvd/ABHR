@@ -4045,7 +4045,7 @@ router.post('/filter-v5', async (req, res) => {
                     "car_brand_id": 1,
                     "isDeleted": 1,
                     "resident_criteria": 1,
-                    "age_of_car" : 1,
+                    "age_of_car": 1,
                     "image_name": {
                         "$arrayElemAt": [
                             "$car_gallery.name",
@@ -4627,7 +4627,7 @@ router.post('/book-v2', async (req, res) => {
 
 
 
-// filter v6 test version
+// filter v6 test version (add banner in response)
 
 
 router.post('/filter-v6', async (req, res) => {
@@ -4766,7 +4766,7 @@ router.post('/filter-v6', async (req, res) => {
                     "car_brand_id": 1,
                     "isDeleted": 1,
                     "resident_criteria": 1,
-                    "age_of_car" : 1,
+                    "age_of_car": 1,
                     "image_name": {
                         "$arrayElemAt": [
                             "$car_gallery.name",
@@ -5008,7 +5008,7 @@ router.post('/filter-v6', async (req, res) => {
         // console.log('Default Query========>', JSON.stringify(defaultQuery));
 
         // var cpn = await Coupon.find({"isDeleted" : false }).limit(5).skip( Math.floor((Math.random()*10)));
-        var cpn = await Coupon.find({"isDeleted" : false , "banner" : { $ne : null }}).limit(5);
+        var cpn = await Coupon.find({ "isDeleted": false, "banner": { $ne: null } }).limit(5);
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
@@ -5073,7 +5073,7 @@ router.post('/filter-v6', async (req, res) => {
                             status: "success",
                             message: "car data found",
                             // data: { cars: availableArray },
-                            data: { cars: availableArray, banner : cpn && cpn.length > 0 ? cpn : [] }
+                            data: { cars: availableArray, banner: cpn && cpn.length > 0 ? cpn : [] }
                             // data: { cars: finalDaata }
                         });
                     }
@@ -5130,6 +5130,115 @@ router.post('/filter-v6', async (req, res) => {
 
 
 
+/**
+ * @api {post} /app/car/extend-booking Extend Car Booking
+ * @apiName Extend Car Booking
+ * @apiDescription Extend Car Booking
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Date} fromDate Car booking from date
+ * @apiParam {Number} days Number of days car needed
+ * @apiParam {Number} booking_number Number of days car needed
+ * @apiParam {Number} total_booking_amount Total car booking amount
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// Extend car booking new API
+router.post('/extend-booking', async (req, res) => {
+    var schema = {
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number",
+        },
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify date from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you need car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        },
+        // 'rent_per_day': {
+        //     notEmpty: true,
+        //     errorMessage: "Please enter car rent",
+        // },
+        'total_booking_amount': {
+            notEmpty: true,
+            errorMessage: "Please enter total booking amount",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
+
+        var fromDate = req.body.fromDate;
+        console.log('From date =>', fromDate);
+        console.log('To date =>', toDate);
+
+        // check for already book or not first 
+
+        var carData = await CarBooking.find(
+            {
+                $and: [
+                    { "carId": new ObjectId(req.body.car_id) },
+                    { "from_time": { $lte: toDate } },
+                    { "to_time": { $gte: fromDate } },
+                    { "trip_status": { $nin: ['cancelled', 'finished'] } },
+                ]
+            }
+        )
+
+        console.log('CAR DATA ->', carData);
+        console.log('CAR DATA Len->', carData.length);
+
+        if (carData && carData.length > 0) {
+            // already book
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Opps this car has been already booked" });
+        }
+        else {
+            var condition = {
+                "booking_number" : req.body.booking_number
+            }
+            var setData = {
+                "extended_days": req.body.days,
+                "total_booking_amount": req.body.total_booking_amount,
+                "to_time": toDate
+            }
+
+            // { $set: {name: "Mickey", address: "Canyon 123" } };
+
+            var extendBookingResp = await CarBooking.updateOne(condition, { $set: setData });
+
+            if (extendBookingResp && extendBookingResp.n > 0) {
+                res.status(config.OK_STATUS).json({ status: "success", message: "Your booking has been extended" });
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Your booking has not been extended" });
+            }
+        }
+
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
 
 
 

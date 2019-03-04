@@ -41,6 +41,9 @@ var BookingSchema = new Schema({
         type: Number,
         required: true
     },
+    extended_days: {
+        type: Number
+    },
     pick_up_placeId: {
         type: mongoose.Schema.Types.ObjectId
     },
