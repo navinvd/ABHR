@@ -1041,13 +1041,7 @@ router.post('/details', async (req, res, next) => {
                         "coupon_percentage": 1,
                         "coupon_code": 1,
                         "defect_amount": 1,
-                        "check_cancel":{
-                            "$cond": {
-                                "if": {"$eq":["$cancel_date",null]},
-                                "then": 0,
-                                "else":1
-                            }
-                        },
+                        "cancel_date" : { $ifNull: [ 0, 1 ] },
                         "cancel_charge": {
                             "$cond": {
                                 "if": {"$eq":["$cancel_date",null]},
