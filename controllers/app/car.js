@@ -3000,7 +3000,7 @@ router.post('/test-not-ios', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         console.log('D T=>', req.body.device_token);
-        var sendNotification = await pushNotificationHelper.sendToIOS(req.body.device_token, 10, 1, 'hello');
+        var sendNotification = await pushNotificationHelper.sendToIOS(req.body.device_token, 10, 1);
         console.log('Response =>', sendNotification);
         // res.send('ok')
         if (sendNotification.status === 'success') {
@@ -5136,6 +5136,7 @@ router.post('/filter-v6', async (req, res) => {
  * @apiDescription Extend Car Booking
  * @apiGroup App - Car
  * 
+ * @apiParam {String} car_id Car id
  * @apiParam {Date} fromDate Car booking from date
  * @apiParam {Number} days Number of days car needed
  * @apiParam {Number} booking_number Number of days car needed
@@ -5151,9 +5152,9 @@ router.post('/filter-v6', async (req, res) => {
 // Extend car booking new API
 router.post('/extend-booking', async (req, res) => {
     var schema = {
-        'booking_number': {
+        'car_id': {
             notEmpty: true,
-            errorMessage: "Please enter car booking number",
+            errorMessage: "Please enter car id",
         },
         'fromDate': {
             notEmpty: true,
@@ -5171,10 +5172,10 @@ router.post('/extend-booking', async (req, res) => {
                 errorMessage: "Please enter days in number only"
             }
         },
-        // 'rent_per_day': {
-        //     notEmpty: true,
-        //     errorMessage: "Please enter car rent",
-        // },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number",
+        },
         'total_booking_amount': {
             notEmpty: true,
             errorMessage: "Please enter total booking amount",
