@@ -5007,7 +5007,8 @@ router.post('/filter-v6', async (req, res) => {
 
         // console.log('Default Query========>', JSON.stringify(defaultQuery));
 
-        var cpn = await Coupon.find({"isDeleted" : false }).limit(5).skip( Math.floor((Math.random()*10)));
+        // var cpn = await Coupon.find({"isDeleted" : false }).limit(5).skip( Math.floor((Math.random()*10)));
+        var cpn = await Coupon.find({"isDeleted" : false , "banner" : { $ne : null }}).limit(5);
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
