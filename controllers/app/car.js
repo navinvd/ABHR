@@ -2903,9 +2903,63 @@ router.post('/report', async (req, res) => {
             report_message: req.body.report_message
         }
 
-        const carReportResp = await carHelper.car_report(data);
+        var carReportResp = await carHelper.car_report(data);
         if (carReportResp.status === 'success') {
+            // res.status(config.OK_STATUS).json(carReportResp);
+
+
+            // send email to user & super admin
+
+            var carData = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
+            console.log("Car DATA=>",carData);
+            var userData = await Users.findOne({ "_id": new ObjectId(req.body.user_id) });
+            var superAdminData = await Users.findOne({ "type": "admin", isDeleted: false });
+
             res.status(config.OK_STATUS).json(carReportResp);
+
+            var options_user = {
+                to: userData.email,
+                subject: 'ABHR - Car Report Notification'
+            }
+
+            var data_user = {
+                name: userData.first_name,
+                message: `You report for ${carData.data.carDetail.car_brand} ${carData.data.carDetail.car_modal} has been submitted successfully.`,
+                report_message: req.body.report_message
+            };
+
+            var options_superAdmin = {
+                to: superAdminData.email,
+                subject: 'ABHR - Car Report Notification'
+            }
+
+            var data_superAdmin = {
+                name: superAdminData.first_name,
+                message: `You got report for ${carData.data.carDetail.car_brand} ${carData.data.carDetail.car_modal}.`,
+                report_message: req.body.report_message
+            };
+
+            /** send email to user **/
+            await mail_helper.send('car_report', options_user, data_user, function (err, res) {
+                if (err) {
+                    console.log("Error when send to user:", err);
+                } else {
+                    console.log(`Sent mail to user (${userData.email}):`, res);
+                }
+            })
+
+            /** send email to super admin **/
+            await mail_helper.send('car_report', options_superAdmin, data_superAdmin, function (err, res) {
+                if (err) {
+                    console.log("Error when send to super admin:", err);
+                } else {
+                    console.log(`Sent mail to super admin (${superAdminData.email}):`, res);;
+                }
+            })
+
+
+            // over email
+
         }
         else {
             res.status(config.BAD_REQUEST).json(carReportResp);
@@ -5275,8 +5329,8 @@ router.post('/extend-booking', async (req, res) => {
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
         // var fromDate = req.body.fromDate;
         var fromDate = moment(req.body.fromDate).add(1, 'days').format("YYYY-MM-DD");
-        
-        
+
+
         console.log('From date =>', fromDate);
         console.log('To date =>', toDate);
 

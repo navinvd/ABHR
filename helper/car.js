@@ -2464,7 +2464,7 @@ carHelper.car_report = async (report_data) => {
         let car_report_data = new CarReport(report_data);
 
         let data = await car_report_data.save();
-        var car_report_status = await CarBooking.updateOne({ "booking_number": report_data.booking_number }, { $set: { "is_car_reported": true } })
+        // var car_report_status = await CarBooking.updateOne({ "booking_number": report_data.booking_number }, { $set: { "is_car_reported": true } })
 
         return { status: "success", message: "Car has been reported" };
     }
