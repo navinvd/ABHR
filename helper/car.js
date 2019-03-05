@@ -1245,7 +1245,9 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
 
     var fromDateMonth = new Date(fromDate).getMonth() + 1; 
     var toDateMonth = new Date(toDate).getMonth() + 1;
-    console.log(toDate);
+    console.log("From Date =>",fromDate);
+    console.log("To Date =>",toDate);
+
     var defaultQuery2 = [
           {
             "$match": { "_id": new ObjectId(car_id) }
@@ -1359,7 +1361,7 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
     try {
         let cars = await Car.aggregate(defaultQuery2);
 
-        console.log('DATA=>', JSON.stringify(cars));
+        // console.log('DATA=>', JSON.stringify(cars));
 
         if (cars && cars.length > 0) {
 
@@ -1450,6 +1452,177 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
 };
 
 
+// test extend car avaibility
+carHelper.check_extend_availability = async function (car_id, fromDate, days) {
+    var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
+    var fromDate = moment(fromDate).format("YYYY-MM-DD");
+
+    // var toDate = moment(fromDate).add(days + 1, 'days').format("YYYY-MM-DD");
+    // var fromDate = moment(fromDate).add(1, 'days').format("YYYY-MM-DD");
+
+    var fromDateMonth = new Date(fromDate).getMonth() + 1; 
+    var toDateMonth = new Date(toDate).getMonth() + 1;
+    console.log("From Date =>",fromDate);
+    console.log("To Date =>",toDate);
+
+    var defaultQuery2 = [
+          {
+            "$match": { "_id": new ObjectId(car_id) }
+          },
+          {
+            "$lookup": {
+              "from": "car_booking",
+              "foreignField": "carId",
+              "localField": "_id",
+              "as": "carBookingDetails"
+            }
+          },
+          
+          {
+            "$unwind": {
+              "path": "$carBookingDetails",
+              "preserveNullAndEmptyArrays": true
+            }
+          }
+          ,
+          {
+            "$group": {
+              "_id": "$_id",
+              "data": {
+                "$push": "$$ROOT"
+              },
+              "totalBooking": {$push:
+                  "$carBookingDetails.booking_number"
+                 
+              }
+            }
+          },
+          {
+            "$unwind": {
+              "path": "$data",
+              "preserveNullAndEmptyArrays": true
+            }
+          },
+          
+          {
+            "$match": {
+              "$or": [
+                {
+                    "data.carBookingDetails.from_time": {
+                        "$gte": new Date(toDate)
+                    }
+                },
+                {
+                    "data.carBookingDetails.to_time": {
+                        "$lte": new Date(fromDate)
+                    }
+                },
+                {
+                  "data.carBookingDetails": null
+                },
+                {
+                    "data.carBookingDetails.trip_status" : { $in : ["cancelled","finished"]} // added now 
+                }       
+              ]
+            }
+          },
+          {
+            "$group": {
+              "_id": "$_id",
+              "data": {
+                "$first": "$$ROOT"
+              },
+              "availableBooking": {
+                "$push": "$data.carBookingDetails.booking_number"
+              }
+            }
+          },
+          {
+              "$project":{
+                  "_id":1,
+                  "is_available":"$data.data.is_available",
+                  "totalBooking":{$size:"$data.totalBooking"},
+                  "availableBooking":{$size:"$availableBooking"},
+                  "trip_status" : "$data.data.carBookingDetails.trip_status"
+               }
+          }
+    ]
+
+
+    // console.log('Default Query =>', JSON.stringify(defaultQuery2));
+
+    try {
+        let cars = await Car.aggregate(defaultQuery2);
+
+        // console.log('DATA=>', JSON.stringify(cars));
+
+        if (cars && cars.length > 0) {
+
+            // return {"status":"success"}
+
+            if (cars[0].totalBooking === cars[0].availableBooking) {
+                
+                availableArray = [];
+
+                if (cars[0].is_available && cars[0].is_available !== true) { // chk when there is array
+                    cars[0].is_available.map((data, index) => {
+                        var cnt = 0;
+                        console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
+                        if (data.month === fromDateMonth || data.month === toDateMonth) {
+                            data.availability.map((av, i) => {
+                                let date = moment(av).utc().startOf('days');
+                                if (moment(date).isBetween(fromDate, toDate, null, '[)')) {
+                                    cnt++
+                                }
+                                // u can push match data in one array & return it
+                            });
+                            // console.log('cnt======>,', cnt, req.body.days);
+                            if (cnt >= days) {
+                                availableArray.push(cars[0]);
+                            }
+                        }
+                    });
+                }
+
+                if(availableArray.length > 0){
+                    return { status: 'success', message: "Car is available on this date" }
+                } else {
+                    return { status: 'failed', message: "Car is not available on this date" }
+                }
+
+
+            }
+            else {
+                return { status: 'failed', message: "Car is not available on this date" }
+            }
+
+            // var finalDaata = cars.filter((c) => {
+            //     if (c.car['totalBooking'] === c['availableBooking'].length) {
+            //         return true;
+            //     }
+            // });
+
+            // console.log('Final DATA=>',finalDaata);
+
+            /*
+            if (finalDaata && finalDaata.length > 0) {
+                finalDaata = finalDaata.map((d) => { return d.car })
+                return { status: 'success', message: "Car is available on this date" }
+                // return { status: 'success', message: "Car is available on this date", data : finalDaata }
+            }
+            else {
+                return { status: 'failed', message: "Car is not available on this date" }
+            }
+            */
+
+        } else {
+            return { status: 'failed', message: "Car is not available on this date" }
+        }
+    } catch (err) {
+        console.log("Err : ", err);
+        return { status: 'failed', message: "Error occured while finding car", err };
+    }
+};
 
 
 //carBook
