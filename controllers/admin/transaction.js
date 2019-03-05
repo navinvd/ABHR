@@ -927,51 +927,51 @@ router.post('/details', async (req, res, next) => {
                 //   }
                 // },
                 {
-                "$lookup": {
-                    "from": "car_company",
-                    "localField": "car_details.car_rental_company_id",
-                    "foreignField": "_id",
-                    "as": "car_compnay"
-                }
+                    "$lookup": {
+                        "from": "car_company",
+                        "localField": "car_details.car_rental_company_id",
+                        "foreignField": "_id",
+                        "as": "car_compnay"
+                    }
                 },
                 {
-                "$unwind": "$car_compnay"
+                    "$unwind": "$car_compnay"
                 },
                 {
-                "$lookup": {
-                    "from": "car_model",
-                    "localField": "car_details.car_model_id",
-                    "foreignField": "_id",
-                    "as": "car_model",
-                }
+                    "$lookup": {
+                        "from": "car_model",
+                        "localField": "car_details.car_model_id",
+                        "foreignField": "_id",
+                        "as": "car_model",
+                    }
                 },
                 {
-                "$unwind": "$car_model"
+                    "$unwind": "$car_model"
                 },
                 {
-                "$lookup": {
-                    "from": "car_brand",
-                    "localField": "car_details.car_brand_id",
-                    "foreignField": "_id",
-                    "as": "car_brand",
-                }
+                    "$lookup": {
+                        "from": "car_brand",
+                        "localField": "car_details.car_brand_id",
+                        "foreignField": "_id",
+                        "as": "car_brand",
+                    }
                 },
                 {
-                "$unwind": "$car_brand"
+                    "$unwind": "$car_brand"
                 },
                 {
-                "$lookup": {
-                    "from": "users",
-                    "localField": "userId",
-                    "foreignField": "_id",
-                    "as": "user_details",
-                }
+                    "$lookup": {
+                        "from": "users",
+                        "localField": "userId",
+                        "foreignField": "_id",
+                        "as": "user_details",
+                    }
                 },
                 {
-                "$unwind": {
-                    "path":  "$user_details",
-                    "preserveNullAndEmptyArrays": true,
-                }
+                    "$unwind": {
+                        "path":  "$user_details",
+                        "preserveNullAndEmptyArrays": true,
+                    }
                 },
                 {
                     "$project": {
