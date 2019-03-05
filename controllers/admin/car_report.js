@@ -584,16 +584,17 @@ router.post('/change_status', async (req, res, next) => {
                 ];
                 console.log('defaultQuery=====>', defaultQuery);
                 checkUser = await Report.aggregate(defaultQuery);
+                console.log(checkUser[0]);
                 var option = {
-                    to: 'dma@narola.email',
+                    to: checkUser[0].user_email,
                     subject: 'ABHR - Car Report Notification'
                 }
                 if(req.body.status === 'pending'){
-                    var data = { name: checkUser[0].first_name , 
+                    var data = { name: checkUser[0].user_name , 
                         message: `You report for “${checkUser[0].car_brand} ${checkUser[0].car_modal}” has been resubmitted successfully.`,
                         report_message : ''};
                 }else{
-                    var data = { name: checkUser[0].first_name , 
+                    var data = { name: checkUser[0].user_name , 
                         message: `Your report for “${checkUser[0].car_brand} ${checkUser[0].car_modal}” has been resolved successfully.`,
                        report_message : ''};
                 }
