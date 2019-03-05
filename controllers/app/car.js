@@ -2896,18 +2896,6 @@ router.get('/report-category-list', async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // Re - send invoice via email to customer
 /**
  * @api {post} /app/car/resend-invoice Sending invoice to customer via email
@@ -5264,12 +5252,53 @@ router.post('/extend-booking', async (req, res) => {
                 "to_time": toDate
             }
 
-            // { $set: {name: "Mickey", address: "Canyon 123" } };
-
             var extendBookingResp = await CarBooking.updateOne(condition, { $set: setData });
 
             if (extendBookingResp && extendBookingResp.n > 0) {
                 res.status(config.OK_STATUS).json({ status: "success", message: "Your booking has been extended" });
+
+                var carBookingData = await CarBooking.findOne({"booking_number" : req.body.booking_number});
+
+                var data1 = JSON.parse(JSON.stringify(carBookingData));
+
+                var userData = await Users.findOne({_id : new ObjectId(carBookingData.userId)});
+                const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
+                
+
+                data1.rent_price = carResp.data.carDetail.rent_price;
+
+                data1.no_of_person = carResp.data.carDetail.no_of_person;
+                data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
+
+                data1.milage = carResp.data.carDetail.milage;
+                data1.car_class = carResp.data.carDetail.car_class;
+
+                data1.driving_eligibility_criteria = carResp.data.carDetail.driving_eligibility_criteria;
+
+                data1.car_brand = carResp.data.carDetail.car_brand;
+                data1.car_model = carResp.data.carDetail.car_model;
+                data1.car_model_number = carResp.data.carDetail.car_model_number;
+                data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+                data1.image_name = carResp.data.carDetail.image_name;
+
+                data1.user_name = userData.first_name;
+                
+                data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+                data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+
+                /* send email to user after car has been booked start*/
+
+                var options = {
+                    to: userData.email,
+                    subject: 'ABHR - Booking has been extended'
+                }
+
+                let mail_resp = await mail_helper.sendEmail_carBook("car_booking_extend", options, data1);
+                console.log('Mail sending response =>', mail_resp);
+
+                /** Sending email is over */
+
             }
             else {
                 res.status(config.BAD_REQUEST).json({ status: "failed", message: "Your booking has not been extended" });
