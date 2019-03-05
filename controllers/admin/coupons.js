@@ -8,6 +8,8 @@ var ObjectId = require('mongoose').Types.ObjectId;
 var path = require('path');
 var fs = require('fs');
 
+var Jimp = require('jimp');
+
 /**
  * @api {post} /admin/coupon/list List of all superadmin coupon
  * @apiName Coupon List
@@ -270,11 +272,19 @@ router.post('/add', async (req, res) => {
                     var dir = "./upload/banner";
                     extention = path.extname(file.name);
                     filename = req.body.coupon_code + extention;
+                    var filepath = dir + '/' + filename;
                     data.banner = filename;
                     file.mv(dir + '/' + filename, function (err) {
                         if (err) {
                             return (err);
                         } else {
+                            Jimp.read(filepath, async (err, lenna) => {
+                                if (!err) {
+                                    lenna
+                                    .quality(30) // set JPEG quality
+                                    .write(filepath); // save
+                                    }
+                            });
                             data.banner = filename;
                         }
                     });
@@ -339,12 +349,19 @@ router.post('/update', async (req, res) => {
                 var dir = "./upload/banner";
                 extention = path.extname(file.name);
                 filename = req.body.coupon_code + extention;
+                var filepath = dir + '/' + filename;
                 fs.unlinkSync(dir + '/' + req.body.old_banner_image);
                 file.mv(dir + '/' + filename, function (err) {
                     if (err) {
                         return (err);
                     } else {
-                        console.log('here in upload')
+                        Jimp.read(filepath, async (err, lenna) => {
+                            if (!err) {
+                                lenna
+                                .quality(30) // set JPEG quality
+                                .write(filepath); // save
+                                }
+                        });
                         data.banner = filename;
                     }
                 });

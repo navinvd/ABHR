@@ -498,21 +498,29 @@ router.put('/update', async (req, res, next) => {
                         message: message
                     });
                 }else{
-                    await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, async function (err, response) {
-                        if (err) {
-                            res.status(config.BAD_REQUEST).json({
-                                status: 'faild',
-                                message: "Error occured while updating data"
-                            });
-                        } else {
-                            var companyData = await Company.findOne({_id: {$eq: req.body.company_id}});
-                            res.status(config.OK_STATUS).json({
-                                status: 'success',
-                                message: "Company Updated Successfully",
-                                result: {data: companyData}
-                            });
-                        }
-                    });
+                    var check_available = await Company.findOne({_id: {$eq: req.body.company_id}, "isDeleted": true, "is_Active": false});
+                    if(check_available && typeof check_available !== 'undefined'){
+                        res.status(config.BAD_REQUEST).json({
+                            status: 'failed',
+                            message: 'You cannot perform any activity from now with this Account'
+                        });
+                    }else{
+                        await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, async function (err, response) {
+                            if (err) {
+                                res.status(config.BAD_REQUEST).json({
+                                    status: 'faild',
+                                    message: "Error occured while updating data"
+                                });
+                            } else {
+                                var companyData = await Company.findOne({_id: {$eq: req.body.company_id}});
+                                res.status(config.OK_STATUS).json({
+                                    status: 'success',
+                                    message: "Company Updated Successfully",
+                                    result: {data: companyData}
+                                });
+                            }
+                        });
+                    }
                 }
             }
         }
