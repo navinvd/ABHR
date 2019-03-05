@@ -8,6 +8,7 @@ var Report = require('./../../models/car_report');
 var ObjectId = require('mongoose').Types.ObjectId;
 var path = require('path');
 var fs = require('fs');
+var mailHelper = require('./../../helper/mail');
 
 /**
  * @api {post} /admin/reports/category_list List of all superadmin category
@@ -463,6 +464,162 @@ router.post('/list', async (req, res, next) => {
                 });
             }
         })
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
+/**
+ * @api {post} /admin/reports/change_status change status for report
+ * @apiName Change report status
+ * @apiDescription This is for change report status
+ * @apiGroup Admin - Feedback
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} report_id uniqu Id
+ * 
+ * @apiHeader {String}  Content-Type application/json   
+ * @apiHeader {String}  x-access-token Admin unique access-key  
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/change_status', async (req, res, next) => {
+
+    var schema = {
+        'report_id': {
+            notEmpty: true,
+            errorMessage: "report_id is required"
+        },
+        'status': {
+            notEmpty: true,
+            errorMessage: "status is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var cond = {
+                "_id": new ObjectId(req.body.report_id),
+                "isDeleted": false
+            };
+            var updateData = {
+                $set: {
+                    "status": req.body.status
+                }
+            };
+            check = await Report.update(cond, updateData);
+            if(check.n === 1 && check.nModified === 1){
+                var defaultQuery = [
+                    {
+                        "$match": {
+                            "_id": new ObjectId(req.body.report_id),
+                            "isDeleted": false
+                        }
+                    },
+                    { 
+                        '$lookup':{ 
+                            from: 'users',
+                            localField: 'user_id',
+                            foreignField: '_id',
+                            as: 'userDetails' 
+                        } 
+                    },
+                    {
+                      "$unwind": {
+                        "path": "$userDetails",
+                        "preserveNullAndEmptyArrays": true
+                      }
+                    },
+                    { 
+                        '$lookup':{ 
+                            from: 'cars',
+                            localField: 'car_id',
+                            foreignField: '_id',
+                            as: 'car_details' 
+                        } 
+                    },
+                    { 
+                        '$unwind': { 
+                            path: '$car_details' 
+                        } 
+                    },
+                    { 
+                        '$lookup':{ 
+                            from: 'car_model',
+                            localField: 'car_details.car_model_id',
+                            foreignField: '_id',
+                            as: 'car_model' 
+                        } 
+                    },
+                    { 
+                        '$unwind': '$car_model' 
+                    },
+                    { 
+                        '$lookup':{ 
+                            from: 'car_brand',
+                            localField: 'car_details.car_brand_id',
+                            foreignField: '_id',
+                            as: 'car_brand' 
+                        } 
+                    },
+                    { 
+                        '$unwind': '$car_brand' 
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            user_name: "$userDetails.first_name",
+                            user_email: "$userDetails.email",
+                            car_brand: "$car_brand.brand_name",
+                            car_modal: "$car_model.model_name",
+                            release_year : "$car_model.release_year",
+                            createdAt:1
+                        }
+                    }
+                ];
+                console.log('defaultQuery=====>', defaultQuery);
+                checkUser = await Report.aggregate(defaultQuery);
+                var option = {
+                    to: 'dma@narola.email',
+                    subject: 'ABHR - Car Report Notification'
+                }
+                if(req.body.status === 'pending'){
+                    var data = { name: checkUser[0].first_name , 
+                        message: `You report for “${checkUser[0].car_brand} ${checkUser[0].car_modal}” has been resubmitted successfully.`,
+                        report_message : ''};
+                }else{
+                    var data = { name: checkUser[0].first_name , 
+                        message: `Your report for “${checkUser[0].car_brand} ${checkUser[0].car_modal}” has been resolved successfully.`,
+                       report_message : ''};
+                }
+                await mailHelper.send('car_report', option, data, function (err, res) {
+                    if (err) {
+                        console.log("Mail Error:", err);
+                    } else {
+                        console.log("Mail Success:", res);
+                    }
+                })
+                res.status(config.OK_STATUS).json({
+                    message: "Status Changed Successfully",
+                    status : "success"
+                });
+            }else{
+                res.status(config.OK_STATUS).json({
+                    message: "Status not Changed Successfully",
+                    status : "failed"
+                });
+            }
+        } catch(e){
+            res.status(config.BAD_REQUEST).json({
+                message: "Something Went Wrong",
+                error: e
+            });
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             message: "Validation Error",
