@@ -1005,6 +1005,63 @@ router.post('/checkCarAvailability-v3', async (req, res) => {
     }
 });
 
+
+// test avaibilility v4
+
+
+router.post('/check-extend-availability', async (req, res) => {
+    var schema = {
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please speficy car id for which you are cheking avaibility",
+        },
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify date from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you needed car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        let car_id = req.body.car_id;
+        let fromDate = req.body.fromDate;
+        let days = req.body.days;
+        // const carResp = await carHelper.checkCarAvaibility(car_id, fromDate, days);
+        const carResp = await carHelper.check_extend_availability(car_id, fromDate, days);
+        if (carResp.status === 'success') {
+            res.status(config.OK_STATUS).json(carResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(carResp);
+        }
+        // res.json(carResp);
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+
+
+
+
 /**
  * @api {post} /app/car/book Book Car
  * @apiName Car Booking
@@ -5216,8 +5273,10 @@ router.post('/extend-booking', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').format("YYYY-MM-DD");
-
-        var fromDate = req.body.fromDate;
+        // var fromDate = req.body.fromDate;
+        var fromDate = moment(req.body.fromDate).add(1, 'days').format("YYYY-MM-DD");
+        
+        
         console.log('From date =>', fromDate);
         console.log('To date =>', toDate);
 
@@ -5257,13 +5316,13 @@ router.post('/extend-booking', async (req, res) => {
             if (extendBookingResp && extendBookingResp.n > 0) {
                 res.status(config.OK_STATUS).json({ status: "success", message: "Your booking has been extended" });
 
-                var carBookingData = await CarBooking.findOne({"booking_number" : req.body.booking_number});
+                var carBookingData = await CarBooking.findOne({ "booking_number": req.body.booking_number });
 
                 var data1 = JSON.parse(JSON.stringify(carBookingData));
 
-                var userData = await Users.findOne({_id : new ObjectId(carBookingData.userId)});
+                var userData = await Users.findOne({ _id: new ObjectId(carBookingData.userId) });
                 const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
-                
+
 
                 data1.rent_price = carResp.data.carDetail.rent_price;
 
@@ -5282,7 +5341,7 @@ router.post('/extend-booking', async (req, res) => {
                 data1.image_name = carResp.data.carDetail.image_name;
 
                 data1.user_name = userData.first_name;
-                
+
                 data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
                 data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
 
