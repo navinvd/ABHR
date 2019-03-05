@@ -12,6 +12,7 @@ const CarModel = require('./../../models/car_model');
 const Users = require('./../../models/users');
 const Coupon = require('./../../models/coupon');
 const UserCoupon = require('./../../models/user_coupon');
+const ReportCategory = require('./../../models/report_category');
 const CarNotification = require('./../../models/car_notification');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
@@ -2795,7 +2796,7 @@ router.post('/report-list', async (req, res) => {
  * @apiParam {String} car_id car Id
  * @apiParam {String} car_rental_company_id company Id
  * @apiParam {Number} booking_number car booking number
- * @apiParam {Boolean} report_type (eg. 0 - Lost/Stolen  &  1 - Problem in car)
+ * @apiParam {Boolean} report_type (car report category id)
  * @apiParam {String} report_message Car reporting message
  * 
  * @apiHeader {String}  Content-Type application/json 
@@ -2825,7 +2826,7 @@ router.post('/report', async (req, res) => {
         },
         'report_type': {
             notEmpty: true,
-            errorMessage: "Please enter car report type",
+            errorMessage: "Please enter car report category id",
         },
         'report_message': {
             notEmpty: true,
@@ -2861,6 +2862,36 @@ router.post('/report', async (req, res) => {
         });
     }
     // res.json(carHistoryResp);
+});
+
+
+
+// car report category list
+/**
+ * @api {get} /app/car/report-category-list Car report category list
+ * @apiName Car report category list
+ * @apiDescription Used to get car report category list
+ * @apiGroup App - Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.get('/report-category-list', async (req, res) => {
+    try {
+        const categoryData = await ReportCategory.find({ isDeleted: false }).lean().exec();
+        if (categoryData && categoryData.length > 0) {
+            res.status(config.OK_STATUS).json({ status: "success", message: "Report category list has been found", data: { category: categoryData } });
+        }
+        else {
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Report category list has not been found" });
+        }
+    } catch (err) {
+        res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while fetching report category list", err });
+    }
 });
 
 
@@ -3000,7 +3031,7 @@ router.post('/test-not-ios', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         console.log('D T=>', req.body.device_token);
-        var sendNotification = await pushNotificationHelper.sendToIOS(req.body.device_token, 10, 1, 'hello');
+        var sendNotification = await pushNotificationHelper.sendToIOS(req.body.device_token, 10, 1);
         console.log('Response =>', sendNotification);
         // res.send('ok')
         if (sendNotification.status === 'success') {
@@ -5136,6 +5167,7 @@ router.post('/filter-v6', async (req, res) => {
  * @apiDescription Extend Car Booking
  * @apiGroup App - Car
  * 
+ * @apiParam {String} car_id Car id
  * @apiParam {Date} fromDate Car booking from date
  * @apiParam {Number} days Number of days car needed
  * @apiParam {Number} booking_number Number of days car needed
@@ -5151,9 +5183,9 @@ router.post('/filter-v6', async (req, res) => {
 // Extend car booking new API
 router.post('/extend-booking', async (req, res) => {
     var schema = {
-        'booking_number': {
+        'car_id': {
             notEmpty: true,
-            errorMessage: "Please enter car booking number",
+            errorMessage: "Please enter car id",
         },
         'fromDate': {
             notEmpty: true,
@@ -5171,10 +5203,10 @@ router.post('/extend-booking', async (req, res) => {
                 errorMessage: "Please enter days in number only"
             }
         },
-        // 'rent_per_day': {
-        //     notEmpty: true,
-        //     errorMessage: "Please enter car rent",
-        // },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter car booking number",
+        },
         'total_booking_amount': {
             notEmpty: true,
             errorMessage: "Please enter total booking amount",
@@ -5211,7 +5243,8 @@ router.post('/extend-booking', async (req, res) => {
         }
         else {
             var condition = {
-                "booking_number" : req.body.booking_number
+                "booking_number": req.body.booking_number,
+                "trip_status": "inprogress"
             }
             var setData = {
                 "extended_days": req.body.days,
@@ -5219,12 +5252,53 @@ router.post('/extend-booking', async (req, res) => {
                 "to_time": toDate
             }
 
-            // { $set: {name: "Mickey", address: "Canyon 123" } };
-
             var extendBookingResp = await CarBooking.updateOne(condition, { $set: setData });
 
             if (extendBookingResp && extendBookingResp.n > 0) {
                 res.status(config.OK_STATUS).json({ status: "success", message: "Your booking has been extended" });
+
+                var carBookingData = await CarBooking.findOne({"booking_number" : req.body.booking_number});
+
+                var data1 = JSON.parse(JSON.stringify(carBookingData));
+
+                var userData = await Users.findOne({_id : new ObjectId(carBookingData.userId)});
+                const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
+                
+
+                data1.rent_price = carResp.data.carDetail.rent_price;
+
+                data1.no_of_person = carResp.data.carDetail.no_of_person;
+                data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
+
+                data1.milage = carResp.data.carDetail.milage;
+                data1.car_class = carResp.data.carDetail.car_class;
+
+                data1.driving_eligibility_criteria = carResp.data.carDetail.driving_eligibility_criteria;
+
+                data1.car_brand = carResp.data.carDetail.car_brand;
+                data1.car_model = carResp.data.carDetail.car_model;
+                data1.car_model_number = carResp.data.carDetail.car_model_number;
+                data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+                data1.image_name = carResp.data.carDetail.image_name;
+
+                data1.user_name = userData.first_name;
+                
+                data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+                data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+
+                /* send email to user after car has been booked start*/
+
+                var options = {
+                    to: userData.email,
+                    subject: 'ABHR - Booking has been extended'
+                }
+
+                let mail_resp = await mail_helper.sendEmail_carBook("car_booking_extend", options, data1);
+                console.log('Mail sending response =>', mail_resp);
+
+                /** Sending email is over */
+
             }
             else {
                 res.status(config.BAD_REQUEST).json({ status: "failed", message: "Your booking has not been extended" });
