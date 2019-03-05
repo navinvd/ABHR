@@ -794,7 +794,8 @@ carHelper.history = async (user_id, history_type) => {
             $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(user_id),
-                'trip_status': { $in: ['finished'] }
+                // 'trip_status': { $in: ['finished'] }
+                'trip_status': { $ne: "upcoming" }
             }
         }
     }
@@ -829,7 +830,7 @@ carHelper.history = async (user_id, history_type) => {
 
     // sorting
     var sortData = {
-        $sort: { 'from_time': 1 }
+        $sort: { 'from_time': -1 }
     }
 
     defaultQuery.push(sortData);

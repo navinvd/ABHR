@@ -12,6 +12,7 @@ const CarModel = require('./../../models/car_model');
 const Users = require('./../../models/users');
 const Coupon = require('./../../models/coupon');
 const UserCoupon = require('./../../models/user_coupon');
+const ReportCategory = require('./../../models/report_category');
 const CarNotification = require('./../../models/car_notification');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
@@ -2795,7 +2796,7 @@ router.post('/report-list', async (req, res) => {
  * @apiParam {String} car_id car Id
  * @apiParam {String} car_rental_company_id company Id
  * @apiParam {Number} booking_number car booking number
- * @apiParam {Boolean} report_type (eg. 0 - Lost/Stolen  &  1 - Problem in car)
+ * @apiParam {Boolean} report_type (car report category id)
  * @apiParam {String} report_message Car reporting message
  * 
  * @apiHeader {String}  Content-Type application/json 
@@ -2825,7 +2826,7 @@ router.post('/report', async (req, res) => {
         },
         'report_type': {
             notEmpty: true,
-            errorMessage: "Please enter car report type",
+            errorMessage: "Please enter car report category id",
         },
         'report_message': {
             notEmpty: true,
@@ -2862,6 +2863,48 @@ router.post('/report', async (req, res) => {
     }
     // res.json(carHistoryResp);
 });
+
+
+
+// car report category list
+/**
+ * @api {get} /app/car/report-category-list Car report category list
+ * @apiName Car report category list
+ * @apiDescription Used to get car report category list
+ * @apiGroup App - Car
+ * @apiVersion 0.0.0
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.get('/report-category-list', async (req, res) => {
+    try {
+        const categoryData = await ReportCategory.find({ isDeleted: false }).lean().exec();
+        if (categoryData && categoryData.length > 0) {
+            res.status(config.OK_STATUS).json({ status: "success", message: "Report category list has been found", data: { category: categoryData } });
+        }
+        else {
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Report category list has not been found" });
+        }
+    } catch (err) {
+        res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while fetching report category list", err });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5212,8 +5255,8 @@ router.post('/extend-booking', async (req, res) => {
         }
         else {
             var condition = {
-                "booking_number" : req.body.booking_number,
-                "trip_status" : "inprogress"
+                "booking_number": req.body.booking_number,
+                "trip_status": "inprogress"
             }
             var setData = {
                 "extended_days": req.body.days,
