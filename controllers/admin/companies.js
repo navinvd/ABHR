@@ -868,6 +868,8 @@ router.post('/car_list', async (req, res, next) => {
             },
             {
                 $match: {
+                    "carBookingDetails.trip_status": { $ne : "finished"},
+                    "carBookingDetails.trip_status": { $ne : "cancelled"},
                     "isDeleted": false,
                     "car_rental_company_id": new ObjectId(req.body.company_id)
                 }
@@ -1238,8 +1240,8 @@ router.post('/car/details', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
-        console.log(carResp.data.carDetail.is_available);
+        const carResp = await carHelper.getcarDetails(new ObjectId(req.body.car_id));
+        console.log(carResp);
         res.json(carResp);
     } else {
         res.status(config.BAD_REQUEST).json({
