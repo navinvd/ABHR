@@ -686,6 +686,8 @@ router.post('/details', async (req, res, next) => {
                     } 
                 },
                 {
+            
+            
                     "$unwind": {
                         "path": "$bookingDetails",
                         "preserveNullAndEmptyArrays": true
@@ -744,7 +746,7 @@ router.post('/details', async (req, res, next) => {
                         "user_phone_number": "$userDetails.phone_number",
                         "car_model":"$car_model.model_name",
                         // "car_model": 1,
-                        "car_brand": "car_brand.brand_name",
+                        "car_brand": "$car_brand.brand_name",
                         // "car_brand":1,
                         "is_navigation": "$car_details.is_navigation",
                         "is_AC": "$car_details.is_AC",
@@ -759,7 +761,8 @@ router.post('/details', async (req, res, next) => {
                         "licence_plate": "$car_details.licence_plate",
                         "car_color": "$car_details.car_color",
                         "deposit": "$car_details.deposit",
-                        "age_of_car": "$car_details.age_of_car"
+                        "age_of_car": "$car_details.age_of_car",
+                        "createdAt": 1
                     }
                 }
             ];

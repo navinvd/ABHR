@@ -3578,7 +3578,7 @@
         ]
       }
     },
-    "filename": "controllers/company/dashboard.js",
+    "filename": "controllers/admin/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -3635,7 +3635,7 @@
         ]
       }
     },
-    "filename": "controllers/admin/dashboard.js",
+    "filename": "controllers/company/dashboard.js",
     "groupTitle": "Admin___Dashboard"
   },
   {
@@ -4006,6 +4006,76 @@
             "optional": false,
             "field": "end",
             "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/car_report.js",
+    "groupTitle": "Admin___Feedback"
+  },
+  {
+    "type": "post",
+    "url": "/admin/reports/details",
+    "title": "report details",
+    "name": "Report_Detail",
+    "description": "<p>This is for get report details</p>",
+    "group": "Admin___Feedback",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "report_id",
+            "description": "<p>uniqu Id</p>"
           }
         ]
       }
@@ -5644,83 +5714,6 @@
   },
   {
     "type": "post",
-    "url": "/admin/user/report_list",
-    "title": "create report list for cars",
-    "name": "Listing_of_users_report",
-    "description": "<p>This is for listing user report</p>",
-    "group": "Admin___Users",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "start",
-            "description": "<p>pagination start page no</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "end",
-            "description": "<p>pagination length no of page length</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "x-access-token",
-            "description": "<p>Admin unique access-key</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/admin/users.js",
-    "groupTitle": "Admin___Users"
-  },
-  {
-    "type": "post",
     "url": "/company/users/report_list",
     "title": "create report list for cars",
     "name": "Listing_of_users_report",
@@ -5801,6 +5794,83 @@
       }
     },
     "filename": "controllers/company/users.js",
+    "groupTitle": "Admin___Users"
+  },
+  {
+    "type": "post",
+    "url": "/admin/user/report_list",
+    "title": "create report list for cars",
+    "name": "Listing_of_users_report",
+    "description": "<p>This is for listing user report</p>",
+    "group": "Admin___Users",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "start",
+            "description": "<p>pagination start page no</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "end",
+            "description": "<p>pagination length no of page length</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Admin unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/admin/users.js",
     "groupTitle": "Admin___Users"
   },
   {
@@ -6863,7 +6933,7 @@
   },
   {
     "type": "post",
-    "url": "/app/social_login-v2",
+    "url": "/app/social_login",
     "title": "Facebook Login",
     "name": "Facebook_Login",
     "description": "<p>Used for user facebook login</p>",
@@ -6947,7 +7017,7 @@
   },
   {
     "type": "post",
-    "url": "/app/social_login",
+    "url": "/app/social_login-v2",
     "title": "Facebook Login",
     "name": "Facebook_Login",
     "description": "<p>Used for user facebook login</p>",
@@ -9857,7 +9927,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/app/car.js",
+    "filename": "controllers/agentApp/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -9990,7 +10060,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "controllers/agentApp/car.js",
+    "filename": "controllers/app/car.js",
     "groupTitle": "App___Car"
   },
   {
@@ -11374,69 +11444,6 @@
   },
   {
     "type": "post",
-    "url": "/company/car/details",
-    "title": "Add car",
-    "name": "add_Car",
-    "description": "<p>Used for Display details Car</p>",
-    "group": "CompanyAdmin___Car",
-    "version": "0.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "car_id",
-            "optional": false,
-            "field": "car_id",
-            "description": "<p>id of Car</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Content-Type",
-            "description": "<p>application/json</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Validation or error message.</p>"
-          }
-        ]
-      }
-    },
-    "filename": "controllers/company/cars.js",
-    "groupTitle": "CompanyAdmin___Car"
-  },
-  {
-    "type": "post",
     "url": "/company/car/add",
     "title": "Add car",
     "name": "add_Car",
@@ -11557,6 +11564,69 @@
             "optional": false,
             "field": "deposit",
             "description": "<p>deposit for car</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/cars.js",
+    "groupTitle": "CompanyAdmin___Car"
+  },
+  {
+    "type": "post",
+    "url": "/company/car/details",
+    "title": "Add car",
+    "name": "add_Car",
+    "description": "<p>Used for Display details Car</p>",
+    "group": "CompanyAdmin___Car",
+    "version": "0.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "car_id",
+            "optional": false,
+            "field": "car_id",
+            "description": "<p>id of Car</p>"
           }
         ]
       }
