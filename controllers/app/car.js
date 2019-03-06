@@ -5478,8 +5478,8 @@ router.post('/filter-v7', async (req, res) => {
                         //     }
                         // },
                         {
-                            // "data.company_city" : /^oYsteR Bay$/i 
-                            "data.company_city" : {$regex: new RegExp('^' + city, 'i')} // check partial
+                            "data.company_city" : /^oYsteR Bay$/i 
+                            // "data.company_city" : {$regex: new RegExp('^' + city, 'i')} // check partial
                             // "data.company_city" :  /^oYsteR$/i  // exact check
                         },
                         {
@@ -5868,12 +5868,26 @@ router.post('/extend-booking', async (req, res) => {
             res.status(config.BAD_REQUEST).json({ status: "failed", message: "Opps this car has been already booked" });
         }
         else {
+
+            var bookingDetails = await CarBooking.find({"booking_number" :  req.body.booking_number});
+            var total_extend_days = req.body.days;
+            if(bookingDetails && bookingDetails.length > 0){
+                console.log('bookingDetails=>',bookingDetails);
+                if(bookingDetails[0].extended_days){
+                    console.log('bookingDetails DAYS =>',bookingDetails[0].extended_days);
+                    total_extend_days = bookingDetails[0].extended_days + req.body.days;
+                }
+                else{
+                    total_extend_days = req.body.days;
+                }
+            }
+
             var condition = {
                 "booking_number": req.body.booking_number,
                 "trip_status": "inprogress"
             }
             var setData = {
-                "extended_days": req.body.days,
+                "extended_days": total_extend_days, //req.body.days,
                 "total_booking_amount": req.body.total_booking_amount,
                 "to_time": toDate
             }

@@ -302,11 +302,11 @@ carHelper.getcarDetailbyId = async (car_id) => {
     ];
     try {
         let carDetail = await Car.aggregate(defaultQuery);
-           
+
         if (carDetail && carDetail.length > 0) {
 
-            const vat = await CarVAT.findOne({},{rate : 1});
-            console.log('VAT=>',vat);
+            const vat = await CarVAT.findOne({}, { rate: 1 });
+            console.log('VAT=>', vat);
 
             var cars = carDetail.map((c) => {
                 c.car["total_avg_rating"] = c.total_avg_rating;
@@ -654,7 +654,7 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
             // console.log('MOment Db Date = >', moment("2019-01-28T05:19:50.975Z"))
             // console.log('MOment Current Date = >', moment());
 
-            var phone_no = await User.findOne({type : 'admin', isDeleted : false},{_id : 0, support_phone_number : 1}).lean().exec();
+            var phone_no = await User.findOne({ type: 'admin', isDeleted: false }, { _id: 0, support_phone_number: 1 }).lean().exec();
             var support_phone_number = phone_no != null ? phone_no.support_phone_number : '9876543210';
 
             var data1 = data.map((c) => {
@@ -668,10 +668,10 @@ carHelper.carBooking_upcomming_history = async (user_id) => {
                 // if (c['phone_number'] === undefined) {
                 //     c['phone_number'] = "9876543210" // dummy
                 // }
-                
+
                 c['phone_number'] = support_phone_number; // dynamic
-                
-                if(c['vat'] === undefined){
+
+                if (c['vat'] === undefined) {
                     c['vat'] = null
                 }
 
@@ -801,15 +801,16 @@ carHelper.history = async (user_id, history_type) => {
     }
     else if (history_type === 'active') {
         var searchQuery = {
+            
             $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(user_id),
-                // 'trip_status': { $in: ['delivering', 'returning'] }
-
                 // add later
+                // 'from_time': {
+                //     $eq: moment().utcOffset(0).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISOString()
+                // },
                 'from_time': {
-                    // $eq: new Date("2019-02-04"),
-                    $eq: new Date(moment().utcOffset(0).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISOString())
+                    $lte: new Date(),
                 },
                 'trip_status': { $nin: ['cancelled', 'finished'] }
             }
@@ -844,7 +845,7 @@ carHelper.history = async (user_id, history_type) => {
 
             var currentDate = moment().toDate().toISOString(Date.now());
 
-            var phone_no = await User.findOne({type : 'admin', isDeleted : false},{_id : 0, support_phone_number : 1}).lean().exec();
+            var phone_no = await User.findOne({ type: 'admin', isDeleted: false }, { _id: 0, support_phone_number: 1 }).lean().exec();
             var support_phone_number = phone_no != null ? phone_no.support_phone_number : '9876543210';
 
             var data1 = data.map((c) => {
@@ -859,8 +860,8 @@ carHelper.history = async (user_id, history_type) => {
                 //     c['phone_number'] = "9876543210" // dummy super admin
                 // }
                 c['phone_number'] = support_phone_number; // dynamic
-                
-                if(c['vat'] === undefined){
+
+                if (c['vat'] === undefined) {
                     c['vat'] = null
                 }
 
@@ -884,7 +885,7 @@ carHelper.history = async (user_id, history_type) => {
 
 carHelper.getBrandList = async () => {
     try {
-        const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 }).collation({locale: "en" }).sort({"brand_name": 1});
+        const carbrand = await CarBrand.find({ "isDeleted": false }, { _id: 1, brand_name: 1 }).collation({ locale: "en" }).sort({ "brand_name": 1 });
         if (carbrand && carbrand.length > 0) {
             return { status: 'success', message: "Car brand has been found", data: { brand: carbrand } }
         } else {
@@ -898,7 +899,7 @@ carHelper.getBrandList = async () => {
 //Get modellist by brand id
 carHelper.getModelList = async (brandArray) => {
     try {
-        const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } }).collation({locale: "en" }).sort({"model_name": 1});
+        const carmodels = await CarModel.find({ "isDeleted": false, "car_brand_id": { $in: brandArray } }).collation({ locale: "en" }).sort({ "model_name": 1 });
         if (carmodels && carmodels.length > 0) {
             return { status: 'success', message: "Car Models has been found", data: { model: carmodels } }
         } else {
@@ -1064,7 +1065,7 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
                                 "booking.isDeleted": false
                             }
                         ]
-                    }, 
+                    },
                     { "booking": null }
                 ]
 
@@ -1089,102 +1090,103 @@ carHelper.checkCarAvaibility_v2 = async function (car_id, fromDate, days) {
     ];
 
     var defaultQuery2 = [
-          {
+        {
             "$match": { "_id": new ObjectId(car_id) }
-          },
-          {
+        },
+        {
             "$lookup": {
-              "from": "car_booking",
-              "foreignField": "carId",
-              "localField": "_id",
-              "as": "carBookingDetails"
+                "from": "car_booking",
+                "foreignField": "carId",
+                "localField": "_id",
+                "as": "carBookingDetails"
             }
-          },
-          
-          {
+        },
+
+        {
             "$unwind": {
-              "path": "$carBookingDetails",
-              "preserveNullAndEmptyArrays": true
+                "path": "$carBookingDetails",
+                "preserveNullAndEmptyArrays": true
             }
-          },
-          {
-              $match : 
-              {
+        },
+        {
+            $match:
+            {
                 //   "$or":[
                 //     {"carBookingDetails.isDeleted": false},
                 //     {"carBookingDetails":null}
                 //   ]
-                "$or" : [
-                    { "carBookingDetails": null},
+                "$or": [
+                    { "carBookingDetails": null },
                     {
                         "$and": [
-                                   {
-                                     "carBookingDetails.isDeleted": false
-                                   },
-                                   {
-                                      "carBookingDetails.trip_status" : { $ne : "cancelled" }
-                                   }
-                                ]
+                            {
+                                "carBookingDetails.isDeleted": false
+                            },
+                            {
+                                "carBookingDetails.trip_status": { $ne: "cancelled" }
+                            }
+                        ]
                     }
-               ]
-              }
-          },
-          {
-            "$group": {
-              "_id": "$_id",
-              "data": {
-                "$push": "$$ROOT"
-              },
-              "totalBooking": {$push:
-                  "$carBookingDetails.booking_number"
-                 
-              }
+                ]
             }
-          },
-          {
+        },
+        {
+            "$group": {
+                "_id": "$_id",
+                "data": {
+                    "$push": "$$ROOT"
+                },
+                "totalBooking": {
+                    $push:
+                        "$carBookingDetails.booking_number"
+
+                }
+            }
+        },
+        {
             "$unwind": {
-              "path": "$data",
-              "preserveNullAndEmptyArrays": true
+                "path": "$data",
+                "preserveNullAndEmptyArrays": true
             }
-          },
-          
-          {
+        },
+
+        {
             "$match": {
-              "$or": [
-                {
-                    "data.carBookingDetails.from_time": {
-                        "$gt": new Date(toDate)
+                "$or": [
+                    {
+                        "data.carBookingDetails.from_time": {
+                            "$gt": new Date(toDate)
+                        }
+                    },
+                    {
+                        "data.carBookingDetails.to_time": {
+                            "$lt": new Date(fromDate)
+                        }
+                    },
+                    {
+                        "data.carBookingDetails": null
                     }
-                },
-                {
-                    "data.carBookingDetails.to_time": {
-                        "$lt": new Date(fromDate)
-                    }
-                },
-                {
-                  "data.carBookingDetails": null
-                }        
-              ]
+                ]
             }
-          },
-          {
+        },
+        {
             "$group": {
-              "_id": "$_id",
-              "data": {
-                "$first": "$$ROOT"
-              },
-              "availableBooking": {
-                "$push": "$data.carBookingDetails.booking_number"
-              }
+                "_id": "$_id",
+                "data": {
+                    "$first": "$$ROOT"
+                },
+                "availableBooking": {
+                    "$push": "$data.carBookingDetails.booking_number"
+                }
             }
-          },
-          {
-              "$project":{
-                  "_id":1,
-                  "totalBooking":{$size:"$data.totalBooking"},
-                  "availableBooking":{$size:"$availableBooking"}
-               }
-          }
+        },
+        {
+            "$project": {
+                "_id": 1,
+                "totalBooking": { $size: "$data.totalBooking" },
+                "availableBooking": { $size: "$availableBooking" }
+            }
+        }
     ]
 
 
@@ -1243,116 +1245,117 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
     var fromDate = moment(fromDate).format("YYYY-MM-DD");
     var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
 
-    var fromDateMonth = new Date(fromDate).getMonth() + 1; 
+    var fromDateMonth = new Date(fromDate).getMonth() + 1;
     var toDateMonth = new Date(toDate).getMonth() + 1;
-    console.log("From Date =>",fromDate);
-    console.log("To Date =>",toDate);
+    console.log("From Date =>", fromDate);
+    console.log("To Date =>", toDate);
 
     var defaultQuery2 = [
-          {
+        {
             "$match": { "_id": new ObjectId(car_id) }
-          },
-          {
+        },
+        {
             "$lookup": {
-              "from": "car_booking",
-              "foreignField": "carId",
-              "localField": "_id",
-              "as": "carBookingDetails"
+                "from": "car_booking",
+                "foreignField": "carId",
+                "localField": "_id",
+                "as": "carBookingDetails"
             }
-          },
-          
-          {
+        },
+
+        {
             "$unwind": {
-              "path": "$carBookingDetails",
-              "preserveNullAndEmptyArrays": true
+                "path": "$carBookingDetails",
+                "preserveNullAndEmptyArrays": true
             }
-          }
-          /* remove when add cancelled & finished logic
-          {
-              $match : 
-              {
-                //   "$or":[
-                //     {"carBookingDetails.isDeleted": false},
-                //     {"carBookingDetails":null}
-                //   ]
-                "$or" : [
-                    { "carBookingDetails": null},
-                    {
-                        "$and": [
-                                   {
-                                     "carBookingDetails.isDeleted": false
-                                   },
-                                   {
-                                      "carBookingDetails.trip_status" : { $ne : "cancelled" } 
-                                   }
-                                ]
-                    },
-               ]
-              }
-          }
-          */
-          ,
-          {
+        }
+        /* remove when add cancelled & finished logic
+        {
+            $match : 
+            {
+              //   "$or":[
+              //     {"carBookingDetails.isDeleted": false},
+              //     {"carBookingDetails":null}
+              //   ]
+              "$or" : [
+                  { "carBookingDetails": null},
+                  {
+                      "$and": [
+                                 {
+                                   "carBookingDetails.isDeleted": false
+                                 },
+                                 {
+                                    "carBookingDetails.trip_status" : { $ne : "cancelled" } 
+                                 }
+                              ]
+                  },
+             ]
+            }
+        }
+        */
+        ,
+        {
             "$group": {
-              "_id": "$_id",
-              "data": {
-                "$push": "$$ROOT"
-              },
-              "totalBooking": {$push:
-                  "$carBookingDetails.booking_number"
-                 
-              }
+                "_id": "$_id",
+                "data": {
+                    "$push": "$$ROOT"
+                },
+                "totalBooking": {
+                    $push:
+                        "$carBookingDetails.booking_number"
+
+                }
             }
-          },
-          {
+        },
+        {
             "$unwind": {
-              "path": "$data",
-              "preserveNullAndEmptyArrays": true
+                "path": "$data",
+                "preserveNullAndEmptyArrays": true
             }
-          },
-          
-          {
+        },
+
+        {
             "$match": {
-              "$or": [
-                {
-                    "data.carBookingDetails.from_time": {
-                        "$gt": new Date(toDate)
+                "$or": [
+                    {
+                        "data.carBookingDetails.from_time": {
+                            "$gt": new Date(toDate)
+                        }
+                    },
+                    {
+                        "data.carBookingDetails.to_time": {
+                            "$lt": new Date(fromDate)
+                        }
+                    },
+                    {
+                        "data.carBookingDetails": null
+                    },
+                    {
+                        "data.carBookingDetails.trip_status": { $in: ["cancelled", "finished"] } // added now 
                     }
-                },
-                {
-                    "data.carBookingDetails.to_time": {
-                        "$lt": new Date(fromDate)
-                    }
-                },
-                {
-                  "data.carBookingDetails": null
-                },
-                {
-                    "data.carBookingDetails.trip_status" : { $in : ["cancelled","finished"]} // added now 
-                }       
-              ]
+                ]
             }
-          },
-          {
+        },
+        {
             "$group": {
-              "_id": "$_id",
-              "data": {
-                "$first": "$$ROOT"
-              },
-              "availableBooking": {
-                "$push": "$data.carBookingDetails.booking_number"
-              }
+                "_id": "$_id",
+                "data": {
+                    "$first": "$$ROOT"
+                },
+                "availableBooking": {
+                    "$push": "$data.carBookingDetails.booking_number"
+                }
             }
-          },
-          {
-              "$project":{
-                  "_id":1,
-                  "is_available":"$data.data.is_available",
-                  "totalBooking":{$size:"$data.totalBooking"},
-                  "availableBooking":{$size:"$availableBooking"},
-                  "trip_status" : "$data.data.carBookingDetails.trip_status"
-               }
-          }
+        },
+        {
+            "$project": {
+                "_id": 1,
+                "is_available": "$data.data.is_available",
+                "totalBooking": { $size: "$data.totalBooking" },
+                "availableBooking": { $size: "$availableBooking" },
+                "trip_status": "$data.data.carBookingDetails.trip_status"
+            }
+        }
     ]
 
 
@@ -1394,7 +1397,7 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                 if (cars[0].is_available && cars[0].is_available !== true) { // chk when there is array
                     cars[0].is_available.map((data, index) => {
                         var cnt = 0;
-                        console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
+                        console.log('datamoth', data.month, 'frommonth==>', fromDateMonth, 'to month===.', toDateMonth);
                         if (data.month === fromDateMonth || data.month === toDateMonth) {
                             data.availability.map((av, i) => {
                                 let date = moment(av).utc().startOf('days');
@@ -1411,7 +1414,7 @@ carHelper.checkCarAvaibility_v3 = async function (car_id, fromDate, days) {
                     });
                 }
 
-                if(availableArray.length > 0){
+                if (availableArray.length > 0) {
                     return { status: 'success', message: "Car is available on this date" }
                 } else {
                     return { status: 'failed', message: "Car is not available on this date" }
@@ -1460,92 +1463,93 @@ carHelper.check_extend_availability = async function (car_id, fromDate, days) {
     // var toDate = moment(fromDate).add(days + 1, 'days').format("YYYY-MM-DD");
     // var fromDate = moment(fromDate).add(1, 'days').format("YYYY-MM-DD");
 
-    var fromDateMonth = new Date(fromDate).getMonth() + 1; 
+    var fromDateMonth = new Date(fromDate).getMonth() + 1;
     var toDateMonth = new Date(toDate).getMonth() + 1;
-    console.log("From Date =>",fromDate);
-    console.log("To Date =>",toDate);
+    console.log("From Date =>", fromDate);
+    console.log("To Date =>", toDate);
 
     var defaultQuery2 = [
-          {
+        {
             "$match": { "_id": new ObjectId(car_id) }
-          },
-          {
+        },
+        {
             "$lookup": {
-              "from": "car_booking",
-              "foreignField": "carId",
-              "localField": "_id",
-              "as": "carBookingDetails"
+                "from": "car_booking",
+                "foreignField": "carId",
+                "localField": "_id",
+                "as": "carBookingDetails"
             }
-          },
-          
-          {
+        },
+
+        {
             "$unwind": {
-              "path": "$carBookingDetails",
-              "preserveNullAndEmptyArrays": true
+                "path": "$carBookingDetails",
+                "preserveNullAndEmptyArrays": true
             }
-          }
-          ,
-          {
+        }
+        ,
+        {
             "$group": {
-              "_id": "$_id",
-              "data": {
-                "$push": "$$ROOT"
-              },
-              "totalBooking": {$push:
-                  "$carBookingDetails.booking_number"
-                 
-              }
+                "_id": "$_id",
+                "data": {
+                    "$push": "$$ROOT"
+                },
+                "totalBooking": {
+                    $push:
+                        "$carBookingDetails.booking_number"
+
+                }
             }
-          },
-          {
+        },
+        {
             "$unwind": {
-              "path": "$data",
-              "preserveNullAndEmptyArrays": true
+                "path": "$data",
+                "preserveNullAndEmptyArrays": true
             }
-          },
-          
-          {
+        },
+
+        {
             "$match": {
-              "$or": [
-                {
-                    "data.carBookingDetails.from_time": {
-                        "$gte": new Date(toDate)
+                "$or": [
+                    {
+                        "data.carBookingDetails.from_time": {
+                            "$gte": new Date(toDate)
+                        }
+                    },
+                    {
+                        "data.carBookingDetails.to_time": {
+                            "$lte": new Date(fromDate)
+                        }
+                    },
+                    {
+                        "data.carBookingDetails": null
+                    },
+                    {
+                        "data.carBookingDetails.trip_status": { $in: ["cancelled", "finished"] } // added now 
                     }
-                },
-                {
-                    "data.carBookingDetails.to_time": {
-                        "$lte": new Date(fromDate)
-                    }
-                },
-                {
-                  "data.carBookingDetails": null
-                },
-                {
-                    "data.carBookingDetails.trip_status" : { $in : ["cancelled","finished"]} // added now 
-                }       
-              ]
+                ]
             }
-          },
-          {
+        },
+        {
             "$group": {
-              "_id": "$_id",
-              "data": {
-                "$first": "$$ROOT"
-              },
-              "availableBooking": {
-                "$push": "$data.carBookingDetails.booking_number"
-              }
+                "_id": "$_id",
+                "data": {
+                    "$first": "$$ROOT"
+                },
+                "availableBooking": {
+                    "$push": "$data.carBookingDetails.booking_number"
+                }
             }
-          },
-          {
-              "$project":{
-                  "_id":1,
-                  "is_available":"$data.data.is_available",
-                  "totalBooking":{$size:"$data.totalBooking"},
-                  "availableBooking":{$size:"$availableBooking"},
-                  "trip_status" : "$data.data.carBookingDetails.trip_status"
-               }
-          }
+        },
+        {
+            "$project": {
+                "_id": 1,
+                "is_available": "$data.data.is_available",
+                "totalBooking": { $size: "$data.totalBooking" },
+                "availableBooking": { $size: "$availableBooking" },
+                "trip_status": "$data.data.carBookingDetails.trip_status"
+            }
+        }
     ]
 
 
@@ -1561,13 +1565,13 @@ carHelper.check_extend_availability = async function (car_id, fromDate, days) {
             // return {"status":"success"}
 
             if (cars[0].totalBooking === cars[0].availableBooking) {
-                
+
                 availableArray = [];
 
                 if (cars[0].is_available && cars[0].is_available !== true) { // chk when there is array
                     cars[0].is_available.map((data, index) => {
                         var cnt = 0;
-                        console.log('datamoth',data.month, 'frommonth==>',fromDateMonth, 'to month===.', toDateMonth);
+                        console.log('datamoth', data.month, 'frommonth==>', fromDateMonth, 'to month===.', toDateMonth);
                         if (data.month === fromDateMonth || data.month === toDateMonth) {
                             data.availability.map((av, i) => {
                                 let date = moment(av).utc().startOf('days');
@@ -1584,7 +1588,7 @@ carHelper.check_extend_availability = async function (car_id, fromDate, days) {
                     });
                 }
 
-                if(availableArray.length > 0){
+                if (availableArray.length > 0) {
                     return { status: 'success', message: "Car is available on this date" }
                 } else {
                     return { status: 'failed', message: "Car is not available on this date" }
@@ -1648,8 +1652,8 @@ carHelper.cancelBooking = async function (data) {
 
         /* calculate cancellation charge START */
 
-        
-        
+
+
         var default_query = [
             {
                 $match: { "booking_number": { $eq: data.booking_number } }
@@ -1689,8 +1693,8 @@ carHelper.cancelBooking = async function (data) {
                     "userId": 1,
                     "from_time": 1,
                     "to_time": 1,
-                    "booking_rent" : 1,
-                    "days" : 1,
+                    "booking_rent": 1,
+                    "days": 1,
                     "booking_number": 1,
                     "companyId": "$car_company_terms_and_condition_details.CompanyId",
                     "cancellation_policy_criteria": "$car_company_terms_and_condition_details.cancellation_policy_criteria"
@@ -1699,7 +1703,7 @@ carHelper.cancelBooking = async function (data) {
         ];
 
         var cancelletion_rates = await CarBooking.aggregate(default_query);
-        
+
         console.log('DATA==>', cancelletion_rates);
         var total_booking_amount = cancelletion_rates[0].total_booking_amount;
         var booking_rate = cancelletion_rates[0].booking_rent;
@@ -1722,53 +1726,54 @@ carHelper.cancelBooking = async function (data) {
 
         var cancellation_rates_list = cancelletion_rates[0].cancellation_policy_criteria;
 
-        console.log('Cancel rate list=>',cancellation_rates_list);
-    
+        console.log('Cancel rate list=>', cancellation_rates_list);
+
         var final_rate_percentage = null;
         var flagGot = false;
-        if(cancellation_rates_list.length > 0){
+        if (cancellation_rates_list.length > 0) {
             cancellation_rates_list.forEach(rate => {
                 if (rate.hours >= diff_hours && !flagGot) {
-                    flagGot=true;
+                    flagGot = true;
                     final_rate_percentage = rate.rate;
                 }
             });
         }
-        console.log("final_rate_percentage",final_rate_percentage);
-        
-        if(final_rate_percentage !== null){   
+        console.log("final_rate_percentage", final_rate_percentage);
+
+        if (final_rate_percentage !== null) {
 
             cancel_charge = (total_booking_amount * final_rate_percentage) / 100;
             amount_return_to_user = total_booking_amount - cancel_charge;
-            
-            console.log('CANCAL CHARGE : ',cancel_charge);
-            console.log('Amount return to user  : ',amount_return_to_user);
+
+            console.log('CANCAL CHARGE : ', cancel_charge);
+            console.log('Amount return to user  : ', amount_return_to_user);
         }
-        else{
+        else {
             final_rate_percentage = null;
-            cancel_charge = 0; 
-            amount_return_to_user = booking_rate * no_of_days; 
-            console.log('CANCAL CHARGE : ',cancel_charge);
-            console.log('Amount return to user  : ',amount_return_to_user);
+            cancel_charge = 0;
+            amount_return_to_user = booking_rate * no_of_days;
+            console.log('CANCAL CHARGE : ', cancel_charge);
+            console.log('Amount return to user  : ', amount_return_to_user);
         }
-            
+
         // return { "status": "success", data: cancelletion_rates }
-        
+
 
         /* ---------cancellation charge over-------------- */
 
         var condition = { 'booking_number': data.booking_number }
         var update_data = { $set: { cancel_date: data.cancel_date, cancel_reason: data.cancel_reason, trip_status: data.trip_status } };
-        var update_data2 = { $set: { 
-                                    cancel_date: data.cancel_date, 
-                                    cancel_reason: data.cancel_reason, 
-                                    trip_status: data.trip_status, 
-                                    transaction_status: "cancelled", 
-                                    cancellation_rate : final_rate_percentage,
-                                    cancellation_charge : cancel_charge,
-                                    amount_return_to_user : amount_return_to_user
-                                } 
-                        };
+        var update_data2 = {
+            $set: {
+                cancel_date: data.cancel_date,
+                cancel_reason: data.cancel_reason,
+                trip_status: data.trip_status,
+                transaction_status: "cancelled",
+                cancellation_rate: final_rate_percentage,
+                cancellation_charge: cancel_charge,
+                amount_return_to_user: amount_return_to_user
+            }
+        };
 
         var datta = await CarBooking.update(condition, update_data2);
         if (datta && datta.n > 0) {
@@ -2348,7 +2353,7 @@ carHelper.car_receive = async (req, car_handover_data) => {
         // after car receive we need to change car booking status to -> finished
         let booking_number = { booking_number: car_hand_over_data.booking_number };
         // let trip_status = { $set: { trip_status: 'finished' } };
-        let trip_status = { $set: { trip_status: 'finished', transaction_status : 'successfull' } };
+        let trip_status = { $set: { trip_status: 'finished', transaction_status: 'successfull' } };
         let trip_status2 = { $set: { trip_status: 'finished' } };
 
         var updateCarBooking = await CarBooking.updateOne(booking_number, trip_status);
