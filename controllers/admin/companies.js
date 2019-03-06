@@ -1240,7 +1240,7 @@ router.post('/car/details', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        const carResp = await carHelper.getcarDetails(new ObjectId(req.body.car_id));
+        const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
         console.log(carResp);
         res.json(carResp);
     } else {
