@@ -801,7 +801,7 @@ carHelper.history = async (user_id, history_type) => {
     }
     else if (history_type === 'active') {
         var searchQuery = {
-            
+
             $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(user_id),
@@ -1840,6 +1840,7 @@ carHelper.checkRadius = async function (data) {
                 $and: [
                     { _id: new ObjectId(data.company_id) }, //0.621371 1 km  // 62.1371 = 100km
                     { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 62.1371 / 3963.2] } } }
+
                 ]
             }
         }]
@@ -1854,6 +1855,40 @@ carHelper.checkRadius = async function (data) {
         return { status: 'failed', message: "Error occured while mapping radius", err }
     }
 }
+
+
+// check radius v2
+carHelper.checkRadius_v2 = async function (data) {
+    try {
+        // for 100 meter radius
+        let radius = await CarCompany.aggregate([
+            {
+                $project: {
+                    "city": { $toLower: "$company_address.city" }
+                }
+            },
+            {
+                $match: {
+                    $and: [
+                        { _id: new ObjectId(data.company_id) }, //0.621371 1 km  // 62.1371 = 100km
+                        // { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 62.1371 / 3963.2] } } }
+                        {"city" : {$eq : data.city} } // lowercase here
+                    ]
+                }
+            }
+        ]
+        );
+        if (radius && radius.length > 0) {
+            return { status: 'success', message: "Service is available to your location"}
+        }
+        else {
+            return { status: 'failed', message: "Service is not available to your location" }
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while mapping radius", err }
+    }
+}
+
 
 
 // car_handover for agent app

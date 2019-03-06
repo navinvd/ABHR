@@ -1973,7 +1973,77 @@ router.post('/check-delivery-radius', async (req, res) => {
             latitude: req.body.latitude,
             longitude: req.body.longitude
         }
-        let radiusResp = await carHelper.checkRadius(data);
+        let radiusResp = await carHelper.checkRadius(data); // location wise
+        if (radiusResp.status === 'success') {
+            res.status(config.OK_STATUS).json(radiusResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(radiusResp);
+        }
+        // res.json(radiusResp);
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+/**
+ * @api {post} /app/car/check-delivery-radius-v2 Check car delivery radius
+ * @apiName Check car delivery radius
+ * @apiDescription Check car will be deliver or not on given location by user when book particular car
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Number} car_rental_company_id company id whose car is booking
+ * @apiParam {Number} latitude latitude
+ * @apiParam {Number} longitude longitude
+ * @apiParam {String} city city name (full name)
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+
+//Check Delivery Radius v2 car will book if it lies in companies radius
+router.post('/check-delivery-radius-v2', async (req, res) => {
+
+    var schema = {
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car company id",
+        },
+        'latitude': {
+            notEmpty: true,
+            errorMessage: "Please enter latitude",
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Please enter longitude",
+        },
+        'city': {
+            notEmpty: true,
+            errorMessage: "Please enter city",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+
+    if (!errors) {
+        let data = {
+            company_id: req.body.car_rental_company_id,
+            latitude: req.body.latitude,
+            longitude: req.body.longitude,
+            city :  (req.body.city).toLowerCase()
+        }
+        // let radiusResp = await carHelper.checkRadius(data); // location wise
+        let radiusResp = await carHelper.checkRadius_v2(data); // city wise
 
         if (radiusResp.status === 'success') {
             res.status(config.OK_STATUS).json(radiusResp);
@@ -1991,6 +2061,10 @@ router.post('/check-delivery-radius', async (req, res) => {
         });
     }
 });
+
+
+
+
 
 
 // Test v2 of car filter
@@ -5311,7 +5385,7 @@ router.post('/filter-v7', async (req, res) => {
         var fromDate = moment(req.body.fromDate).startOf('days');
         var toDate = moment(req.body.fromDate).add(req.body.days, 'days').startOf('days');
 
-        var city = req.body.city;
+        var city = (req.body.city).toLowerCase();
 
 
         var fromDateMonth = new Date(fromDate).getMonth() + 1;
@@ -5422,7 +5496,7 @@ router.post('/filter-v7', async (req, res) => {
                     "totalBooking": { $size: "$carBookingDetails" },
                     "booking": "$carBookingDetails",
                     "service_location": "$companyDetails.service_location",
-                    "company_city": "$companyDetails.company_address.city",
+                    "company_city": { $toLower: "$companyDetails.company_address.city" },
                     "reviews": 1
                 }
             },
@@ -5478,9 +5552,8 @@ router.post('/filter-v7', async (req, res) => {
                         //     }
                         // },
                         {
-                            "data.company_city" : /^oYsteR Bay$/i 
-                            // "data.company_city" : {$regex: new RegExp('^' + city, 'i')} // check partial
-                            // "data.company_city" :  /^oYsteR$/i  // exact check
+                            // "data.company_city" : /^oYsteR Bay$/i 
+                            "data.company_city" : { $eq : city} 
                         },
                         {
                             "$or": [
