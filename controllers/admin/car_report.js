@@ -629,4 +629,165 @@ router.post('/change_status', async (req, res, next) => {
     }
 });
 
+/**
+ * @api {post} /admin/reports/details report details
+ * @apiName Report Detail
+ * @apiDescription This is for get report details
+ * @apiGroup Admin - Feedback
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} report_id uniqu Id
+ * 
+ * @apiHeader {String}  Content-Type application/json   
+ * @apiHeader {String}  x-access-token Admin unique access-key  
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/details', async (req, res, next) => {
+
+    var schema = {
+        'report_id': {
+            notEmpty: true,
+            errorMessage: "report_id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var defaultQuery = [
+                {
+                    "$match": {
+                        "_id": new ObjectId(req.body.report_id),
+                        "isDeleted": false
+                    }
+                },
+                { 
+                    '$lookup':{ 
+                        from: 'users',
+                        localField: 'user_id',
+                        foreignField: '_id',
+                        as: 'userDetails' 
+                    } 
+                },
+                {
+                    "$unwind": {
+                        "path": "$userDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                { 
+                    '$lookup':{ 
+                        from: 'car_booking',
+                        localField: 'booking_number',
+                        foreignField: 'booking_number',
+                        as: 'bookingDetails' 
+                    } 
+                },
+                {
+                    "$unwind": {
+                        "path": "$bookingDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                { 
+                    '$lookup':{ 
+                        from: 'cars',
+                        localField: 'car_id',
+                        foreignField: '_id',
+                        as: 'car_details' 
+                    } 
+                },
+                {
+                    "$unwind": {
+                        "path": "$car_details",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                { 
+                    '$lookup':{ 
+                        from: 'car_model',
+                        localField: 'car_details.car_model_id',
+                        foreignField: '_id',
+                        as: 'car_model' 
+                    } 
+                },
+                {
+                    "$unwind": {
+                        "path": "$car_model",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                { 
+                    '$lookup':{ 
+                        from: 'car_brand',
+                        localField: 'car_details.car_brand_id',
+                        foreignField: '_id',
+                        as: 'car_brand' 
+                    } 
+                },
+                {
+                    "$unwind": {
+                        "path": "$car_brand",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    $project:{
+                        "_id":1,
+                        "user_name": {$concat: ["$userDetails.first_name"," ","$userDetails.last_name"]},
+                        "booking_number": 1,
+                        "report_message": 1,
+                        "status": 1,
+                        "user_email": "$userDetails.email",
+                        "user_phone_number": "$userDetails.phone_number",
+                        "car_model":"$car_model.model_name",
+                        // "car_model": 1,
+                        "car_brand": "car_brand.brand_name",
+                        // "car_brand":1,
+                        "is_navigation": "$car_details.is_navigation",
+                        "is_AC": "$car_details.is_AC",
+                        "is_luggage_carrier": "$car_details.is_luggage_carrier",
+                        "driving_eligibility_criteria": "$car_details.driving_eligibility_criteria",
+                        "is_delieverd": "$car_details.is_delieverd.is_delieverd",
+                        "rent_price": "$car_details.rent_price",
+                        "no_of_person": "$car_details.no_of_person",
+                        "transmission": "$car_details.transmission",
+                        "milage": "$car_details.milage",
+                        "car_class": "$car_details.car_class",
+                        "licence_plate": "$car_details.licence_plate",
+                        "car_color": "$car_details.car_color",
+                        "deposit": "$car_details.deposit",
+                        "age_of_car": "$car_details.age_of_car"
+                    }
+                }
+            ];
+            checkUser = await Report.aggregate(defaultQuery);
+            if(checkUser && typeof checkUser !== 'undefined' && checkUser.length >0){
+                res.status(config.OK_STATUS).json({
+                    message: "Report Data got Successfully",
+                    status : "success",
+                    data: checkUser[0]
+                });
+            }else{
+                res.status(config.OK_STATUS).json({
+                    message: "No Data found",
+                    status : "success"
+                });
+            }
+        } catch(e){
+            res.status(config.BAD_REQUEST).json({
+                message: "Something Went Wrong",
+                error: e
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            message: "Validation Error",
+            error: errors
+        });
+    }
+});
+
 module.exports = router;
