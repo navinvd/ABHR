@@ -330,6 +330,7 @@ router.post('/booking-details', async (req, res) => {
                     coupon_percentage: 1,
                     isDeleted: 1,
                     vat: 1,
+                    extended_days : 1,
                     agent_assign_for_handover: 1,
                     agent_assign_for_receive: 1,
                     car_handover_by_agent_id: 1,
@@ -2004,6 +2005,7 @@ router.post('/car-list-v3', async (req, res) => {
                 },
 
                 days: "$bookingDetails.days",
+                extended_days : "$bookingDetails.extended_days",
                 booking_rent: "$bookingDetails.booking_rent",
 
                 delivery_address: "$bookingDetails.delivery_address",
@@ -2188,6 +2190,7 @@ router.post('/car-list-v3', async (req, res) => {
                 },
 
                 days: 1,
+                extended_days : 1,
                 booking_rent: 1,
 
                 delivery_address: 1,
