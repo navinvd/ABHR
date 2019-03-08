@@ -795,7 +795,10 @@ carHelper.history = async (user_id, history_type) => {
                 'isDeleted': false,
                 'userId': new ObjectId(user_id),
                 // 'trip_status': { $in: ['finished'] }
-                'trip_status': { $ne: "upcoming" }
+                // 'trip_status': { $ne: "upcoming" }
+                'from_time': {
+                    $lte: new Date(),
+                },
             }
         }
     }

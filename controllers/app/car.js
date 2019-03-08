@@ -14,6 +14,7 @@ const Coupon = require('./../../models/coupon');
 const UserCoupon = require('./../../models/user_coupon');
 const ReportCategory = require('./../../models/report_category');
 const CarNotification = require('./../../models/car_notification');
+const Notifications = require('./../../models/notifications');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 var mail_helper = require('./../../helper/mail');
@@ -1247,7 +1248,6 @@ router.post('/book', async (req, res) => {
                 console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
 
 
-
                 /*store coupon entry in user_coupon collection*/
 
                 if (bookingResp.data.booking_data.coupon_code !== null || bookingResp.data.booking_data.coupon_code !== undefined) {
@@ -1271,11 +1271,11 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification ther user on IOS APP & Android app 
                 /** push notification process to user app start */
 
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
 
                 // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
 
-                var deviceToken = '';
+                var deviceToken = null;
                 console.log('User token =>', userDeviceToken);
                 if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
                     if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
@@ -1286,32 +1286,68 @@ router.post('/book', async (req, res) => {
 
                 var notificationType = 1; // means notification for booking 
                 console.log('Dev Token=>', deviceToken);
+                var msg = "Your car has been booked";
                 if (userDeviceToken[0].deviceType === 'ios') {
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, 'Your car has been booked');
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, msg);
+                    /* save notification to db start */
+                    if (deviceToken !== null) {
+                        var data = {
+                            "userId": userDeviceToken[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'ios',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": car_booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    }
+                    /* save notification to db over */
+
                 } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your car has been booked');
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, msg);
+                    /* save notification to db start */
+                    if (deviceToken !== null) {
+                        var data = {
+                            "userId": userDeviceToken[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": car_booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    }
+                    /* save notification to db over */
                 }
+
 
                 /** Push notofication for user app over */
 
                 // after car booking need to send push notification to all agent
                 /* push notification process to all agent start */
 
-                var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
+                var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
+                var agetnt_ids = [];
                 agentList.map((agent, index) => {
                     if (agent.deviceToken !== undefined) {
                         if (agent.deviceToken !== null) {
                             if (agent.deviceToken.length > 10) { // temp condition
                                 agentDeviceTokenArray.push(agent.deviceToken);
+                                agetnt_ids.push(agent._id);
                             }
                         }
                     }
                 });
 
                 var notificationFor = "new-booking";
-                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor);
+                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, 'New car has been book assign to you for delivery process');
+
+                //save notification to db agent
+                // if(agetnt_ids.length > 0){
+                    
+                // }
 
                 /** Notification over for agent */
 
@@ -1325,7 +1361,10 @@ router.post('/book', async (req, res) => {
                 }
 
                 // var data1 = bookingResp.data.booking_data;
-                const carResp = await carHelper.getcarDetailbyId(new ObjectId(data.carId)); // resuable api
+                const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
+
+                // console.log("CAR RESPO =>",carResp);
+
                 var data1 = JSON.parse(JSON.stringify(bookingResp.data.booking_data));
 
                 data1.rent_price = carResp.data.carDetail.rent_price;
@@ -1377,18 +1416,14 @@ router.post('/book', async (req, res) => {
                 /** Send sms over */
 
 
-                /*
-                if (sendNotification.status === 'success') {
-                    console.log('Notification send Success==>')
-                    // res.status(config.OK_STATUS).json(sendNotification);
-                    res.status(config.OK_STATUS).json(bookingResp);
-                }
-                else {
-                    console.log('Notification not send failure', sendNotification)
-                    // res.status(config.BAD_REQUEST).json(sendNotification);
-                    res.status(config.OK_STATUS).json(bookingResp);
-                }
-                */
+
+
+
+
+
+
+
+
 
                 // res.status(config.OK_STATUS).json(bookingResp) // set this line after coupon entry
             }
@@ -2040,7 +2075,7 @@ router.post('/check-delivery-radius-v2', async (req, res) => {
             company_id: req.body.car_rental_company_id,
             latitude: req.body.latitude,
             longitude: req.body.longitude,
-            city :  (req.body.city).toLowerCase()
+            city: (req.body.city).toLowerCase()
         }
         // let radiusResp = await carHelper.checkRadius(data); // location wise
         let radiusResp = await carHelper.checkRadius_v2(data); // city wise
@@ -2985,7 +3020,7 @@ router.post('/report', async (req, res) => {
             // send email to user & super admin
 
             var carData = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
-            console.log("Car DATA=>",carData);
+            console.log("Car DATA=>", carData);
             var userData = await Users.findOne({ "_id": new ObjectId(req.body.user_id) });
             var superAdminData = await Users.findOne({ "type": "admin", isDeleted: false });
 
@@ -3774,7 +3809,7 @@ router.post('/return-request', async (req, res) => {
             });
 
             var notificationFor = "return-process";
-            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor);
+            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, 'Assign car to you for return process');
 
             console.log('Not Status =>', sendNotification);
 
@@ -5553,7 +5588,7 @@ router.post('/filter-v7', async (req, res) => {
                         // },
                         {
                             // "data.company_city" : /^oYsteR Bay$/i 
-                            "data.company_city" : { $eq : city} 
+                            "data.company_city": { $eq: city }
                         },
                         {
                             "$or": [
@@ -5942,15 +5977,15 @@ router.post('/extend-booking', async (req, res) => {
         }
         else {
 
-            var bookingDetails = await CarBooking.find({"booking_number" :  req.body.booking_number});
+            var bookingDetails = await CarBooking.find({ "booking_number": req.body.booking_number });
             var total_extend_days = req.body.days;
-            if(bookingDetails && bookingDetails.length > 0){
-                console.log('bookingDetails=>',bookingDetails);
-                if(bookingDetails[0].extended_days){
-                    console.log('bookingDetails DAYS =>',bookingDetails[0].extended_days);
+            if (bookingDetails && bookingDetails.length > 0) {
+                console.log('bookingDetails=>', bookingDetails);
+                if (bookingDetails[0].extended_days) {
+                    console.log('bookingDetails DAYS =>', bookingDetails[0].extended_days);
                     total_extend_days = bookingDetails[0].extended_days + req.body.days;
                 }
-                else{
+                else {
                     total_extend_days = req.body.days;
                 }
             }
