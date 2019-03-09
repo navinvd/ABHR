@@ -82,7 +82,8 @@ router.post('/notifications-v2', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id) , "isDeleted" : false }).lean().exec();
+            // const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id) , "isDeleted" : false }).lean().exec();
+            const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id) , "isDeleted" : false }).sort({"_id" : -1}).lean().exec();
             if (notificationResp && notificationResp.length > 0) {
                 res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found", data: { notifications: notificationResp } });
             }
@@ -173,6 +174,40 @@ router.post('/remove-notification', async (req, res) => {
         });
     }
 });
+
+
+// remove notification v2
+router.post('/remove-notification-v2', async (req, res) => {
+    var schema = {
+        'notification_id': {
+            notEmpty: true,
+            errorMessage: "Please enter notification id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            const notificationResp = await Notifications.updateOne({"_id": ObjectId(req.body.notification_id)},{$set:{isDeleted : true}}).lean().exec();
+            if (notificationResp && notificationResp.n > 0) {
+                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been removed"});
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been removed" });
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while removing notifications", err });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
+
 
 
 /**
