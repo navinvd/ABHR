@@ -343,14 +343,16 @@ router.post('/update', async (req, res) => {
             banner: null
         }
         var mimetype = config.mimetypes;
-        if (req.files !== null && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)) {
+        if (req.files !== null && typeof req.files['banner_image'] !== 'undefined' && (mimetype.indexOf(req.files['banner_image'].mimetype) != -1)) {
             if (req.files['banner_image']) {
                 var file = req.files.banner_image;
                 var dir = "./upload/banner";
                 extention = path.extname(file.name);
                 filename = req.body.coupon_code + extention;
                 var filepath = dir + '/' + filename;
-                fs.unlinkSync(dir + '/' + req.body.old_banner_image);
+                if(req.body.old_banner_image !== 'null'){
+                    fs.unlinkSync(dir + '/' + req.body.old_banner_image);
+                }
                 file.mv(dir + '/' + filename, function (err) {
                     if (err) {
                         return (err);
@@ -367,7 +369,7 @@ router.post('/update', async (req, res) => {
                 });
             }
         } else {
-            data.banner = req.body.old_banner_image;
+            data.banner = (req.body.old_banner_image !== 'null')? req.body.old_banner_image: null;
         }
         if (typeof req.body.idCompanyAdded !== 'undefined' && req.body.idCompanyAdded == 'true') {
             isunset = false

@@ -336,6 +336,201 @@ carHelper.getcarDetailbyId = async (car_id) => {
     }
 };
 
+carHelper.getcarDetails = async (car_id) => {
+    var defaultQuery = [
+        {
+            $match: {
+                'isDeleted': false,
+                '_id': new ObjectId(car_id)
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_model',
+                foreignField: '_id',
+                localField: 'car_model_id',
+                as: "modelDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$modelDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_brand',
+                foreignField: '_id',
+                localField: 'car_brand_id',
+                as: "brandDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$brandDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_company',
+                foreignField: '_id',
+                localField: 'car_rental_company_id',
+                as: "carCompanyDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carCompanyDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_booking',
+                foreignField: 'carId',
+                localField: '_id',
+                as: "carBookingDetails",
+            }
+        },
+        {
+            $unwind: {
+                "path": "$carBookingDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $match: {
+                "carBookingDetails.trip_status": { $ne : "finished"},
+                "carBookingDetails.trip_status": { $ne : "cancelled"}
+            }
+        },
+        {
+            "$group":{
+                "_id":"$_id",
+                "car_rental_company_id": {"$first":"$car_rental_company_id"},
+                "car_rental_company_name": {"$first":"$carCompanyDetails.name"},
+                "car_rental_company_country":  {"$first":"$carCompanyDetails.company_address.country"},
+                "car_model": {"$first":"$modelDetails.model_name"},
+                "car_brand": {"$first":"$brandDetails.brand_name"},
+                "car_model_number":{"$first":"$modelDetails.model_number"},
+                "rent_price": {"$first":"$rent_price"},
+                "is_AC": {"$first":"$is_AC"},
+                "is_luggage_carrier": {"$first":"$is_luggage_carrier"},
+                "licence_plate": {"$first":"$licence_plate"},
+                "no_of_person": {"$first":"$no_of_person"},
+                "transmission": {"$first":"$transmission"},
+                "is_navigation": {"$first":"$is_navigation"},
+                "driving_eligibility_criteria": {"$first":"$driving_eligibility_criteria"},
+                "car_class": {"$first":"$car_class"},
+                "car_gallery": {"$first":"$car_gallery"},
+                "resident_criteria": {"$first":"$resident_criteria"},
+                "deposit": {"$first":"$deposit"},
+                "age_of_car": {"$first":"$age_of_car"},
+                "availableData": {"$first":"$is_available"},
+                "carBookingDetails":{$push: "$carBookingDetails"},
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                car_rental_company_id: 1,
+                car_rental_company_name: 1,
+                car_rental_company_country: 1,
+                car_brand: 1,
+                car_model: 1,
+                car_model_number: 1,
+                car_model_release_year: 1,
+                car_color: 1,
+                rent_price: 1,
+                is_AC: 1,
+                is_luggage_carrier: 1,
+                licence_plate: 1,
+                no_of_person: 1,
+                transmission: 1,
+                is_delieverd: 1,
+                milage: 1,
+                is_navigation: 1,
+                driving_eligibility_criteria: 1,
+                car_class: 1,
+                availableData: 1,
+                car_model_id: 1,
+                car_brand_id: 1,
+                car_gallery: 1,
+                resident_criteria: 1,
+                deposit: 1,
+                age_of_car: 1,
+                carBookingDetails:1
+            }
+        }
+    ];
+    try {
+        let carDetail = await Car.aggregate(defaultQuery);
+        if (carDetail && carDetail.length > 0) {
+            // console.log(carDetail[0].carBookingDetails);
+            if(carDetail[0].carBookingDetails && carDetail[0].carBookingDetails.length > 0){
+                var BookingDetail = carDetail[0].carBookingDetails;
+                BookingDetail.forEach((Booking) => {
+                    let fromDate = moment(Booking.from_time).utc().startOf('days');
+                    let toDate = moment(Booking.to_time).utc().startOf('days');
+                    // console.log('fromDate=====>', fromDate);
+                    // console.log('toDate======>',toDate);
+                    var cnt = 0;
+                    while(!(moment(fromDate).isSame(toDate))) {
+                        var fromMonth = 1 + moment(fromDate).month();
+                        if(carDetail[0].availableData && carDetail[0].availableData.length>0){
+                            var availableData = carDetail[0].availableData;
+                            availableData.forEach((calender, i) => {
+                                if(calender.month === fromMonth){
+                                    if(calender.availability && calender.availability.length >0){
+                                        var calenderDates = calender.availability;
+                                        calenderDates.forEach((Dates, j) => {
+                                            var tempDate = moment(Dates).utc().startOf('days');
+                                            if(moment(tempDate).isSame(fromDate)){
+                                                delete carDetail[0].availableData[i].availability[j];
+                                            }
+                                            console.log('Dates=====>',Dates);
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    fromDate = moment(fromDate).add(1, 'days');
+                    }
+                    console.log('fromDate====>', fromDate);
+                    if(moment(fromDate).isSame(toDate)){
+                        var fromMonth = 1 + moment(fromDate).month();
+                        if(carDetail[0].availableData && carDetail[0].availableData.length>0){
+                            var availableData = carDetail[0].availableData;
+                            availableData.forEach((calender, i) => {
+                                if(calender.month === fromMonth){
+                                    if(calender.availability && calender.availability.length >0){
+                                        var calenderDates = calender.availability;
+                                        calenderDates.forEach((Dates, j) => {
+                                            var tempDate = moment(Dates).utc().startOf('days');
+                                            if(moment(tempDate).isSame(fromDate)){
+                                                delete carDetail[0].availableData[i].availability[j];
+                                            }
+                                            console.log('Dates=====>',Dates);
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+            return { status: 'success', message: "Car data found", data: carDetail}
+        } else {
+            return { status: 'failed', message: "No car available" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car list" , err};
+    }
+};
+
+
 // Add car review
 carHelper.addReview = async function (review_data) {
     let car_review = new CarReview(review_data);

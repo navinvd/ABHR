@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var config = require('./../../config');
 var Car = require('./../../models/cars');
+var mongoose = require('mongoose');
 CarBooking = require('./../../models/car_booking');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
@@ -88,7 +89,7 @@ router.post('/add', (req, res, next) => {
     if (!errors) {
         var files = [];
         var galleryArray = [];
-        console.log('request here======>',req.files);
+        console.log('request here======>', req.files);
         if (req.files) {
             files = req.files['car_gallery'];
             if (!Array.isArray(files)) {
@@ -104,7 +105,7 @@ router.post('/add', (req, res, next) => {
                     filename = splitName[0] + '_copy' + extention;
                     filepath = dir + '/' + filename;
                 }
-                var json = {name: filename, type: file['mimetype']}
+                var json = { name: filename, type: file['mimetype'] }
                 galleryArray.push(json);
                 file.mv(filepath, function (err) {
                     if (err) {
@@ -118,11 +119,11 @@ router.post('/add', (req, res, next) => {
         }
         var avaibility = JSON.parse(req.body.is_available);
         var AvailObj = [];
-        for (var key in avaibility){
+        for (var key in avaibility) {
             avaibility[key].map((date, i) => {
                 avaibility[key][i] = moment(date).utc().startOf('days');
             });
-            let datesobj = { "month": parseInt(key), "availability": avaibility[key]};
+            let datesobj = { "month": parseInt(key), "availability": avaibility[key] };
             console.log('datesobj===.', datesobj);
             AvailObj.push(datesobj);
         }
@@ -147,7 +148,7 @@ router.post('/add', (req, res, next) => {
             error: errors
         });
     }
-  });
+});
 
 
 /**
@@ -167,7 +168,7 @@ router.post('/add', (req, res, next) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/list',(req, res, next) => {
+router.post('/list', (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -177,14 +178,14 @@ router.post('/list',(req, res, next) => {
             notEmpty: true,
             errorMessage: "length is required"
         },
-        'company_id' : {
+        'company_id': {
             notEmpty: true,
             errorMessage: "company_id is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if(!errors){
+    if (!errors) {
         var defaultQuery = [
             {
                 $lookup: {
@@ -229,17 +230,17 @@ router.post('/list',(req, res, next) => {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if(req.body.columns[colIndex].isNumber){
-                if(order == "asc"){
+            if (req.body.columns[colIndex].isNumber) {
+                if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: 1 }
                     });
-                }else{
+                } else {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: -1 }
                     });
                 }
-            }else{
+            } else {
                 colname = '$' + colname;
                 if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
@@ -261,14 +262,14 @@ router.post('/list',(req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
+                        {
+                            $sort: {
+                                "sort_index": -1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
                 }
             }
         }
@@ -289,7 +290,7 @@ router.post('/list',(req, res, next) => {
                             } else {
                                 json[obj.name] = false;
                             }
-                        }else {
+                        } else {
                             json[obj.name] = {
                                 "$regex": regex,
                                 "$options": "i"
@@ -329,23 +330,23 @@ router.post('/list',(req, res, next) => {
                 }
             }
         },
-        {
-            $project: {
-                "_id": 1,
-                "recordsTotal": 1,
-                "data": "$data"
+            {
+                $project: {
+                    "_id": 1,
+                    "recordsTotal": 1,
+                    "data": "$data"
                 }
-        });
+            });
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
-                console.log('err===>',err);
+                console.log('err===>', err);
                 return next(err);
             } else {
-                console.log('result===>',data);
+                console.log('result===>', data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data.length != 0 ? data[0] : { recordsTotal: 0, data: [] }
                 });
             }
         })
@@ -409,7 +410,7 @@ router.post('/details', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/rented_list', (req, res, next) => {
+router.post('/rented_list', async (req, res, next) => {
     var schema = {
         'start': {
             notEmpty: true,
@@ -426,8 +427,18 @@ router.post('/rented_list', (req, res, next) => {
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
-    if(!errors){
+    if (!errors) {
+        console.log('carId=====>', req.body.car_id);
         var defaultQuery = [
+            {
+                $match: {
+                    'isDeleted': false,
+                    'carId': mongoose.Types.ObjectId(req.body.car_id)
+                    // 'to_time': {
+                    //     $lt: new Date(),
+                    // }
+                }
+            },
             {
                 $lookup: {
                     from: 'cars',
@@ -452,54 +463,66 @@ router.post('/rented_list', (req, res, next) => {
             },
             {
                 $unwind: {
-                    "path": "$car_model",
-                    "preserveNullAndEmptyArrays": true
+                    "path": "$car_model"
                 }
             },
             {
                 $lookup: {
                     from: 'car_brand',
-                    localField: 'car_details.car_model_id',
+                    localField: 'car_details.car_brand_id',
                     foreignField: '_id',
                     as: 'car_brand'
                 }
             },
             {
                 $unwind: {
-                    "path": "$car_brand",
-                    "preserveNullAndEmptyArrays": true
+                    "path": "$car_brand"
                 }
             },
             {
-                $match: {
-                    'isDeleted': false,
-                    'carId': new ObjectId(req.body.car_id),
-                    'to_time': {
-                        $lt: new Date(),
-                    }
+                "$lookup": {
+                    "from": "users",
+                    "localField": "userId",
+                    "foreignField": "_id",
+                    "as": "user_details",
                 }
             },
             {
-                "$project":{
-                    "_id":1,
-                    "userId":1,
-                    "booking_number":1,
-                    "from_time":1,
-                    "to_time":1,
-                    "model_name":"$car_model.model_name",
-                    "brand_name":"$car_brand.brand_name"
+                "$unwind": {
+                    "path":  "$user_details"
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "userId": 1,
+                    "booking_number": 1,
+                    "user_name": { $concat: ["$user_details.first_name", " ", "$user_details.last_name"]},
+                    "from_time": 1,
+                    "booking_rent":1,
+                    "to_time": 1,
+                    "model_name": "$car_model.model_name",
+                    "brand_name": "$car_brand.brand_name"
                 }
             }];
-            if (req.body.search != undefined) {
-                if(req.body.search.value != undefined){
+            if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+                if (req.body.search.value != undefined && req.body.search.value !== '') {
                     var regex = new RegExp(req.body.search.value);
-                    var match = {$or: []};
+                    var match = { $or: [] };
                     req.body['columns'].forEach(function (obj) {
                         if (obj.name) {
                             var json = {};
                             if (obj.isNumber) {
+                                console.log(typeof parseInt(req.body.search.value));
                                 json[obj.name] = parseInt(req.body.search.value)
-                            } else {
+                            } else if (obj.isBoolean) {
+                                var check = req.body.search.value.toLowerCase();
+                                if (check === "yes" || check === "ye" || check === "y") {
+                                    json[obj.name] = true;
+                                } else {
+                                    json[obj.name] = false;
+                                }
+                            }else {
                                 json[obj.name] = {
                                     "$regex": regex,
                                     "$options": "i"
@@ -513,7 +536,8 @@ router.post('/rented_list', (req, res, next) => {
                 var searchQuery = {
                     $match: match
                 }
-                defaultQuery.splice(defaultQuery.length - 2, 0, searchQuery);
+                defaultQuery.push(searchQuery);
+                console.log("==>", JSON.stringify(defaultQuery));
             }
             if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
                 var colIndex = req.body.order[0].column;
@@ -562,14 +586,36 @@ router.post('/rented_list', (req, res, next) => {
                     }
                 }
             }
-            console.log('defaultQuery===>',JSON.stringify(defaultQuery));
+
+            defaultQuery = defaultQuery.concat({
+                $group: {
+                    "_id": "",
+                    "recordsTotal": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "recordsTotal": 1,
+                    "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
+                }
+            });
+        console.log('defaultQuery===>', JSON.stringify(defaultQuery));
         CarBooking.aggregate(defaultQuery, function (err, data) {
             if (err) {
                 return next(err);
             } else {
+                console.log("data => data => ", data);
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: data.length != 0 ? data[0] : {recordsTotal: 0, data: []}
+                    result: data.length != 0 ? data[0] : {
+                        recordsTotal: 0,
+                        data: []
+                    }
                 });
             }
         })
@@ -671,7 +717,7 @@ router.post('/report_list', async (req, res, next) => {
             },
             {
                 $match: {
-                    "car_details.car_rental_company_id" : new ObjectId(req.body.company_id)
+                    "car_details.car_rental_company_id": new ObjectId(req.body.company_id)
                 }
             }];
 
@@ -685,24 +731,24 @@ router.post('/report_list', async (req, res, next) => {
                     isDeleted: "$car_details.isDeleted",
                     from_time: 1,
                     to_time: 1,
-                    trip_status:1,
-                    booking_rent:1,
-                    createdAt:1
+                    trip_status: 1,
+                    booking_rent: 1,
+                    createdAt: 1
                 }
             });
 
-            if (req.body.selectFromDate && req.body.selectToDate) {
-                var From_date = moment(req.body.selectFromDate).utc().startOf('day');
-                var To_date = moment(req.body.selectToDate).utc().startOf('day');
-                defaultQuery.push({
-                    $match: {
-                          $and: [
-                                    { "from_time": { $gte: new Date(From_date) } },
-                                    { "to_time": { $lte: new Date(To_date) } },
-                                ]
-                            }
-                })
-            }
+        if (req.body.selectFromDate && req.body.selectToDate) {
+            var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+            var To_date = moment(req.body.selectToDate).utc().startOf('day');
+            defaultQuery.push({
+                $match: {
+                    $and: [
+                        { "from_time": { $gte: new Date(From_date) } },
+                        { "to_time": { $lte: new Date(To_date) } },
+                    ]
+                }
+            })
+        }
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -735,17 +781,17 @@ router.post('/report_list', async (req, res, next) => {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if(req.body.columns[colIndex].isNumber){
-                if(order == "asc"){
+            if (req.body.columns[colIndex].isNumber) {
+                if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: 1 }
                     });
-                }else{
+                } else {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: -1 }
                     });
                 }
-            }else{
+            } else {
                 colname = '$' + colname;
                 if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
@@ -767,14 +813,14 @@ router.post('/report_list', async (req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
+                        {
+                            $sort: {
+                                "sort_index": -1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
                 }
             }
         }
@@ -828,155 +874,155 @@ router.post('/report_list', async (req, res, next) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.post('/export_report_list', async (req, res, next) => {
-        var defaultQuery = [
-            {
-                $match: {
-                    "isDeleted": false
-                },
+    var defaultQuery = [
+        {
+            $match: {
+                "isDeleted": false
             },
-            {
-                $lookup: {
-                    from: 'cars',
-                    localField: 'carId',
-                    foreignField: '_id',
-                    as: 'car_details'
-                }
-            },
-            {
-                $unwind: {
-                    "path": "$car_details"
-                }
-            },
-            {
-                $lookup: {
-                    from: 'car_company',
-                    localField: 'car_details.car_rental_company_id',
-                    foreignField: '_id',
-                    as: 'car_compnay'
-                }
-            },
-            {
-                $unwind: '$car_compnay'
-            },
-            {
-                $lookup: {
-                    from: 'car_model',
-                    localField: 'car_details.car_model_id',
-                    foreignField: '_id',
-                    as: 'car_model'
-                }
-            },
-            {
-                $unwind: '$car_model'
-            },
-            {
-                $lookup: {
-                    from: 'car_brand',
-                    localField: 'car_details.car_brand_id',
-                    foreignField: '_id',
-                    as: 'car_brand'
-                }
-            },
-            {
-                $unwind: '$car_brand'
-            },
-            {
-                $match: {
-                    "car_details.car_rental_company_id" : new ObjectId(req.body.company_id)
-                }
-            }];
+        },
+        {
+            $lookup: {
+                from: 'cars',
+                localField: 'carId',
+                foreignField: '_id',
+                as: 'car_details'
+            }
+        },
+        {
+            $unwind: {
+                "path": "$car_details"
+            }
+        },
+        {
+            $lookup: {
+                from: 'car_company',
+                localField: 'car_details.car_rental_company_id',
+                foreignField: '_id',
+                as: 'car_compnay'
+            }
+        },
+        {
+            $unwind: '$car_compnay'
+        },
+        {
+            $lookup: {
+                from: 'car_model',
+                localField: 'car_details.car_model_id',
+                foreignField: '_id',
+                as: 'car_model'
+            }
+        },
+        {
+            $unwind: '$car_model'
+        },
+        {
+            $lookup: {
+                from: 'car_brand',
+                localField: 'car_details.car_brand_id',
+                foreignField: '_id',
+                as: 'car_brand'
+            }
+        },
+        {
+            $unwind: '$car_brand'
+        },
+        {
+            $match: {
+                "car_details.car_rental_company_id": new ObjectId(req.body.company_id)
+            }
+        }];
 
-        defaultQuery.push(
-            {
-                $project: {
-                    _id: 1,
-                    company_name: "$car_compnay.name",
-                    car_modal: "$car_model.model_name",
-                    car_brand: "$car_brand.brand_name",
-                    isDeleted: "$car_details.isDeleted",
-                    from_time: 1,
-                    to_time: 1,
-                    trip_status:1,
-                    booking_rent:1
+    defaultQuery.push(
+        {
+            $project: {
+                _id: 1,
+                company_name: "$car_compnay.name",
+                car_modal: "$car_model.model_name",
+                car_brand: "$car_brand.brand_name",
+                isDeleted: "$car_details.isDeleted",
+                from_time: 1,
+                to_time: 1,
+                trip_status: 1,
+                booking_rent: 1
+            }
+        });
+
+    if (req.body.selectFromDate && req.body.selectToDate) {
+        var From_date = moment(req.body.selectFromDate).utc().startOf('day');
+        var To_date = moment(req.body.selectToDate).utc().startOf('day');
+        defaultQuery.push({
+            $match: {
+                $and: [
+                    { "from_time": { $gte: new Date(From_date) } },
+                    { "to_time": { $lte: new Date(To_date) } },
+                ]
+            }
+        })
+    }
+
+    if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+        if (req.body.search.value != undefined && req.body.search.value !== '') {
+            var regex = new RegExp(req.body.search.value);
+            var match = { $or: [] };
+            req.body['columns'].forEach(function (obj) {
+                if (obj.name) {
+                    var json = {};
+                    if (obj.isNumber) {
+                        console.log(typeof parseInt(req.body.search.value));
+                        json[obj.name] = parseInt(req.body.search.value)
+                    } else {
+                        json[obj.name] = {
+                            "$regex": regex,
+                            "$options": "i"
+                        }
+                    }
+                    match['$or'].push(json)
                 }
             });
-
-            if (req.body.selectFromDate && req.body.selectToDate) {
-                var From_date = moment(req.body.selectFromDate).utc().startOf('day');
-                var To_date = moment(req.body.selectToDate).utc().startOf('day');
-                defaultQuery.push({
-                    $match: {
-                          $and: [
-                                    { "from_time": { $gte: new Date(From_date) } },
-                                    { "to_time": { $lte: new Date(To_date) } },
-                                ]
-                            }
-                })
-            }
-
-        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
-            if (req.body.search.value != undefined && req.body.search.value !== '') {
-                var regex = new RegExp(req.body.search.value);
-                var match = { $or: [] };
-                req.body['columns'].forEach(function (obj) {
-                    if (obj.name) {
-                        var json = {};
-                        if (obj.isNumber) {
-                            console.log(typeof parseInt(req.body.search.value));
-                            json[obj.name] = parseInt(req.body.search.value)
-                        } else {
-                            json[obj.name] = {
-                                "$regex": regex,
-                                "$options": "i"
-                            }
-                        }
-                        match['$or'].push(json)
-                    }
+        }
+        console.log('re.body.search==>', req.body.search.value);
+        var searchQuery = {
+            $match: match
+        }
+        defaultQuery.push(searchQuery);
+        console.log("==>", JSON.stringify(defaultQuery));
+    }
+    if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+        var colIndex = req.body.order[0].column;
+        var colname = req.body.columns[colIndex].name;
+        var order = req.body.order[0].dir;
+        if (req.body.columns[colIndex].isNumber) {
+            if (order == "asc") {
+                defaultQuery = defaultQuery.concat({
+                    $sort: { [colname]: 1 }
+                });
+            } else {
+                defaultQuery = defaultQuery.concat({
+                    $sort: { [colname]: -1 }
                 });
             }
-            console.log('re.body.search==>', req.body.search.value);
-            var searchQuery = {
-                $match: match
-            }
-            defaultQuery.push(searchQuery);
-            console.log("==>", JSON.stringify(defaultQuery));
-        }
-        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-            var colIndex = req.body.order[0].column;
-            var colname = req.body.columns[colIndex].name;
-            var order = req.body.order[0].dir;
-            if(req.body.columns[colIndex].isNumber){
-                if(order == "asc"){
-                    defaultQuery = defaultQuery.concat({
-                        $sort: { [colname]: 1 }
-                    });
-                }else{
-                    defaultQuery = defaultQuery.concat({
-                        $sort: { [colname]: -1 }
-                    });
-                }
-            }else{
-                colname = '$' + colname;
-                if (order == "asc") {
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
+        } else {
+            colname = '$' + colname;
+            if (order == "asc") {
+                defaultQuery = defaultQuery.concat({
+                    $project: {
+                        "records": "$$ROOT",
+                        "sort_index": { "$toLower": [colname] }
+                    }
+                },
+                    {
+                        $sort: { "sort_index": 1 }
                     },
-                        {
-                            $sort: { "sort_index": 1 }
-                        },
-                        {
-                            $replaceRoot: { newRoot: "$records" }
-                        })
-                } else {
-                    defaultQuery = defaultQuery.concat({
-                        $project: {
-                            "records": "$$ROOT",
-                            "sort_index": { "$toLower": [colname] }
-                        }
-                    },
+                    {
+                        $replaceRoot: { newRoot: "$records" }
+                    })
+            } else {
+                defaultQuery = defaultQuery.concat({
+                    $project: {
+                        "records": "$$ROOT",
+                        "sort_index": { "$toLower": [colname] }
+                    }
+                },
                     {
                         $sort: {
                             "sort_index": -1
@@ -985,25 +1031,25 @@ router.post('/export_report_list', async (req, res, next) => {
                     {
                         $replaceRoot: { newRoot: "$records" }
                     })
-                }
             }
         }
-        var totalrecords = await CarBooking.aggregate(defaultQuery);
-        console.log('defaultQuery===>', JSON.stringify(defaultQuery));
-        CarBooking.aggregate(defaultQuery, function (err, data) {
-            console.log('data===>', data);
-            if (err) {
-                return next(err);
-            } else {
-                res.status(config.OK_STATUS).json({
-                    message: "Success",
-                    result: { data: data, recordsTotal: totalrecords.length }
-                });
-            }
-        })
+    }
+    var totalrecords = await CarBooking.aggregate(defaultQuery);
+    console.log('defaultQuery===>', JSON.stringify(defaultQuery));
+    CarBooking.aggregate(defaultQuery, function (err, data) {
+        console.log('data===>', data);
+        if (err) {
+            return next(err);
+        } else {
+            res.status(config.OK_STATUS).json({
+                message: "Success",
+                result: { data: data, recordsTotal: totalrecords.length }
+            });
+        }
+    })
 });
 
 
 
-  
+
 module.exports = router;
