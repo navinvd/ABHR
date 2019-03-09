@@ -168,9 +168,9 @@ commonHelper.aboutus = async function (help_type) {
 commonHelper.sendNoti = async function (userId,booking_number,msg){
     // when car assign by agent for delivery or return send notification to user
     /** push notification process to user app start */
-    var userDeviceToken = await Users.find({ '_id': new ObjectId(userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
+    var userDeviceToken = await Users.find({ '_id': new ObjectId(userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
 
-    var deviceToken = '';
+    var deviceToken = null;
     console.log('User token =>', userDeviceToken);
     if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
         if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
@@ -182,9 +182,39 @@ commonHelper.sendNoti = async function (userId,booking_number,msg){
     console.log('Dev Token=>', deviceToken);
     if (userDeviceToken[0].deviceType === 'ios') {
         var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, booking_number, notificationType, msg);
+        /* save notification to db start */
+        if(deviceToken !== null){
+            var data = {
+                "userId": userDeviceToken[0]._id,
+                "deviceToken": deviceToken,
+                "deviceType": 'ios',
+                "notificationText": msg,
+                "notificationType": 1,
+                "booking_number": booking_number
+            }
+            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+        }
+        /* save notification to db over */
+
         return sendNotification;
+
     } else if (userDeviceToken[0].deviceType === 'android') {
         var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, booking_number, msg);
+
+         /* save notification to db start */
+         if(deviceToken !== null){
+             var data = {
+                 "userId": userDeviceToken[0]._id,
+                 "deviceToken": deviceToken,
+                 "deviceType": 'android',
+                 "notificationText": msg,
+                 "notificationType": 1,
+                 "booking_number": booking_number
+                }
+                var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+        }
+        /* save notification to db over */
+
         return sendNotification;
     }
 }

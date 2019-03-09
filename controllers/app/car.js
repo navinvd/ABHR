@@ -14,6 +14,7 @@ const Coupon = require('./../../models/coupon');
 const UserCoupon = require('./../../models/user_coupon');
 const ReportCategory = require('./../../models/report_category');
 const CarNotification = require('./../../models/car_notification');
+const Notifications = require('./../../models/notifications');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 var mail_helper = require('./../../helper/mail');
@@ -1247,7 +1248,6 @@ router.post('/book', async (req, res) => {
                 console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
 
 
-
                 /*store coupon entry in user_coupon collection*/
 
                 if (bookingResp.data.booking_data.coupon_code !== null || bookingResp.data.booking_data.coupon_code !== undefined) {
@@ -1271,11 +1271,11 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification ther user on IOS APP & Android app 
                 /** push notification process to user app start */
 
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
 
                 // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
 
-                var deviceToken = '';
+                var deviceToken = null;
                 console.log('User token =>', userDeviceToken);
                 if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
                     if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
@@ -1286,32 +1286,68 @@ router.post('/book', async (req, res) => {
 
                 var notificationType = 1; // means notification for booking 
                 console.log('Dev Token=>', deviceToken);
+                var msg = "Your car has been booked";
                 if (userDeviceToken[0].deviceType === 'ios') {
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, 'Your car has been booked');
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, msg);
+                    /* save notification to db start */
+                    if (deviceToken !== null) {
+                        var data = {
+                            "userId": userDeviceToken[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'ios',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": car_booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    }
+                    /* save notification to db over */
+
                 } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, 'Your car has been booked');
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, msg);
+                    /* save notification to db start */
+                    if (deviceToken !== null) {
+                        var data = {
+                            "userId": userDeviceToken[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": car_booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    }
+                    /* save notification to db over */
                 }
+
 
                 /** Push notofication for user app over */
 
                 // after car booking need to send push notification to all agent
                 /* push notification process to all agent start */
 
-                var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
+                var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
+                var agetnt_ids = [];
                 agentList.map((agent, index) => {
                     if (agent.deviceToken !== undefined) {
                         if (agent.deviceToken !== null) {
                             if (agent.deviceToken.length > 10) { // temp condition
                                 agentDeviceTokenArray.push(agent.deviceToken);
+                                agetnt_ids.push(agent._id);
                             }
                         }
                     }
                 });
 
                 var notificationFor = "new-booking";
-                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor);
+                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, 'New car has been book assign to you for delivery process');
+
+                //save notification to db agent
+                // if(agetnt_ids.length > 0){
+                    
+                // }
 
                 /** Notification over for agent */
 
@@ -1325,7 +1361,10 @@ router.post('/book', async (req, res) => {
                 }
 
                 // var data1 = bookingResp.data.booking_data;
-                const carResp = await carHelper.getcarDetailbyId(new ObjectId(data.carId)); // resuable api
+                const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
+
+                // console.log("CAR RESPO =>",carResp);
+
                 var data1 = JSON.parse(JSON.stringify(bookingResp.data.booking_data));
 
                 data1.rent_price = carResp.data.carDetail.rent_price;
@@ -1377,18 +1416,14 @@ router.post('/book', async (req, res) => {
                 /** Send sms over */
 
 
-                /*
-                if (sendNotification.status === 'success') {
-                    console.log('Notification send Success==>')
-                    // res.status(config.OK_STATUS).json(sendNotification);
-                    res.status(config.OK_STATUS).json(bookingResp);
-                }
-                else {
-                    console.log('Notification not send failure', sendNotification)
-                    // res.status(config.BAD_REQUEST).json(sendNotification);
-                    res.status(config.OK_STATUS).json(bookingResp);
-                }
-                */
+
+
+
+
+
+
+
+
 
                 // res.status(config.OK_STATUS).json(bookingResp) // set this line after coupon entry
             }
@@ -1973,7 +2008,77 @@ router.post('/check-delivery-radius', async (req, res) => {
             latitude: req.body.latitude,
             longitude: req.body.longitude
         }
-        let radiusResp = await carHelper.checkRadius(data);
+        let radiusResp = await carHelper.checkRadius(data); // location wise
+        if (radiusResp.status === 'success') {
+            res.status(config.OK_STATUS).json(radiusResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(radiusResp);
+        }
+        // res.json(radiusResp);
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+/**
+ * @api {post} /app/car/check-delivery-radius-v2 Check car delivery radius
+ * @apiName Check car delivery radius
+ * @apiDescription Check car will be deliver or not on given location by user when book particular car
+ * @apiGroup App - Car
+ * 
+ * @apiParam {Number} car_rental_company_id company id whose car is booking
+ * @apiParam {Number} latitude latitude
+ * @apiParam {Number} longitude longitude
+ * @apiParam {String} city city name (full name)
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+
+//Check Delivery Radius v2 car will book if it lies in companies radius
+router.post('/check-delivery-radius-v2', async (req, res) => {
+
+    var schema = {
+        'car_rental_company_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car company id",
+        },
+        'latitude': {
+            notEmpty: true,
+            errorMessage: "Please enter latitude",
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Please enter longitude",
+        },
+        'city': {
+            notEmpty: true,
+            errorMessage: "Please enter city",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+
+    if (!errors) {
+        let data = {
+            company_id: req.body.car_rental_company_id,
+            latitude: req.body.latitude,
+            longitude: req.body.longitude,
+            city: (req.body.city).toLowerCase()
+        }
+        // let radiusResp = await carHelper.checkRadius(data); // location wise
+        let radiusResp = await carHelper.checkRadius_v2(data); // city wise
 
         if (radiusResp.status === 'success') {
             res.status(config.OK_STATUS).json(radiusResp);
@@ -1991,6 +2096,10 @@ router.post('/check-delivery-radius', async (req, res) => {
         });
     }
 });
+
+
+
+
 
 
 // Test v2 of car filter
@@ -2911,7 +3020,7 @@ router.post('/report', async (req, res) => {
             // send email to user & super admin
 
             var carData = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
-            console.log("Car DATA=>",carData);
+            console.log("Car DATA=>", carData);
             var userData = await Users.findOne({ "_id": new ObjectId(req.body.user_id) });
             var superAdminData = await Users.findOne({ "type": "admin", isDeleted: false });
 
@@ -3700,7 +3809,7 @@ router.post('/return-request', async (req, res) => {
             });
 
             var notificationFor = "return-process";
-            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor);
+            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, 'Assign car to you for return process');
 
             console.log('Not Status =>', sendNotification);
 
@@ -4769,9 +4878,7 @@ router.post('/book-v2', async (req, res) => {
 
 
 
-// filter v6 test version (add banner in response)
-
-
+// filter v6 test version (add banner in response) current active api
 router.post('/filter-v6', async (req, res) => {
     var schema = {
         'fromDate': {
@@ -5271,6 +5378,520 @@ router.post('/filter-v6', async (req, res) => {
 });
 
 
+// remove location & add city wise search in filter-v6 new filter-v7
+router.post('/filter-v7', async (req, res) => {
+    var schema = {
+        'fromDate': {
+            notEmpty: true,
+            errorMessage: "Please specify from when you need car",
+            isISO8601: {
+                value: true,
+                errorMessage: "Please enter valid data. Format should be yyyy-mm-dd"
+            }
+        },
+        'days': {
+            notEmpty: true,
+            errorMessage: "Specify how many days you needed car",
+            isInt: {
+                value: true,
+                errorMessage: "Please enter days in number only"
+            }
+        },
+        'latitude': {
+            notEmpty: true,
+            errorMessage: "Specify your latitude"
+        },
+        'longitude': {
+            notEmpty: true,
+            errorMessage: "Specify your longitude"
+        },
+        'city': {
+            notEmpty: true,
+            errorMessage: "Enter city name"
+        },
+        'resident_type': {
+            notEmpty: true,
+            errorMessage: "Are you resident ..? (eg 0 or 1)"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var fromDate = moment(req.body.fromDate).startOf('days');
+        var toDate = moment(req.body.fromDate).add(req.body.days, 'days').startOf('days');
+
+        var city = (req.body.city).toLowerCase();
+
+
+        var fromDateMonth = new Date(fromDate).getMonth() + 1;
+        var toDateMonth = new Date(toDate).getMonth() + 1;
+
+        // var fromDateMonth = fmonth > 9 ? fmonth : ("0" + fmonth);
+        // var toDateMonth = tmonth > 9 ? tmonth : ("0" + tmonth);
+
+        console.log("FromDate =>", fromDate);
+        console.log("ToDate =>", toDate);
+        console.log("FromDate Month =>", fromDateMonth);
+        console.log("ToDate Month =>", toDateMonth);
+
+        // console.log(fromDateMonth,toDateMonth);
+
+        var defaultQuery = [
+            {
+                "$lookup": {
+                    "from": "car_model",
+                    "foreignField": "_id",
+                    "localField": "car_model_id",
+                    "as": "modelDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$modelDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "car_brand",
+                    "foreignField": "_id",
+                    "localField": "car_brand_id",
+                    "as": "brandDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$brandDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "car_company",
+                    "foreignField": "_id",
+                    "localField": "car_rental_company_id",
+                    "as": "companyDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$companyDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "car_reviews",
+                    "localField": "_id",
+                    "foreignField": "car_id",
+                    "as": "reviews"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "car_booking",
+                    "foreignField": "carId",
+                    "localField": "_id",
+                    "as": "carBookingDetails"
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "is_available": 1,
+                    "car_rental_company_id": 1,
+                    "car_brand": "$brandDetails.brand_name",
+                    "car_model": "$modelDetails.model_name",
+                    "car_model_number": "$modelDetails.model_number",
+                    "car_model_release_year": "$modelDetails.release_year",
+                    "car_color": 1,
+                    "rent_price": 1,
+                    "is_AC": 1,
+                    "is_luggage_carrier": 1,
+                    "licence_plate": 1,
+                    "no_of_person": 1,
+                    "transmission": 1,
+                    "is_delieverd": 1,
+                    "milage": 1,
+                    "is_navigation": 1,
+                    "driving_eligibility_criteria": 1,
+                    "car_class": 1,
+                    "is_avialable": 1,
+                    "car_model_id": 1,
+                    "car_brand_id": 1,
+                    "isDeleted": 1,
+                    "resident_criteria": 1,
+                    "age_of_car": 1,
+                    "image_name": {
+                        "$arrayElemAt": [
+                            "$car_gallery.name",
+                            0
+                        ]
+                    },
+                    "totalBooking": { $size: "$carBookingDetails" },
+                    "booking": "$carBookingDetails",
+                    "service_location": "$companyDetails.service_location",
+                    "company_city": { $toLower: "$companyDetails.company_address.city" },
+                    "reviews": 1
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$booking",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$match": {
+                    $and: [
+                        {
+                            $or: [
+                                {
+                                    "booking.from_time": {
+                                        $gt: new Date(toDate)
+
+                                    }
+                                },
+                                {
+                                    "booking.to_time": {
+                                        $lt: new Date(fromDate)
+                                    }
+                                },
+                                { "booking.trip_status": "cancelled" }, // add now
+                                { "booking.trip_status": "finished" }, // add now
+                                { "booking": null }
+                            ]
+                        },
+                        {
+                            "isDeleted": false,
+                            // "is_available": { $ne: true } // & this remove now
+                        }
+                    ]
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$_id",
+                    "data": { $first: "$$ROOT" },
+                    "availableBooking": { $push: "$booking.booking_number" }
+                }
+            },
+            {
+                "$match": {
+                    "$and": [
+                        // {
+                        //     "data.service_location": {
+                        //         "$geoWithin": {
+                        //             "$centerSphere": [[req.body.longitude, req.body.latitude], 62.1371 / 3963.2]
+                        //         }
+                        //     }
+                        // },
+                        {
+                            // "data.company_city" : /^oYsteR Bay$/i 
+                            "data.company_city": { $eq: city }
+                        },
+                        {
+                            "$or": [
+                                {
+                                    "data.resident_criteria": {
+                                        "$eq": req.body.resident_type
+                                    }
+                                },
+                                {
+                                    "data.resident_criteria": {
+                                        "$eq": 2
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "data.isDeleted": false
+                        }
+                    ]
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$data.reviews",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$_id",
+                    "total_avg_rating": {
+                        "$avg": "$data.reviews.stars"
+                    },
+                    "car": {
+                        "$first": "$data"
+                    },
+                    "availableBooking": { "$first": "$availableBooking" }
+                }
+            }
+        ];
+        var paginationArray = [
+            {
+                $group: {
+                    "_id": "",
+                    "total": {
+                        "$sum": 1
+                    },
+                    "data": {
+                        "$push": "$$ROOT"
+                    }
+                }
+            },
+            {
+                $project: {
+                    "_id": "",
+                    "total": 1,
+                    "data": { "$slice": ["$data", parseInt(req.body.itemPerpage) * (parseInt(req.body.currentPage) - 1), parseInt(req.body.itemPerpage)] }
+                }
+            }];
+        if (req.body.brand) {
+            let brandOject = req.body.brand;
+            if (brandOject.length > 0) {
+                brandOject = brandOject.map((b) => { return ObjectId(b) });
+                var searchQuery = {
+                    "$match": {
+                        "car_brand_id": { "$in": brandOject }
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
+            }
+
+        }
+        if (req.body.model) {
+            let modelOject = req.body.model;
+            if (modelOject.length > 0) {
+                modelOject = modelOject.map((b) => { return ObjectId(b) });
+                var searchQuery = {
+                    "$match": {
+                        "car_model_id": { "$in": modelOject },
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
+            }
+        }
+
+        if (typeof req.body.navigation !== 'undefined') {
+
+            if (req.body.navigation === false) {
+                let navigationOject = req.body.navigation;
+                console.log('NAVIGATION 1======>', navigationOject);
+                var searchQuery = {
+                    "$match": {
+                        "is_navigation": navigationOject,
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
+
+            } else {
+                console.log('NAVIGATION 2======>', req.body.navigation);
+                var searchQuery = {
+                    "$match": {
+                        "is_navigation": true,
+                    }
+                }
+                defaultQuery.splice(3, 0, searchQuery);
+
+            }
+        }
+
+        if (req.body.transmission) {
+
+            let transmissionObject = req.body.transmission;
+            console.log('Transmission => ', transmissionObject)
+            var searchQuery = {
+                "$match": {
+                    "transmission": { "$in": transmissionObject },
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.car_class) {
+            let classObject = req.body.car_class;
+            var searchQuery = {
+                "$match": {
+                    "car_class": { "$in": classObject },
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.capacity_of_people) {
+            let copObject = req.body.capacity_of_people;
+            var searchQuery = {
+                "$match": {
+                    "no_of_person": { "$in": copObject },
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+        }
+        if (req.body.milage) {
+            let milageObject = req.body.milage;
+            var searchQuery = {
+                "$match": {
+                    "milage": { "$in": milageObject },
+                }
+            }
+            defaultQuery.splice(3, 0, searchQuery);
+
+        }
+
+        // sorting
+        if (typeof req.body.sort_by !== 'undefined') {
+            let sort_by = parseInt(req.body.sort_by);
+            if (sort_by === 0) {
+                var searchQuery = {
+                    $sort: {
+                        'total_avg_rating': -1
+                    }
+                }
+            }
+            if (sort_by === 1) {
+                var searchQuery = {
+                    $sort: {
+                        'car.rent_price': -1
+                    }
+                }
+            }
+            if (sort_by === 2) {
+                var searchQuery = {
+                    $sort: {
+                        'car.rent_price': 1
+                    }
+                }
+            }
+            defaultQuery.push(searchQuery);
+        }
+
+        console.log('Default Query========>', JSON.stringify(defaultQuery));
+
+        // var cpn = await Coupon.find({"isDeleted" : false }).limit(5).skip( Math.floor((Math.random()*10)));
+        var cpn = await Coupon.find({ "isDeleted": false, "banner": { $ne: null } }).limit(5);
+
+        Car.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "No Cars Available",
+                    err
+                });
+            } else {
+                // console.log("DATATA===>", JSON.stringify(data));
+
+                // res.json('ok');
+
+                if (data && data.length > 0) {
+
+                    var finalDaata = data.filter((c) => {
+                        if (c.car['totalBooking'] === c['availableBooking'].length) {
+
+                            if (c.car["service_location"] === undefined) {
+                                c.car["service_location"] = null
+                            }
+
+                            c.car['total_avg_rating'] = c['total_avg_rating'];
+                            c.car['availableBooking'] = c['availableBooking'];
+
+                            delete c.car['reviews'];
+                            delete c.car['booking'];
+
+                            return true;
+                        }
+                    });
+
+                    finalDaata = finalDaata.map((d) => { return d.car })
+                    // console.log('cars list==>', finalDaata);
+
+                    availableArray = [];
+                    var okData = finalDaata.map((available, index) => {
+                        if (available.is_available && available.is_available !== true) {
+                            available.is_available.map((data, index) => {
+                                var cnt = 0;
+                                console.log('datamoth', data.month, 'frommonth==>', fromDateMonth, 'to month===.', toDateMonth);
+                                if (data.month === fromDateMonth || data.month === toDateMonth) {
+                                    data.availability.map((av, i) => {
+                                        let date = moment(av).utc().startOf('days');
+                                        if (moment(date).isBetween(fromDate, toDate, null, '[)')) {
+                                            cnt++
+                                        }
+                                        // u can push match data in one array & return it
+                                    });
+                                    // console.log('cnt======>,', cnt, req.body.days);
+                                    if (cnt >= req.body.days) {
+                                        availableArray.push(available);
+                                    }
+                                }
+                            });
+                        }
+                    })
+
+                    if (availableArray.length > 0) {
+
+                        res.status(config.OK_STATUS).json({
+                            status: "success",
+                            message: "car data found",
+                            // data: { cars: availableArray },
+                            data: { cars: availableArray, banner: cpn && cpn.length > 0 ? cpn : [] }
+                            // data: { cars: finalDaata }
+                        });
+                    }
+                    else {
+                        res.status(config.BAD_REQUEST).json({
+                            status: "failed",
+                            message: "No Cars Available"
+                        });
+                    }
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({
+                        status: "failed",
+                        message: "No Cars Available"
+                    });
+                }
+
+                /*
+
+                if (data && data.length > 0) {
+                    cars = data.map((c) => {
+                        c.car["total_avg_rating"] = c.total_avg_rating;
+                        if (c.car["service_location"] === undefined) {
+                            c.car["service_location"] = null
+                        }
+                        delete c.car.reviews;
+                        return c.car;
+                    })
+
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message: "car data found",
+                        data: { cars: cars },
+                    });
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({
+                        status: "failed",
+                        message: "No Cars Available"
+                    });
+                }
+
+                */
+            }
+        });
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+
+
 
 /**
  * @api {post} /app/car/extend-booking Extend Car Booking
@@ -5355,12 +5976,26 @@ router.post('/extend-booking', async (req, res) => {
             res.status(config.BAD_REQUEST).json({ status: "failed", message: "Opps this car has been already booked" });
         }
         else {
+
+            var bookingDetails = await CarBooking.find({ "booking_number": req.body.booking_number });
+            var total_extend_days = req.body.days;
+            if (bookingDetails && bookingDetails.length > 0) {
+                console.log('bookingDetails=>', bookingDetails);
+                if (bookingDetails[0].extended_days) {
+                    console.log('bookingDetails DAYS =>', bookingDetails[0].extended_days);
+                    total_extend_days = bookingDetails[0].extended_days + req.body.days;
+                }
+                else {
+                    total_extend_days = req.body.days;
+                }
+            }
+
             var condition = {
                 "booking_number": req.body.booking_number,
                 "trip_status": "inprogress"
             }
             var setData = {
-                "extended_days": req.body.days,
+                "extended_days": total_extend_days, //req.body.days,
                 "total_booking_amount": req.body.total_booking_amount,
                 "to_time": toDate
             }

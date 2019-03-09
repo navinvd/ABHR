@@ -9,6 +9,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
 var path = require('path');
 var User = require('./../../models/users');
+var Notifications = require('./../../models/notifications');
 var async = require("async");
 const moment = require('moment');
 
@@ -51,6 +52,58 @@ router.post('/notifications', async (req, res) => {
         });
     }
 });
+
+
+/**
+ * @api {Post} /app/user/notifications-v2 List of notifications for perticular user
+ * @apiName Car Notificationlist
+ * @apiDescription To Display notification list
+ * @apiGroup AppUser
+ *
+ * @apiParam {String}  user_id user id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+
+// get notification by user id new v2
+router.post('/notifications-v2', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            // const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id) , "isDeleted" : false }).lean().exec();
+            const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id) , "isDeleted" : false }).sort({"_id" : -1}).lean().exec();
+            if (notificationResp && notificationResp.length > 0) {
+                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found", data: { notifications: notificationResp } });
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been found" });
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while listing notifications", err });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "userId required",
+        });
+    }
+});
+
+
+
 
 /**
  * @api {get} /app/user/notification_setting/:userId get notification setting data for perticular user
@@ -123,6 +176,40 @@ router.post('/remove-notification', async (req, res) => {
 });
 
 
+// remove notification v2
+router.post('/remove-notification-v2', async (req, res) => {
+    var schema = {
+        'notification_id': {
+            notEmpty: true,
+            errorMessage: "Please enter notification id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            const notificationResp = await Notifications.updateOne({"_id": ObjectId(req.body.notification_id)},{$set:{isDeleted : true}}).lean().exec();
+            if (notificationResp && notificationResp.n > 0) {
+                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been removed"});
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been removed" });
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while removing notifications", err });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
+
+
+
 /**
  * @api {post} /app/user/change_notification_setting change notification setting for perticular user
  * @apiName Change Notificationsetting Data
@@ -158,17 +245,17 @@ router.post('/change_notification_setting', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
 
-        var  user_id =  req.body.user_id;
+        var user_id = req.body.user_id;
         var new_setting = {
-            account_updates_status : req.body.account_updates_status,
-            accoundiscount_new_status : req.body.accoundiscount_new_status
+            account_updates_status: req.body.account_updates_status,
+            accoundiscount_new_status: req.body.accoundiscount_new_status
         }
-        const notificationResp = await userHelper.change_notification_setting(user_id,new_setting);
+        const notificationResp = await userHelper.change_notification_setting(user_id, new_setting);
 
-        if(notificationResp.status === 'success'){
+        if (notificationResp.status === 'success') {
             res.status(config.OK_STATUS).json(notificationResp);
         }
-        else{
+        else {
             res.status(config.BAD_REQUEST).json(notificationResp);
         }
 
@@ -340,8 +427,8 @@ router.post('/verifyOTP', async (req, res) => {
             otp: parseInt(req.body.otp)
         }
         const verifyOtpResp = await userHelper.verifyOTP(data);
-        
-        
+
+
         if (verifyOtpResp.status === 'success') {
             res.status(config.OK_STATUS).json(verifyOtpResp);
         }
@@ -1092,7 +1179,7 @@ router.post('/new-password', async (req, res) => {
     if (!errors) {
         var user_id = req.body.user_id;
         var password = req.body.password;
-        
+
         const passwordResp = await userHelper.newPassword(user_id, password);
 
         if (passwordResp.status === 'success') {

@@ -330,6 +330,7 @@ router.post('/booking-details', async (req, res) => {
                     coupon_percentage: 1,
                     isDeleted: 1,
                     vat: 1,
+                    extended_days: 1,
                     agent_assign_for_handover: 1,
                     agent_assign_for_receive: 1,
                     car_handover_by_agent_id: 1,
@@ -604,9 +605,9 @@ router.post('/receive', async (req, res) => {
 
             // send notification to user that your car is deliverd or handover to u
             const booking_number = req.body.booking_number;
-            const userId =  req.body.user_id;
-
-            commonHelper.sendNoti(userId, parseInt(booking_number),"Your car has been return successfully");
+            const userId = req.body.user_id;
+            var msg = "Your car has been return successfully"; 
+            commonHelper.sendNoti(userId, parseInt(booking_number), msg);
 
         }
         else {
@@ -893,16 +894,17 @@ router.post('/assign_or_not-v2', async (req, res) => {
                         var carAssignResp = await CarHelper.assign_car_to_agent(agent_data);
 
                         if (carAssignResp.status === 'success') {
-                            
+
                             // add this later on
-                            commonHelper.sendNoti(req.body.user_id, req.body.booking_number,"Your car is getting ready we will notify you once our agent is on their way to deliver you car");
-                            
+                            var msg = "Your car is getting ready we will notify you once our agent is on their way to deliver you car";
+                            commonHelper.sendNoti(req.body.user_id, req.body.booking_number, msg);
+
                             // update car_booking table
 
                             var newdata = {
                                 'car_handover_by_agent_id': new ObjectId(req.body.agent_id),
                                 'agent_assign_for_handover': true,
-                                'agent_phone_number' : req.body.agent_phone_number // add new
+                                'agent_phone_number': req.body.agent_phone_number // add new
                             }
 
                             // boking update
@@ -970,7 +972,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
                         if (get_agent && get_agent.length > 0) {
 
                             //add this later
-                            commonHelper.sendNoti(req.body.user_id, req.body.booking_number, "Your car is getting ready we will notify you once our agent is on their way to returning car from you");
+                            var msg = "Your car is getting ready we will notify you once our agent is on their way to returning car from you";
+                            commonHelper.sendNoti(req.body.user_id, req.body.booking_number, msg);
 
                             // alredy assign for handover so just update his entry
                             var data = await CarAssign.updateOne(chk_agent, { $set: { 'trip_status': 'return', 'assign_for_receive': true } });
@@ -980,7 +983,7 @@ router.post('/assign_or_not-v2', async (req, res) => {
                                 var newdata = {
                                     'car_receive_by_agent_id': new ObjectId(req.body.agent_id),
                                     'agent_assign_for_receive': true,
-                                    'agent_phone_number' : req.body.agent_phone_number // add new
+                                    'agent_phone_number': req.body.agent_phone_number // add new
                                 }
 
                                 var bookingUpdate = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: newdata })
@@ -1022,13 +1025,14 @@ router.post('/assign_or_not-v2', async (req, res) => {
                             if (carAssignResp.status === 'success') {
 
                                 //add this later
-                                commonHelper.sendNoti(req.body.user_id, req.body.booking_number,"Your car is getting ready we will notify you once our agent is on their way to returning car from you");
+                                var msg = "Your car is getting ready we will notify you once our agent is on their way to returning car from you";
+                                commonHelper.sendNoti(req.body.user_id, req.body.booking_number, msg);
 
                                 // update car_booking table
                                 var newdata = {
                                     'car_receive_by_agent_id': new ObjectId(req.body.agent_id),
                                     'agent_assign_for_receive': true,
-                                    'agent_phone_number' : req.body.agent_phone_number // add new
+                                    'agent_phone_number': req.body.agent_phone_number // add new
                                 }
 
                                 var bookingUpdate = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: newdata })
@@ -1263,8 +1267,8 @@ router.post('/returning_v3', async (req, res) => {
                 var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
 
                 var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
-                var deviceToken = '';
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1 }).lean().exec();
+                var deviceToken = null;
                 console.log('User token =>', userDeviceToken);
                 if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
                     if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
@@ -1274,11 +1278,43 @@ router.post('/returning_v3', async (req, res) => {
                 }
 
                 var notificationType = 1; // means notification for booking 
+                var msg = "Your agent is on returning track";
                 console.log('Dev Token=>', deviceToken);
                 if (userDeviceToken[0].deviceType === 'ios') {
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your agent is on returning track");
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
+
+                    /* save notification to db start */
+                    if (deviceToken !== null) {
+                        var data = {
+                            "userId": userDeviceToken[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'ios',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": req.body.booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    }
+                    /* save notification to db over */
+
+
                 } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your agent is on returning track');
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
+
+                     /* save notification to db start */
+                     if (deviceToken !== null) {
+                        var data = {
+                            "userId": userDeviceToken[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": req.body.booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    }
+                    /* save notification to db over */
+
                 }
 
                 if (CarAssignData && CarAssignData.n > 0) {
@@ -2004,6 +2040,7 @@ router.post('/car-list-v3', async (req, res) => {
                 },
 
                 days: "$bookingDetails.days",
+                extended_days: "$bookingDetails.extended_days",
                 booking_rent: "$bookingDetails.booking_rent",
 
                 delivery_address: "$bookingDetails.delivery_address",
@@ -2188,6 +2225,7 @@ router.post('/car-list-v3', async (req, res) => {
                 },
 
                 days: 1,
+                extended_days: 1,
                 booking_rent: 1,
 
                 delivery_address: 1,
@@ -2555,8 +2593,8 @@ router.post('/delivering_v3', async (req, res) => {
 
         if (carHandOverResp.status === 'success') {
 
-            var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
-            var deviceToken = '';
+            var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
+            var deviceToken = null;
 
             // Push notification //
             console.log('User token =>', userData);
@@ -2565,10 +2603,42 @@ router.post('/delivering_v3', async (req, res) => {
                     // agentDeviceTokenArray.push(agent.deviceToken);
                     deviceToken = userData[0].deviceToken;
                     var notificationType = 1; // means notification for booking 
+                    var msg = "Your agent is on delivering track";
                     if (userData[0].deviceType === 'ios') {
-                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, parseInt(req.body.booking_number), notificationType, "Your agent is on delivering track");
+                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, parseInt(req.body.booking_number), notificationType, msg);
+
+                        /* save notification to db start */
+                        if (deviceToken !== null) {
+                            var data = {
+                                "userId": userData[0]._id,
+                                "deviceToken": deviceToken,
+                                "deviceType": 'ios',
+                                "notificationText": msg,
+                                "notificationType": 1,
+                                "booking_number": parseInt(req.body.booking_number)
+                            }
+                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                        }
+                        /* save notification to db over */
+
+
                     } else if (userData[0].deviceType === 'android') {
-                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), 'Your agent is on delivering track');
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), msg);
+
+                        /* save notification to db start */
+                        if (deviceToken !== null) {
+                            var data = {
+                                "userId": userDeviceToken[0]._id,
+                                "deviceToken": deviceToken,
+                                "deviceType": 'android',
+                                "notificationText": msg,
+                                "notificationType": 1,
+                                "booking_number": parseInt(req.body.booking_number)
+                            }
+                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                        }
+                        /* save notification to db over */
+
                     }
                 }
             }
@@ -2693,9 +2763,10 @@ router.post('/handover-v2', async (req, res) => {
 
             // send notification to user that your car is deliverd or handover to u
             const booking_number = req.body.booking_number;
-            const carBookingData = await CarBooking.findOne({'booking_number': booking_number}).lean().exec();
+            const carBookingData = await CarBooking.findOne({ 'booking_number': booking_number }).lean().exec();
             const userId = carBookingData.userId;
-            commonHelper.sendNoti(userId, parseInt(booking_number),"Your car has been deliverd to you");
+            var msg = "Your car has been deliverd to you"
+            commonHelper.sendNoti(userId, parseInt(booking_number), msg);
         }
         else {
             res.status(config.BAD_REQUEST).json(carHandOverResp)
