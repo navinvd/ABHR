@@ -133,8 +133,39 @@ invoiceHelper.Userinvoice = async (booking_id) => {
                                 ]}
                             }
                 },
+                "extend_vat_amount": {
+                  "$cond": {
+                    "if": {"$eq":["$coupon_code", null]},
+                    "then": {$divide :[
+                                  {$multiply : [
+                                      {$multiply : ["$booking_rent", { $add: ["$extended_days", "$days"]}]}, 
+                                      "$vat"
+                                  ]},
+                                  100
+                              ]},
+                    "else":{
+                        $divide :[
+                                  {$multiply : [
+                                      {$subtract: [ 
+                                          {$multiply : ["$booking_rent", { $add: ["$extended_days", "$days"]}]},
+                                          {$divide :[
+                                              {$multiply : [
+                                                  {$multiply : ["$booking_rent", { $add: ["$extended_days", "$days"]}]}, 
+                                                  "$coupon_percentage"
+                                              ]},
+                                              100
+                                          ]}
+                                     ]}, 
+                                      "$vat"
+                                  ]},
+                                  100
+                              ]}
+                          }
+                },
                 "car_class": 1,
                 "booking_amount": {$multiply : ["$booking_rent", "$days"]},
+                "extended_days": { $ifNull: [ "$extended_days", null ] },
+                "extend_booking_amount": {$multiply : ["$booking_rent", "$extended_days"]},
                 "milage": 1,
                 "booking_number": 1,
                 "total_booking_amount": 1,
