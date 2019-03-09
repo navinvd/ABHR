@@ -417,6 +417,12 @@ router.put('/delete', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
+        if(req.body.banner && req.banner !== null && req.body.banner !== ""){
+            var filepath = "./upload/banner/" + req.body.banner;
+            if (fs.existsSync(filepath)) {
+                fs.unlinkSync(filepath);
+            }
+        }
         const couponResp = await couponHelper.deleteCoupon(req.body.coupon_id);
         if (couponResp.status === 'success') {
             res.status(config.OK_STATUS).json(couponResp);

@@ -985,6 +985,63 @@ router.post('/details', async (req, res, next) => {
                         "from_time": 1,
                         "to_time": 1,
                         "days": 1,
+                        // "extended_days":1,
+                        "extended_days": { $ifNull: [ "$extended_days", null ] },
+                        "extend_total_rent": {$multiply : ["$booking_rent", "$extended_days"]},
+                        "extend_coupon_amount":{
+                            "$cond": {
+                            "if": {"$eq":["$coupon_code",null]},
+                            "then": 0,
+                            "else":{
+                                $divide :[
+                                    {$multiply : [
+                                        {$multiply : ["$booking_rent", "$extended_days"]}, 
+                                        "$coupon_percentage"
+                                    ]},
+                                    100
+                                ]}
+                            }
+                        }, 
+                        "extend_vat_amount": {
+                            "$cond": {
+                            "if": {"$eq":["$coupon_code",null]},
+                            "then": {$divide :[
+                                            {$multiply : [
+                                                {$multiply : ["$booking_rent", "$extended_days"]}, 
+                                                "$vat"
+                                            ]},
+                                            100
+                                        ]},
+                            "else":{
+                                $divide :[
+                                    {
+                                        $multiply : [
+                                        {$subtract: [ 
+                                            {$multiply : ["$booking_rent", "$extended_days"]},
+                                            {$divide :[
+                                                {$multiply : [
+                                                    {$multiply : ["$booking_rent", "$extended_days"]}, 
+                                                    "$coupon_percentage"
+                                                ]},
+                                                100
+                                            ]}
+                                    ]}, 
+                                        "$vat"
+                                    ]},
+                                    100
+                                ]}
+                            }
+                        },
+                        // "check_extend": { 
+                        //     "$cond": {
+                        //         "if":{"$eq":["$extended_days", undefined]},
+                        //         "then": false,
+                        //         "else": true
+                        //     }
+                        // },
+                        // "check_exist":{
+                        //     ""
+                        // }
                         "per_day_rent": "$booking_rent",
                         "total_rent" : {$multiply : ["$booking_rent", "$days"]},
                         "coupon_amount":{
@@ -1031,7 +1088,7 @@ router.post('/details', async (req, res, next) => {
                                 ]}
                             }
                         },
-                        "total_booking_cost": {$subtract: ["$total_booking_amount", "$deposite_amount"]},
+                        // "total_booking_cost": {$subtract: ["$total_booking_amount", "$deposite_amount"]},
                         // "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
                         // "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
                         // "car_receive_first_name": "$agent_for_receive.first_name",
@@ -1041,7 +1098,7 @@ router.post('/details', async (req, res, next) => {
                         "coupon_percentage": 1,
                         "coupon_code": 1,
                         "defect_amount": 1,
-                        "check_cancel": {$not: ["$cancel_date"]},
+                        // "check_cancel": {$not: ["$cancel_date"]},
                         "cancel_charge": {
                             "$cond": {
                                 "if": {"$eq":["$cancel_date",null]},
@@ -1055,6 +1112,53 @@ router.post('/details', async (req, res, next) => {
                                 "then": 0,
                                 "else": {
                                     $subtract: [{$subtract: ["$total_booking_amount", "$deposite_amount"]}, "$cancellation_charge"]},
+                            }
+                        }
+                    } 
+                },
+                {
+                    "$project": {
+                        "_id": 1,
+                        "company_name": 1,
+                        "car_model": 1,
+                        "car_brand": 1,
+                        "isDeleted": 1,
+                        "first_name": 1,
+                        "last_name": 1,
+                        "from_time": 1,
+                        "to_time": 1,
+                        "days": 1,
+                        "extended_days": 1,
+                        "extend_total_rent": 1,
+                        "extend_coupon_amount":1, 
+                        "extend_vat_amount": 1,
+                        "extend_total_cost": {$add : ["$extend_total_rent", "$extend_vat_amount"]},
+                        "per_day_rent": 1,
+                        "total_rent" : 1,
+                        "coupon_amount":1, 
+                        "vat_amount": 1,
+                        "total_booking_cost": {$add : ["$total_rent", "$vat_amount"]},
+                        "booking_number": 1,
+                        "deposite_amount": 1,
+                        "coupon_percentage": 1,
+                        "coupon_code": 1,
+                        "defect_amount": 1,
+                        // "check_cancel": 1,
+                        "cancel_charge":1,
+                        "grand_total": {
+                            "$cond": {
+                                "if": {"$eq":["$extended_days",null]},
+                                "then": {$add : ["$total_rent", "$vat_amount"]},
+                                "else": {$add : ["$extend_total_rent", "$extend_vat_amount", "$total_rent", "$vat_amount"]}
+                            }
+                        },
+                        "refundable_amount": {
+                            "$cond": {
+                                "if": {"$eq":["$cancel_date",null]},
+                                "then": 0,
+                                "else": {
+                                    $subtract: [{$add : ["$total_rent", "$vat_amount"]}, "$cancellation_charge"]
+                                },
                             }
                         }
                     } 
