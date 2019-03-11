@@ -410,6 +410,9 @@ carHelper.getcarDetails = async (car_id) => {
             "$group":{
                 "_id":"$_id",
                 "car_rental_company_id": {"$first":"$car_rental_company_id"},
+                "car_brand_id":{"$first":"$car_brand_id"},
+                "car_model_id":{"$first":"$car_model_id"},
+                "milage":{"$first":"$milage"},
                 "car_rental_company_name": {"$first":"$carCompanyDetails.name"},
                 "car_rental_company_country":  {"$first":"$carCompanyDetails.company_address.country"},
                 "car_model": {"$first":"$modelDetails.model_name"},

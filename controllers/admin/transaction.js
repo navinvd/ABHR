@@ -896,36 +896,8 @@ router.post('/details', async (req, res, next) => {
                 "$unwind": {
                     "path": "$car_details",
                     "preserveNullAndEmptyArrays": true
-                }
+                    }
                 },
-                // {
-                //   "$lookup": {
-                //     "from": "users",
-                //     "localField": "car_handover_by_agent_id",
-                //     "foreignField": "_id",
-                //     "as": "agent_for_handover",
-                //   }
-                // },
-                // {
-                //   "$unwind": {
-                //       "path": "$aget_for_handover",
-                //       "preserveNullAndEmptyArrays": true
-                //   }
-                // },
-                // {
-                //   "$lookup": {
-                //     "from": "users",
-                //     "localField": "car_receive_by_agent_id",
-                //     "foreignField": "_id",
-                //     "as": "agent_for_receive",
-                //   }
-                // },
-                // {
-                //   "$unwind": {
-                //       "path": "$agent_for_receive",
-                //       "preserveNullAndEmptyArrays": true
-                //   }
-                // },
                 {
                     "$lookup": {
                         "from": "car_company",
@@ -1032,16 +1004,6 @@ router.post('/details', async (req, res, next) => {
                                 ]}
                             }
                         },
-                        // "check_extend": { 
-                        //     "$cond": {
-                        //         "if":{"$eq":["$extended_days", undefined]},
-                        //         "then": false,
-                        //         "else": true
-                        //     }
-                        // },
-                        // "check_exist":{
-                        //     ""
-                        // }
                         "per_day_rent": "$booking_rent",
                         "total_rent" : {$multiply : ["$booking_rent", "$days"]},
                         "coupon_amount":{
@@ -1088,17 +1050,11 @@ router.post('/details', async (req, res, next) => {
                                 ]}
                             }
                         },
-                        // "total_booking_cost": {$subtract: ["$total_booking_amount", "$deposite_amount"]},
-                        // "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
-                        // "car_handover_last_name": { $arrayElemAt: [ "$agent_for_handover.last_name", 0 ] },
-                        // "car_receive_first_name": "$agent_for_receive.first_name",
-                        // "car_receive_last_name": "$agent_for_receive.last_name",
                         "booking_number": 1,
                         "deposite_amount": 1,
                         "coupon_percentage": 1,
                         "coupon_code": 1,
                         "defect_amount": 1,
-                        // "check_cancel": {$not: ["$cancel_date"]},
                         "cancel_charge": {
                             "$cond": {
                                 "if": {"$eq":["$cancel_date",null]},

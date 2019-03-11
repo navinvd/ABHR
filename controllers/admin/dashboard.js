@@ -86,5 +86,34 @@ router.get('/no_of_rentals', async (req, res) => {
     }   
 });
 
+/**
+ * @api {get} /admin/dashboard/graph ploting graph
+ * @apiName Graph
+ * @apiDescription To display graph
+ * @apiGroup Admin - Dashboard
+ * @apiVersion 0.0.0
+ * 
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.get('/graph', async (req, res) => {
+    try{
+        const dashboardResp = await dashboardHelper.Graph();
+        if(dashboardResp.status === 'success'){
+            res.status(config.OK_STATUS).json(dashboardResp);
+        } else{
+            res.status(config.BAD_REQUEST).json(dashboardResp);
+        }
+    } catch(e){
+        res.status(config.BAD_REQUEST).json(dashboardResp);
+    }   
+});
+
+
+
 
 module.exports = router;
