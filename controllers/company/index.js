@@ -261,9 +261,11 @@ router.post('/change_password', async (req, res, next) => {
                     var updatedata = { "password": bcrypt.hashSync(req.body.new_password, SALT_WORK_FACTOR) }
                     var datta = await Company.update({ "_id": new ObjectId(req.body.company_id) }, { $set: updatedata });
                     if (datta.n > 0) {
+                        var companyData = await Company.findOne({_id: {$eq: req.body.company_id}});
                         res.status(config.OK_STATUS).json({
                             status: 'success',
-                            message: 'Password has been changed successfully'
+                            message: 'Password has been changed successfully',
+                            password: companyData.password
                         });
                     }
                     else {
@@ -416,7 +418,7 @@ router.post('/check_status', async (req, res, next)=>{
                         message : "Your Company has beed Deactivated from Super Admin"
                     });
                 }else if(check.password !== null && check.password !== '' && req.body.password !== null && req.body.password !== ''){
-                    if (bcrypt.compareSync(check.password, req.body.password)) {
+                    if (req.body.password === check.password) {
                         res.status(config.OK_STATUS).json({
                             status: "failed"
                         }); 
