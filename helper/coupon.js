@@ -73,14 +73,14 @@ couponHelper.deleteCoupon = async (coupon_id) => {
 // change status coupon 
 couponHelper.ChangeStatus = async (coupon_id, status) => {
     let coopan = await Coupon.findOne({ isDeleted: false, "_id": new ObjectId(coupon_id)});
+    console.log('cooopen===>', coopan, status);
     if (coopan) {
         try {
-            if(coopen.isDisplay !== status){
                 let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: {"isDisplay": status}});
-            }
+                console.log('update_+coupon===.', update_coupon);
             return { status: 'success', message: "Display Status has been changed successfully"}
-        } catch (err) {
-            return { status: 'failed', message: "Error occured while updating status" };
+        } catch (e) {
+            return { status: 'failed', message: "Error occured while updating status" , e};
         }
     }
     else {
