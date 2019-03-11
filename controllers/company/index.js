@@ -394,6 +394,10 @@ router.post('/check_status', async (req, res, next)=>{
         'user_id': {
             notEmpty: true,
             errorMessage: "Please enter user_id",
+        },
+        'password':{
+            notEmpty: true,
+            errorMessage: "Please enter password",
         }
     };
     req.checkBody(schema);
@@ -411,6 +415,17 @@ router.post('/check_status', async (req, res, next)=>{
                         status: "success",
                         message : "Your Company has beed Deactivated from Super Admin"
                     });
+                }else if(check.password !== null && check.password !== '' && req.body.password !== null && req.body.password !== ''){
+                    if (bcrypt.compareSync(check.password, req.body.password)) {
+                        res.status(config.OK_STATUS).json({
+                            status: "failed"
+                        }); 
+                    }else{
+                        res.status(config.OK_STATUS).json({
+                            status: "success",
+                            message : "Your password hase been changed by someone!!"
+                        });
+                    }
                 }else{
                     res.status(config.OK_STATUS).json({
                         status: "failed"

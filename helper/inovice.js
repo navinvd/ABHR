@@ -169,18 +169,51 @@ invoiceHelper.Userinvoice = async (booking_id) => {
                 "milage": 1,
                 "booking_number": 1,
                 "total_booking_amount": 1,
-                "AED": { $subtract : [ "$total_booking_amount", "$deposite_amount"]},
+                "release_year":"$car_model.release_year"
+                }   
+            },
+            {
+              "$project": {
+                "_id": 1,
+                "from_address": 1,
+                "car_model": 1,
+                "car_brand": 1,
+                "user_name": 1,
+                "user_phone_number": 1,
+                "to_address": 1,
+                "delivery_address": 1,
+                "vat": 1,
+                "deposite_amount":1,
+                "class": 1,
+                "car_milage": 1,
+                "vat_amount": 1,
+                "extend_vat_amount": 1,
+                "car_class": 1,
+                "booking_amount": 1,
+                "extended_days": 1,
+                "extend_booking_amount": 1,
+                "milage": 1,
+                "booking_number": 1,
+                "total_booking_amount": 1,
+                "AED": {
+                  "$cond": {
+                    "if": {"$eq":["$extended_days", null]},
+                    "then": {$add :["$booking_amount","$vat_amount"]},
+                    "else":{$add :["$booking_amount","$extend_vat_amount","$extend_booking_amount"]}
+                  }
+                },
                 "release_year":"$car_model.release_year"
                 }   
             }
         ];
         let invoiceData = await CarBooking.aggregate(defaultQuery);
+        console.log(invoiceData);
         let admin = await User.findOne({"type": "admin", "isDeleted": false}, { _id :0, support_email:1, support_phone_number:1});
         // console.log('invoice Data=====<', invoiceData);
-        if (invoiceData !== null && invoiceData !== '') {
+        if (invoiceData !== null && invoiceData !== '' && invoiceData) {
             if(admin !==null && admin !== ''){
-                invoiceData[0].email = admin.support_email;
-                invoiceData[0].phone_number = admin.support_phone_number;
+                invoiceData[0]['email'] = admin.support_email? admin.support_email : '';
+                invoiceData[0]['phone_number']= admin.support_phone_number? admin.support_phone_number: '';
             }
             return { status: 'success', message: "Invoice data found", data: invoiceData[0]}
         }
@@ -188,7 +221,7 @@ invoiceHelper.Userinvoice = async (booking_id) => {
             return { status: 'success', message: "No Company Data found", data: invoiceData[0]};
         }
     } catch(e){
-        return { status: 'failed', message: "Error occured while fetching coupon" };
+        return { status: 'failed', message: "Error occured while fetching coupon" , e};
     } 
 };
 
