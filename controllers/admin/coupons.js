@@ -572,4 +572,50 @@ router.get('/companies', async (req, res) => {
     }
 });
 
+/**
+ * @api {post} /admin/coupon/change_status 
+ * @apiName status change for display banner
+ * @apiDescription Used to status change for display banner
+ * @apiGroup Admin - Coupon
+ * 
+ * @apiParam {String} user_id id of user
+ * @apiParam {Boolean} isDisplay display
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+// list of companies coupon code
+router.post('/change_status', async (req, res) => {
+    var schema = {
+        'coupon_id': {
+            notEmpty: true,
+            errorMessage: "Please enter coupon id",
+        },
+        'status': {
+            notEmpty: true,
+            errorMessage: "Please enter Status",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const couponResp = await couponHelper.ChangeStatus(req.body.coupon_id, req.body.status);
+        if (couponResp.status === 'success') {
+            res.status(config.OK_STATUS).json(couponResp);
+        } else {
+            res.status(config.BAD_REQUEST).json(couponResp);
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
 module.exports = router;

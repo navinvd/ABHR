@@ -23,6 +23,10 @@ var CouponSchema = new Schema({
         type: Boolean,
         default: false
     },
+    isDisplay: {
+        type: Boolean,
+        default: true
+    },
     createdAt: {
         type: Date,
         default: Date.now

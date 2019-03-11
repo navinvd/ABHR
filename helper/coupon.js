@@ -70,6 +70,24 @@ couponHelper.deleteCoupon = async (coupon_id) => {
     }
 };
 
+// change status coupon 
+couponHelper.ChangeStatus = async (coupon_id, status) => {
+    let coopan = await Coupon.findOne({ isDeleted: false, "_id": new ObjectId(coupon_id)});
+    if (coopan) {
+        try {
+            if(coopen.isDisplay !== status){
+                let update_coupon = await Coupon.update({ "_id": new ObjectId(coupon_id)}, { $set: {"isDisplay": status}});
+            }
+            return { status: 'success', message: "Display Status has been changed successfully"}
+        } catch (err) {
+            return { status: 'failed', message: "Error occured while updating status" };
+        }
+    }
+    else {
+        return { status: 'failed', message: "no record found with this data" }
+    }
+};
+
 // get by id coupon 
 couponHelper.getByIdCoupon = async (coupon_id) => {
     let coopan = await Coupon.findOne({ "_id": new ObjectId(coupon_id), isDeleted: false});
