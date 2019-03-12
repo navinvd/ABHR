@@ -193,7 +193,7 @@ router.post('/list', async (req, res, next) => {
                     console.log('err===>', err);
                     return next(err);
                 } else {
-                    // console.log('result===>', data);
+                    console.log('result===>', data);
                     res.status(config.OK_STATUS).json({
                         message: "Success",
                         result: { recordsTotal: totalRecords.length, data: data[0].data }
