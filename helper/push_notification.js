@@ -183,22 +183,38 @@ push_notification_helper.sendToIOS = async (device_token, car_booking_number, no
 }
 
 
-// save notification to db
+// save single notification to db
 push_notification_helper.save_notification_to_db = async (data) => {
     // console.log('DATA=>',data);
     try {
         let save_noti_data = new Notifications(data);
 
         let dataa = await save_noti_data.save();
-        console.log("Sucess => Save notification to db")
+        console.log("Sucess => Save single notification to db")
 
         return { status: "success", message: "Notification has been store successfully" };
     }
     catch (err) {
-        console.log("Failure => Save notification to db")
+        console.log("Failure => Save single notification to db")
         return { status: 'failed', message: "Error accured while save notification in collection", err }
     }
 }
 
+// save multiple notification to db
+push_notification_helper.save_multiple_notification_to_db = async (data) => {
+    // console.log('Multi DATA=>',data);
+    try {
+        // let save_noti_data = new Notifications(data);
+        // let dataa = await save_noti_data.save();
+        let dataa = await Notifications.insertMany(data);
+        console.log("Sucess => Save multiple notification to db")
+
+        return { status: "success", message: "Notification has been store successfully" };
+    }
+    catch (err) {
+        console.log("Failure => Save multiple notification to db")
+        return { status: 'failed', message: "Error accured while save notification in collection", err }
+    }
+}
 
 module.exports = push_notification_helper;
