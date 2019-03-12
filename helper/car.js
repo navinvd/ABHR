@@ -478,8 +478,7 @@ carHelper.getcarDetails = async (car_id) => {
                 BookingDetail.forEach((Booking) => {
                     let fromDate = moment(Booking.from_time).utc().startOf('days');
                     let toDate = moment(Booking.to_time).utc().startOf('days');
-                    // console.log('fromDate=====>', fromDate);
-                    // console.log('toDate======>',toDate);
+                    
                     var cnt = 0;
                     while(!(moment(fromDate).isSame(toDate))) {
                         var fromMonth = 1 + moment(fromDate).month();

@@ -102,7 +102,7 @@ router.get('/no_of_rentals', async (req, res) => {
  */
 router.get('/graph', async (req, res) => {
     try{
-        const dashboardResp = await dashboardHelper.Graph();
+        const dashboardResp = await dashboardHelper.AdminGraph();
         if(dashboardResp.status === 'success'){
             res.status(config.OK_STATUS).json(dashboardResp);
         } else{
