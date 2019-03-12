@@ -1329,31 +1329,38 @@ router.post('/book', async (req, res) => {
                 var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
-                var agetnt_ids = [];
+                
+                var agent_data_array = [];
+                var msg = "New car has been book assign to you for delivery process";
                 agentList.map((agent, index) => {
                     if (agent.deviceToken !== undefined) {
                         if (agent.deviceToken !== null) {
                             if (agent.deviceToken.length > 10) { // temp condition
                                 agentDeviceTokenArray.push(agent.deviceToken);
-                                agetnt_ids.push(agent._id);
+                    
+                                agent_data_array.push({
+                                    "userId": agent._id,
+                                    "deviceToken": agent.deviceToken,
+                                    "deviceType": 'android',
+                                    "notificationText": msg,
+                                    "notificationType": 1,
+                                    "booking_number": car_booking_number
+                                })
                             }
                         }
                     }
                 });
 
                 var notificationFor = "new-booking";
-                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, 'New car has been book assign to you for delivery process');
+                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg);
 
-                //save notification to db agent
-                // if(agetnt_ids.length > 0){
-                    
-                // }
+                // save multile notification for (agent)
+                var saveNotiResp = await pushNotificationHelper.save_multiple_notification_to_db(agent_data_array);
 
                 /** Notification over for agent */
 
 
                 /* send email to user after car has been booked start*/
-
 
                 var options = {
                     to: userDeviceToken[0].email,
@@ -1552,9 +1559,10 @@ router.post('/change-booking-v2', async (req, res) => {
 
             res.status(config.OK_STATUS).json(bookingResp);
 
-            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
-            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
-            var deviceToken = '';
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, car_handover_by_agent_id: 1 }).lean().exec();
+            console.log("USER IDDDD ===>>", user_id);
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
+            var deviceToken = null;
             console.log('User token =>', userDeviceToken);
             if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
                 if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
@@ -1565,11 +1573,74 @@ router.post('/change-booking-v2', async (req, res) => {
 
             var notificationType = 1; // means notification for booking 
             console.log('Dev Token=>', deviceToken);
+            var msg = "Your booking is changed successfully";
             if (userDeviceToken[0].deviceType === 'ios') {
-                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your booking is changed successfully");
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
+
+                /* save notification to db start */
+                if (deviceToken !== null) {
+                    var data = {
+                        "userId": userDeviceToken[0]._id,
+                        "deviceToken": deviceToken,
+                        "deviceType": 'ios',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": req.body.booking_number
+                    }
+                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                }
+                /* save notification to db over */
+
             } else if (userDeviceToken[0].deviceType === 'android') {
-                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your booking is changed successfully');
+                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
+                /* save notification to db start */
+                if (deviceToken !== null) {
+                    var data = {
+                        "userId": userDeviceToken[0]._id,
+                        "deviceToken": deviceToken,
+                        "deviceType": 'android',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": req.body.booking_number
+                    }
+                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                }
+                /* save notification to db over */
             }
+
+            // send notification to agent for change booking
+
+            if (user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null) {
+                var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
+                var deviceToken = null;
+                var msg = "Car booking has been changed"
+                // Push notification //
+                if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
+                    if (agentData[0].deviceToken.length > 10) { // temp condition
+                        // agentDeviceTokenArray.push(agent.deviceToken);
+                        deviceToken = agentData[0].deviceToken;
+                        var notificationType = 1; // means notification for booking 
+                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+
+                        /* save notification to db start */
+                        if (deviceToken !== null) {
+                            var data = {
+                                "userId": agentData[0]._id,
+                                "deviceToken": deviceToken,
+                                "deviceType": 'android',
+                                "notificationText": msg,
+                                "notificationType": 1,
+                                "booking_number": req.body.booking_number
+                            }
+                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                        }
+                        /* save notification to db over */
+                    }
+                }
+            }
+
+            /** -------- over ------ */
+
 
 
             // new changes start
@@ -1713,8 +1784,8 @@ router.post('/cancel-booking-v2', async (req, res) => {
         if (cancelBookingResp.status === 'success') {
 
             var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, car_handover_by_agent_id: 1 }).lean().exec();
-            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
-            var deviceToken = '';
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
+            var deviceToken = null;
             // console.log('USER IDDD ==>', user_id);
             console.log('User token =>', userDeviceToken);
             if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
@@ -1725,23 +1796,67 @@ router.post('/cancel-booking-v2', async (req, res) => {
             }
 
             var notificationType = 1; // means notification for booking 
+            var msg = "Your booking is cancelled successfully";
             console.log('Dev Token=>', deviceToken);
             if (userDeviceToken[0].deviceType === 'ios') {
-                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, "Your booking is cancelled successfully");
+                var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
+
+                /* save notification to db start */
+                if (deviceToken !== null) {
+                    var data = {
+                        "userId": userDeviceToken[0]._id,
+                        "deviceToken": deviceToken,
+                        "deviceType": 'ios',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": req.body.booking_number
+                    }
+                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                }
+                /* save notification to db over */
+
             } else if (userDeviceToken[0].deviceType === 'android') {
-                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, 'Your booking is cancelled successfully');
+                var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
+                /* save notification to db start */
+                if (deviceToken !== null) {
+                    var data = {
+                        "userId": userDeviceToken[0]._id,
+                        "deviceToken": deviceToken,
+                        "deviceType": 'android',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": req.body.booking_number
+                    }
+                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                }
+                /* save notification to db over */
             }
 
             if (user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null) {
-                var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 0, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
-                var deviceToken = '';
+                var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
+                var deviceToken = null;
+                var msg = "This booking has been cancelled";
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                     if (agentData[0].deviceToken.length > 10) { // temp condition
                         // agentDeviceTokenArray.push(agent.deviceToken);
                         deviceToken = agentData[0].deviceToken;
                         var notificationType = 1; // means notification for booking 
-                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, 'This booking has been cancelled');
+                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+
+                        /* save notification to db start */
+                        if (deviceToken !== null) {
+                            var data = {
+                                "userId": agentData[0]._id,
+                                "deviceToken": deviceToken,
+                                "deviceType": 'android',
+                                "notificationText": msg,
+                                "notificationType": 1,
+                                "booking_number": req.body.booking_number
+                            }
+                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                        }
+                        /* save notification to db over */
                     }
                 }
             }
@@ -3794,25 +3909,42 @@ router.post('/return-request', async (req, res) => {
         const updateStatusResp = await CarBooking.updateOne({ 'booking_number': booking_number }, { $set: { 'trip_status': 'return' } });
         if (updateStatusResp && updateStatusResp.n > 0) {
             // send notification to all agent
+            res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
 
-            var agentList = await Users.find({ 'type': 'agent' }, { _id: 0, deviceToken: 1, phone_number: 1 }).lean().exec();
+            var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
             var agentDeviceTokenArray = [];
+            var agent_data_array = [];
+            var notificationFor = "return-process";
+            var msg = "Assign car to you for return process";
+
             agentList.map((agent, index) => {
                 if (agent.deviceToken !== undefined) {
                     if (agent.deviceToken !== null) {
                         if (agent.deviceToken.length > 10) { // temp condition
                             agentDeviceTokenArray.push(agent.deviceToken);
+
+                            agent_data_array.push({
+                                "userId": agent._id,
+                                "deviceToken": agent.deviceToken,
+                                "deviceType": 'android',
+                                "notificationText": msg,
+                                "notificationType": 1,
+                                "booking_number": booking_number
+                            })
+
                         }
                     }
                 }
             });
 
-            var notificationFor = "return-process";
-            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, 'Assign car to you for return process');
+            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, msg);
 
-            console.log('Not Status =>', sendNotification);
+            var saveNotiResp = await pushNotificationHelper.save_multiple_notification_to_db(agent_data_array);
 
+            // console.log('Not Status =>', sendNotification);
+
+            /*
             if (sendNotification.status === 'success') {
                 console.log('Notification send Success==>')
                 // res.status(config.OK_STATUS).json(sendNotification);
@@ -3824,6 +3956,7 @@ router.post('/return-request', async (req, res) => {
                 // res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Your request for return car has not been placed" });
                 res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
             }
+            */
         }
         else {
             res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Your request for return car has not been placed" })
