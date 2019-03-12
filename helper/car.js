@@ -2851,4 +2851,22 @@ carHelper.assign_car_to_agent = async (data) => {
 };
 
 
+// Get email id 
+carHelper.get_email = async function (id) {
+    try {
+        // var data = await User.updateOne({ _id : new ObjectId(user_id)}, { $set : { password : bcrypt.hashSync(password, SALT_WORK_FACTOR)  } } );
+        var data = await User.find({ _id : new ObjectId(id), isDeleted : false });
+        if(data && data.length > 0){
+            return { status: 'success', message: "Get email successfully" }
+        }
+        else{
+            return { status: 'failed', message: "Get email failure" }
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching email", err };
+    }
+};
+
+
+
 module.exports = carHelper;

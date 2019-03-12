@@ -10,6 +10,7 @@ const Transaction = require('./../../models/transaction');
 const CarBrand = require('./../../models/car_brand');
 const CarModel = require('./../../models/car_model');
 const Users = require('./../../models/users');
+const CarCompany = require('./../../models/car_company');
 const Coupon = require('./../../models/coupon');
 const UserCoupon = require('./../../models/user_coupon');
 const ReportCategory = require('./../../models/report_category');
@@ -1272,6 +1273,8 @@ router.post('/book', async (req, res) => {
                 /** push notification process to user app start */
 
                 var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
+                var companyData = await CarCompany.find({ '_id': new ObjectId(req.body.carCompanyId) }).lean().exec();
+                var superAdminData = await Users.find({'type':'admin'}).lean().exec();
 
                 // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
 
@@ -1326,6 +1329,7 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification to all agent
                 /* push notification process to all agent start */
 
+                /* comment temporary--------------------->
                 var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
@@ -1361,9 +1365,19 @@ router.post('/book', async (req, res) => {
 
 
                 /* send email to user after car has been booked start*/
-
-                var options = {
+                // user
+                var options_user = {
                     to: userDeviceToken[0].email,
+                    subject: 'ABHR - New car has been booked'
+                }
+                // company admin
+                var options_company_admin = {
+                    to: companyData[0].email,
+                    subject: 'ABHR - New car has been booked'
+                }
+                // super admin
+                var options_super_admin = {
+                    to: superAdminData[0].email,
                     subject: 'ABHR - New car has been booked'
                 }
 
@@ -1398,8 +1412,20 @@ router.post('/book', async (req, res) => {
 
                 // console.log('Booking Response Final DATA=>',data1);
 
-                let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
-                console.log('Mail sending response =>', mail_resp);
+                // let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
+                let mail_resp1 = await mail_helper.sendEmail_carBook("car_booking", options_user, data1);
+                console.log("Mail sending response 1",mail_resp1);
+                
+                var data2 = data1;
+                data2.user_name = companyData[0].name;
+                let mail_resp2 = await mail_helper.sendEmail_carBook("car_booking", options_company_admin, data2);
+                console.log("Mail sending response 2",mail_resp2);
+
+                var data3 = data1;
+                data3.user_name = superAdminData[0].first_name;
+                let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking", options_super_admin, data3);
+                console.log("Mail sending response 3",mail_resp3);
+                
 
 
                 /** Sending email is over */
@@ -5901,7 +5927,7 @@ router.post('/filter-v7', async (req, res) => {
         console.log('Default Query========>', JSON.stringify(defaultQuery));
 
         // var cpn = await Coupon.find({"isDeleted" : false }).limit(5).skip( Math.floor((Math.random()*10)));
-        var cpn = await Coupon.find({ "isDeleted": false, "banner": { $ne: null } }).limit(5);
+        var cpn = await Coupon.find({ "isDeleted": false, "banner": { $ne: null }, "isDisplay" : true  }).limit(5);
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
