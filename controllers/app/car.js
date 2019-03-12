@@ -1274,7 +1274,7 @@ router.post('/book', async (req, res) => {
 
                 var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
                 var companyData = await CarCompany.find({ '_id': new ObjectId(req.body.carCompanyId) }).lean().exec();
-                var superAdminData = await Users.find({'type':'admin'}).lean().exec();
+                var superAdminData = await Users.find({ 'type': 'admin' }).lean().exec();
 
                 // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
 
@@ -1329,7 +1329,6 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification to all agent
                 /* push notification process to all agent start */
 
-                /* comment temporary--------------------->
                 var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
@@ -1414,18 +1413,18 @@ router.post('/book', async (req, res) => {
 
                 // let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
                 let mail_resp1 = await mail_helper.sendEmail_carBook("car_booking", options_user, data1);
-                console.log("Mail sending response 1",mail_resp1);
-                
+                console.log("Mail sending response 1", mail_resp1);
+
                 var data2 = data1;
                 data2.user_name = companyData[0].name;
                 let mail_resp2 = await mail_helper.sendEmail_carBook("car_booking", options_company_admin, data2);
-                console.log("Mail sending response 2",mail_resp2);
+                console.log("Mail sending response 2", mail_resp2);
 
                 var data3 = data1;
                 data3.user_name = superAdminData[0].first_name;
                 let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking", options_super_admin, data3);
-                console.log("Mail sending response 3",mail_resp3);
-                
+                console.log("Mail sending response 3", mail_resp3);
+
 
 
                 /** Sending email is over */
@@ -1585,8 +1584,11 @@ router.post('/change-booking-v2', async (req, res) => {
 
             res.status(config.OK_STATUS).json(bookingResp);
 
-            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, car_handover_by_agent_id: 1 }).lean().exec();
-            console.log("USER IDDDD ===>>", user_id);
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, carCompanyId : 1, car_handover_by_agent_id: 1 }).lean().exec();
+            // console.log("USER IDDDD ===>>", user_id);
+            var companyData = await CarCompany.find({ '_id': new ObjectId(user_id.carCompanyId) }).lean().exec();
+            var superAdminData = await Users.find({ 'type': 'admin' }).lean().exec();
+
             var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
             var deviceToken = null;
             console.log('User token =>', userDeviceToken);
@@ -1696,17 +1698,38 @@ router.post('/change-booking-v2', async (req, res) => {
             // changes over
 
             /* send email to user after car booking has been cancelled start*/
-            var options = {
+            // user
+            var options_user = {
                 to: userDeviceToken[0].email,
+                subject: 'ABHR - Car booking has been changed'
+            }
+            // company admin
+            var options_company_admin = {
+                to: companyData[0].email,
+                subject: 'ABHR - Car booking has been changed'
+            }
+            // super admin
+            var options_super_admin = {
+                to: superAdminData[0].email,
                 subject: 'ABHR - Car booking has been changed'
             }
 
             // var data1 = { booking_number: req.body.booking_number }
 
-            console.log('Booking Response DATA=>', data1);
+            // console.log('Booking Response DATA=>', data1);
 
-            let mail_resp = await mail_helper.sendEmail_carBook("car_booking_change", options, data1);
-            console.log('Mail sending response =>', mail_resp);
+            let mail_resp1 = await mail_helper.sendEmail_carBook("car_booking_change", options_user, data1);
+            console.log('Mail sending response 1=>', mail_resp1);
+
+            var data2 = data1;
+            data2.user_name = companyData[0].name;
+            let mail_resp2 = await mail_helper.sendEmail_carBook("car_booking_change", options_company_admin, data2);
+            console.log('Mail sending response 2=>', mail_resp2);
+
+            var data3 = data1;
+            data3.user_name = superAdminData[0].first_name;
+            let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking_change", options_super_admin, data3);
+            console.log('Mail sending response 3=>', mail_resp3);
 
 
             /** Sending email is over */
@@ -5927,7 +5950,7 @@ router.post('/filter-v7', async (req, res) => {
         console.log('Default Query========>', JSON.stringify(defaultQuery));
 
         // var cpn = await Coupon.find({"isDeleted" : false }).limit(5).skip( Math.floor((Math.random()*10)));
-        var cpn = await Coupon.find({ "isDeleted": false, "banner": { $ne: null }, "isDisplay" : true  }).limit(5);
+        var cpn = await Coupon.find({ "isDeleted": false, "banner": { $ne: null }, "isDisplay": true }).limit(5);
 
         Car.aggregate(defaultQuery, function (err, data) {
             if (err) {
