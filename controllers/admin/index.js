@@ -522,6 +522,52 @@ router.put('/vat/update', async (req, res, next) => {
     }
 });
 
+router.post('/check_status', async (req, res, next)=>{
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user_id",
+        },
+        'password':{
+            notEmpty: true,
+            errorMessage: "Please enter password",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+            var check = await User.findOne({"_id": new ObjectId(req.body.user_id), "type": "admin"});
+            if(check !== null && check !== ''){
+                if(check.password !== null && check.password !== '' && req.body.password !== null && req.body.password !== ''){
+                    if (req.body.password === check.password) {
+                        res.status(config.OK_STATUS).json({
+                            status: "failed"
+                        }); 
+                    }else{
+                        res.status(config.OK_STATUS).json({
+                            status: "success",
+                            message : "Your password hase been changed by someone!!"
+                        });
+                    }
+                }else{
+                    res.status(config.OK_STATUS).json({
+                        status: "failed"
+                    }); 
+                }
+            }else{
+                res.status(config.BAD_REQUEST).json({
+                    status: "failed",
+                    message: "Validation error"
+                });
+            }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message: "Validation error"
+        });
+    }
+});
+
 
 
 module.exports = router;
