@@ -1274,7 +1274,7 @@ router.post('/book', async (req, res) => {
 
                 var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
                 var companyData = await CarCompany.find({ '_id': new ObjectId(req.body.carCompanyId) }).lean().exec();
-                var superAdminData = await Users.find({ 'type': 'admin' }).lean().exec();
+                var superAdminData = await Users.find({ 'type': 'admin', isDeleted: false }).lean().exec();
 
                 // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
 
@@ -1332,7 +1332,7 @@ router.post('/book', async (req, res) => {
                 var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
-                
+
                 var agent_data_array = [];
                 var msg = "New car has been book assign to you for delivery process";
                 agentList.map((agent, index) => {
@@ -1340,7 +1340,7 @@ router.post('/book', async (req, res) => {
                         if (agent.deviceToken !== null) {
                             if (agent.deviceToken.length > 10) { // temp condition
                                 agentDeviceTokenArray.push(agent.deviceToken);
-                    
+
                                 agent_data_array.push({
                                     "userId": agent._id,
                                     "deviceToken": agent.deviceToken,
@@ -1375,9 +1375,11 @@ router.post('/book', async (req, res) => {
                     subject: 'ABHR - New car has been booked'
                 }
                 // super admin
-                var options_super_admin = {
-                    to: superAdminData[0].email,
-                    subject: 'ABHR - New car has been booked'
+                if (superAdminData && superAdminData.length > 0) {
+                    var options_super_admin = {
+                        to: superAdminData[0].email,
+                        subject: 'ABHR - New car has been booked'
+                    }
                 }
 
                 // var data1 = bookingResp.data.booking_data;
@@ -1420,10 +1422,12 @@ router.post('/book', async (req, res) => {
                 let mail_resp2 = await mail_helper.sendEmail_carBook("car_booking", options_company_admin, data2);
                 console.log("Mail sending response 2", mail_resp2);
 
-                var data3 = data1;
-                data3.user_name = superAdminData[0].first_name;
-                let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking", options_super_admin, data3);
-                console.log("Mail sending response 3", mail_resp3);
+                if (superAdminData && superAdminData.length > 0) {
+                    var data3 = data1;
+                    data3.user_name = superAdminData[0].first_name;
+                    let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking", options_super_admin, data3);
+                    console.log("Mail sending response 3", mail_resp3);
+                }
 
 
 
@@ -1584,10 +1588,10 @@ router.post('/change-booking-v2', async (req, res) => {
 
             res.status(config.OK_STATUS).json(bookingResp);
 
-            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, carCompanyId : 1, car_handover_by_agent_id: 1 }).lean().exec();
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, carCompanyId: 1, car_handover_by_agent_id: 1 }).lean().exec();
             // console.log("USER IDDDD ===>>", user_id);
             var companyData = await CarCompany.find({ '_id': new ObjectId(user_id.carCompanyId) }).lean().exec();
-            var superAdminData = await Users.find({ 'type': 'admin' }).lean().exec();
+            var superAdminData = await Users.find({ 'type': 'admin', isDeleted: false }).lean().exec();
 
             var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
             var deviceToken = null;
@@ -1709,9 +1713,11 @@ router.post('/change-booking-v2', async (req, res) => {
                 subject: 'ABHR - Car booking has been changed'
             }
             // super admin
-            var options_super_admin = {
-                to: superAdminData[0].email,
-                subject: 'ABHR - Car booking has been changed'
+            if (superAdminData && superAdminData.length > 0) {
+                var options_super_admin = {
+                    to: superAdminData[0].email,
+                    subject: 'ABHR - Car booking has been changed'
+                }
             }
 
             // var data1 = { booking_number: req.body.booking_number }
@@ -1726,10 +1732,12 @@ router.post('/change-booking-v2', async (req, res) => {
             let mail_resp2 = await mail_helper.sendEmail_carBook("car_booking_change", options_company_admin, data2);
             console.log('Mail sending response 2=>', mail_resp2);
 
-            var data3 = data1;
-            data3.user_name = superAdminData[0].first_name;
-            let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking_change", options_super_admin, data3);
-            console.log('Mail sending response 3=>', mail_resp3);
+            if (superAdminData && superAdminData.length > 0) {
+                var data3 = data1;
+                data3.user_name = superAdminData[0].first_name;
+                let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking_change", options_super_admin, data3);
+                console.log('Mail sending response 3=>', mail_resp3);
+            }
 
 
             /** Sending email is over */
@@ -1832,7 +1840,12 @@ router.post('/cancel-booking-v2', async (req, res) => {
 
         if (cancelBookingResp.status === 'success') {
 
-            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, car_handover_by_agent_id: 1 }).lean().exec();
+            var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, carCompanyId: 1, car_handover_by_agent_id: 1 }).lean().exec();
+
+            var companyData = await CarCompany.find({ '_id': new ObjectId(user_id.carCompanyId) }).lean().exec();
+            var superAdminData = await Users.find({ 'type': 'admin', isDeleted: false }).lean().exec();
+
+
             var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
             var deviceToken = null;
             // console.log('USER IDDD ==>', user_id);
@@ -1914,17 +1927,40 @@ router.post('/cancel-booking-v2', async (req, res) => {
 
 
             /* send email to user after car booking has been cancelled start*/
-            var options = {
+            // user
+            var options_user = {
                 to: userDeviceToken[0].email,
                 subject: 'ABHR - Car booking has been cancelled'
             }
+            // company admin
+            var options_company_admin = {
+                to: companyData[0].email,
+                subject: 'ABHR -  Car booking has been cancelled'
+            }
+            // super admin
+            if (superAdminData && superAdminData.length > 0) {
+                var options_super_admin = {
+                    to: superAdminData[0].email,
+                    subject: 'ABHR -  Car booking has been cancelled'
+                }
+            }
+
 
             var data1 = { booking_number: req.body.booking_number, user_name: userDeviceToken[0].first_name }
+            var data2 = { booking_number: req.body.booking_number, user_name: companyData[0].name }
+
 
             console.log('Booking Response DATA=>', data1);
 
-            let mail_resp = await mail_helper.sendEmail_carBook("car_booking_cancel", options, data1);
-            console.log('Mail sending response =>', mail_resp);
+            let mail_resp1 = await mail_helper.sendEmail_carBook("car_booking_cancel", options_user, data1);
+            console.log('Mail sending response 1 =>', mail_resp1);
+            let mail_resp2 = await mail_helper.sendEmail_carBook("car_booking_cancel", options_company_admin, data2);
+            console.log('Mail sending response 2 =>', mail_resp2);
+            if (superAdminData && superAdminData.length > 0) {
+                var data3 = { booking_number: req.body.booking_number, user_name: superAdminData[0].first_name }
+                let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking_cancel", options_super_admin, data3);
+                console.log('Mail sending response 3 =>', mail_resp3);
+            }
 
 
             /** Sending email is over */
