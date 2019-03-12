@@ -196,7 +196,7 @@ router.post('/list', async (req, res, next) => {
                     console.log('result===>', data);
                     res.status(config.OK_STATUS).json({
                         message: "Success",
-                        result: { recordsTotal: totalRecords.length, data: data[0].data }
+                        result: { recordsTotal: totalRecords.length, data: data.length > 0 ? data[0].data : [] }
                     });
                 }
             })

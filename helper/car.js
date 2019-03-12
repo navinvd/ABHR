@@ -418,6 +418,7 @@ carHelper.getcarDetails = async (car_id) => {
                 "car_model": {"$first":"$modelDetails.model_name"},
                 "car_brand": {"$first":"$brandDetails.brand_name"},
                 "car_model_number":{"$first":"$modelDetails.model_number"},
+                "car_color":{"$first":"$car_color"},
                 "rent_price": {"$first":"$rent_price"},
                 "is_AC": {"$first":"$is_AC"},
                 "is_luggage_carrier": {"$first":"$is_luggage_carrier"},
