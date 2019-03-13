@@ -3216,18 +3216,21 @@ router.post('/report', async (req, res) => {
         if (carReportResp.status === 'success') {
             // res.status(config.OK_STATUS).json(carReportResp);
 
+            res.status(config.OK_STATUS).json(carReportResp);
 
             // send email to user & super admin
 
-            var carData = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id));
+            var carData = await carHelper.getcarDetailbyId(ObjectId(req.body.car_id));
+            var bookingData = await CarBooking.findOne({"booking_number" : req.body.booking_number});
             console.log("Car DATA=>", carData);
-            var userData = await Users.findOne({ "_id": new ObjectId(req.body.user_id) });
+            var userData = await Users.findOne({ "_id": ObjectId(req.body.user_id) });
             var superAdminData = await Users.findOne({ "type": "admin", isDeleted: false });
 
-            res.status(config.OK_STATUS).json(carReportResp);
 
+            // user
             var options_user = {
-                to: userData.email,
+                // to: userData.email,
+                to : "mebixoki@click-mail.net",
                 subject: 'ABHR - Car Report Notification'
             }
 
@@ -3237,34 +3240,72 @@ router.post('/report', async (req, res) => {
                 report_message: req.body.report_message
             };
 
-            var options_superAdmin = {
-                to: superAdminData.email,
-                subject: 'ABHR - Car Report Notification'
-            }
-
-            var data_superAdmin = {
-                name: superAdminData.first_name,
-                message: `You got report for ${carData.data.carDetail.car_brand} ${carData.data.carDetail.car_modal}.`,
-                report_message: req.body.report_message
-            };
-
-            /** send email to user **/
+             /** send email to user **/
             await mail_helper.send('car_report', options_user, data_user, function (err, res) {
                 if (err) {
                     console.log("Error when send to user:", err);
                 } else {
-                    console.log(`Sent mail to user (${userData.email}):`, res);
+                    console.log(`Sent mail to user (${userData.email}) 1:`, res);
                 }
             })
 
+
+            // super admin
+            var options_super_admin = {
+                // to: superAdminData.email,
+                to : "pagelole@virtual-email.com",
+                subject: 'ABHR - Car Report Notification'
+            }
+
+
+            var data1 = JSON.parse(JSON.stringify(bookingData));
+            // console.log('DATAT 1=>',data1);
+            // console.log('DATAT 2=>',bookingData);
+            
+            // console.log("TEST=======================>",carData.data.carDetail.rent_price);
+            
+            data1.rent_price = carData.data.carDetail.rent_price;
+
+            data1.no_of_person = carData.data.carDetail.no_of_person;
+            data1.transmission = carData.data.carDetail.transmission === 'manual' ? 'M' : 'A';
+
+            data1.milage = carData.data.carDetail.milage;
+            data1.car_class = carData.data.carDetail.car_class;
+
+            data1.driving_eligibility_criteria = carData.data.carDetail.driving_eligibility_criteria;
+
+            data1.car_brand = carData.data.carDetail.car_brand;
+            data1.car_model = carData.data.carDetail.car_model;
+            data1.car_model_number = carData.data.carDetail.car_model_number;
+            data1.car_model_release_year = carData.data.carDetail.car_model_release_year;
+            data1.image_name = carData.data.carDetail.image_name;
+            data1.user_name = userData.first_name;
+            // data1.user_name = 'dipesh';
+            data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+            data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY"); 
+
+
+            let mail_resp1 = await mail_helper.sendEmail_carBook("car_report_super_admin", options_super_admin, data1);
+            console.log("Mail sending response 2", mail_resp1);
+
+
+
+            // var data_superAdmin = {
+            //     name: superAdminData.first_name,
+            //     message: `You got report for ${carData.data.carDetail.car_brand} ${carData.data.carDetail.car_modal}.`,
+            //     report_message: req.body.report_message
+            // };
+
+           
+
             /** send email to super admin **/
-            await mail_helper.send('car_report', options_superAdmin, data_superAdmin, function (err, res) {
-                if (err) {
-                    console.log("Error when send to super admin:", err);
-                } else {
-                    console.log(`Sent mail to super admin (${superAdminData.email}):`, res);;
-                }
-            })
+            // await mail_helper.send('car_report', options_superAdmin, data_superAdmin, function (err, res) {
+            //     if (err) {
+            //         console.log("Error when send to super admin:", err);
+            //     } else {
+            //         console.log(`Sent mail to super admin (${superAdminData.email}):`, res);;
+            //     }
+            // })
 
 
             // over email
@@ -5782,6 +5823,7 @@ router.post('/filter-v7', async (req, res) => {
                         },
                         {
                             "isDeleted": false,
+                            "car_rental_company_id" : false // now
                             // "is_available": { $ne: true } // & this remove now
                         }
                     ]
