@@ -103,6 +103,104 @@ router.post('/notifications-v2', async (req, res) => {
 });
 
 
+/**
+ * @api {Post} /app/user/read-notification Read unread notification
+ * @apiName Read unread notification
+ * @apiDescription use to read unread notification
+ * @apiGroup AppUser
+ *
+ * @apiParam {String}  notification_id Notification id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// read notification
+router.post('/read-notification', async (req, res) => {
+    var schema = {
+        'notification_id': {
+            notEmpty: true,
+            errorMessage: "Please enter notification id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            const notificationResp = await Notifications.updateOne({ "_id": ObjectId(req.body.notification_id)},{ $set : { "isRead" : true} }).lean().exec();
+            if (notificationResp && notificationResp.n > 0) {
+                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been readed"});
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been readed"});
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while reading notification", err });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "notification_id required",
+        });
+    }
+});
+
+/**
+ * @api {Post} /app/user/count-unread-notification Count unread notifications
+ * @apiName Count unread notifications
+ * @apiDescription Use to count unread notifications
+ * @apiGroup AppUser
+ *
+ * @apiParam {String}  user_id User id
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Users unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+
+// count unread messages 
+router.post('/count-unread-notification', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            const notificationResp = await Notifications.find({isDeleted : false, "isRead" : false, userId : ObjectId(req.body.user_id)}).lean().exec();
+            if (notificationResp && notificationResp.length > 0) {
+                res.status(config.OK_STATUS).json({ status: "success", message: "Unread notifications has been counted", data : { count : notificationResp.length}});
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Unread notifications has not been counted"});
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while counting unread notifications", err });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "user_id required",
+        });
+    }
+});
+
+
+
+
+
+
+
 
 
 /**

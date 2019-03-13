@@ -23,6 +23,10 @@ var NotificationSchema = new Schema({
     booking_number: {
         type: Number
     },
+    isRead: {
+        type: Boolean,
+        default: false
+    },
     isDeleted: {
         type: Boolean,
         default: false
