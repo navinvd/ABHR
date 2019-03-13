@@ -319,7 +319,7 @@ router.post('/check_password', async (req, res, next) => {
     var schema = {
         'company_id': {
             notEmpty: true,
-            errorMessage: "Please enter user id"
+            errorMessage: "Please enter company id"
         },
         'password': {
             notEmpty: true,
