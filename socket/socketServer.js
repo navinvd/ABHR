@@ -6,6 +6,7 @@ var UsersSockets = new Map();
 var AgentsSockets = new Map();
 var AdminSockets = new Map();
 var allSockets = new Map();
+var LoginAgentList = new Map();
 var async = require("async");
 var ObjectId = require('mongoose').Types.ObjectId;
 var CarBooking = require('./../models/car_booking');
@@ -242,6 +243,60 @@ socketFunction.socketStartUp = function (server) {
             console.log('all Sockets===>', allSockets);
         });
 
+        client.on('loginAgent', async function(agent_id){
+            var AgentSockets = LoginAgentList.get(agent_id);
+            if(typeof AgentSockets === 'undefined'){
+                let sobj = {
+                    socketIds: [client.id]
+                }
+                LoginAgentList.set(agent_id, sobj);
+            }else{
+                AgentSockets.socketIds.push(client.id);
+            }
+        });
+
+        client.on('logoutAgent', async function(agent_id){
+            var socketId = this.id;
+            var AgentSockets = LoginAgentList.get(agent_id);
+            if(AgentSockets.socketIds.length !== 0){
+                AgentSockets = AgentSockets.socketIds.filter(item => item !== socketId);
+                let obj = {
+                    socketIds: AgentSockets
+                }
+                LoginAgentList.set(agent_id, obj);
+                if(AgentSockets.length === 0){
+                    LoginAgentList.delete(agent_id);
+                }
+            }
+        });
+
+        client.on('DeleteAgent', async function(agent_id){ 
+            var socketId = this.id;
+            var AgentSocket = LoginAgentList.get(agent_id);
+            var AgentSockets = AgentSocket && AgentSocket.socketIds && AgentSocket.socketIds.length > 0 ? AgentSocket.socketIds : [];
+            if(AgentSockets.length >0){
+                console.log('AgentSockets===>', AgentSockets);
+                AgentSockets.forEach((value)=>{
+                    console.log('emitting data====>',data);
+                    var obj =  {
+                        "agent_id": agent_id,
+                        "is_deleted": "yes"
+                }
+                    io.to(value).emit("DeletedAgent", obj);
+                });
+            }
+            if(AgentSockets.socketIds.length !== 0){
+                AgentSockets = AgentSockets.socketIds.filter(item => item === socketId);
+                let obj = {
+                    socketIds: AgentSockets
+                }
+                LoginAgentList.set(agent_id, obj);
+                if(AgentSockets.length === 0){
+                    LoginAgentList.delete(agent_id);
+                }
+            }
+        });
+
         // client.on('recieveTrackingObjest', (data)=> {
         //     console.log('in recieve===>', data);
         // });
@@ -262,4 +317,17 @@ socketFunction.socketStartUp = function (server) {
         console.log(e);
     }
 }
+
+// socketFunction.DeleteAgent = function (server){
+//     try{
+//         io.attach(server);
+//         io.on('connection', function (client) {
+//             client.emit('CheckDeleteStatusForAgent', (agent_id)=>{
+//                 console.log('msg==>',msg);
+//             });
+//         });
+//     }catch(e){
+//         console.log('from Delete Agent err:',e);
+//     }
+// }
 module.exports = socketFunction;

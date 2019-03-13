@@ -12109,6 +12109,66 @@
     "groupTitle": "CompanyAdmin___Car"
   },
   {
+<<<<<<< HEAD
+    "type": "get",
+    "url": "/company/dashboard/graph",
+    "title": "ploting graph",
+    "name": "Graph",
+    "description": "<p>To display graph</p>",
+    "group": "CompanyAdmin___Dashboard",
+    "version": "0.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "filename": "controllers/company/dashboard.js",
+    "groupTitle": "CompanyAdmin___Dashboard"
+  },
+  {
+=======
+>>>>>>> 97bee68f8de0346ae50d351e32cfbc512efc5aca
     "type": "post",
     "url": "/company/dashboard/no_of_cars",
     "title": "counting of cars",

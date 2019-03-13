@@ -1,7 +1,5 @@
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
-const Coupon = require('./../models/coupon');
-const UserCoupon = require('./../models/user_coupon');
 const Company = require('./../models/car_company');
 const Car = require('./../models/cars');
 const CarBooking = require('./../models/car_booking');
@@ -86,7 +84,13 @@ dashboardHelper.AdminGraph = async () => {
                             date: "$from_time",
                             format: "%Y-%m-%d"
                         }
-                    },
+                      },
+                      transaction_date:{
+                        $dateToString: {
+                            date: "$transaction_date",
+                            format: "%Y-%m-%d"
+                        }
+                      },
                       to_time: {
                         $dateToString: {
                             date: "$to_time",
@@ -136,6 +140,7 @@ dashboardHelper.AdminGraph = async () => {
             var rental_cnt = 0;
             var transaction_cnt = 0;
             rentals.forEach((element) => {
+                // console.log('element====>', element);
                 var from_time = moment(element.from_time).utc().startOf('days').format('YYYY-MM-DD');
                 var to_time = moment(element.to_time).utc().startOf('days').format('YYYY-MM-DD');
                 if (moment(startOfMonth).isBetween(from_time, to_time, null, '[]')) {
@@ -153,6 +158,30 @@ dashboardHelper.AdminGraph = async () => {
                     "rental_cnt": rental_cnt,
                     "transaction_cnt": transaction_cnt
                 };
+                final.push(obj);
+                startOfMonth = moment(startOfMonth).add(1, 'days').format('YYYY-MM-DD'); 
+            }
+            if((moment(startOfMonth).isSame(endOfMonth))){
+                var rental_cnt = 0;
+                var transaction_cnt = 0;
+                rentals.forEach((element) => {
+                    var from_time = moment(element.from_time).utc().startOf('days').format('YYYY-MM-DD');
+                    var to_time = moment(element.to_time).utc().startOf('days').format('YYYY-MM-DD');
+                    if (moment(startOfMonth).isBetween(from_time, to_time, null, '[]')) {
+                        rental_cnt = rental_cnt+1;
+                    }
+                    if(element.transaction_status === "successfull"){
+                        var transaction_date = moment(element.transaction_date).utc().startOf('days').format('YYYY-MM-DD');
+                        if(moment(transaction_date).isSame(startOfMonth)){
+                            transaction_cnt = transaction_cnt + element.total_transaction;
+                        }
+                    }
+                });
+                    var obj = {
+                        "Date" : startOfMonth,
+                        "rental_cnt": rental_cnt,
+                        "transaction_cnt": transaction_cnt
+                    };
                 final.push(obj);
                 startOfMonth = moment(startOfMonth).add(1, 'days').format('YYYY-MM-DD'); 
             }
@@ -174,6 +203,11 @@ dashboardHelper.CompanyGraph = async (companyId) => {
         console.log('startOfMonth===>', startOfMonth, 'endOfMonth===>', endOfMonth);
         var defaultQuery = [
             {
+                "$match":{
+                    "carCompanyId" : new ObjectId(companyId)
+                }
+            },
+            {
                 $project : {
                       _id : 1,
                       booking_number: 1,
@@ -184,7 +218,13 @@ dashboardHelper.CompanyGraph = async (companyId) => {
                             date: "$from_time",
                             format: "%Y-%m-%d"
                         }
-                    },
+                      },
+                      transaction_date:{
+                        $dateToString: {
+                            date: "$transaction_date",
+                            format: "%Y-%m-%d"
+                        }
+                      },
                       to_time: {
                         $dateToString: {
                             date: "$to_time",
@@ -222,10 +262,11 @@ dashboardHelper.CompanyGraph = async (companyId) => {
                                 { to_time: { $gte :endOfMonth }},
                             ] 
                         }
-                    ]
+                    ],
                 }
             }
           ];
+          console.log("defaultQuery====>", JSON.stringify(defaultQuery));
         let rentals = await CarBooking.aggregate(defaultQuery);
         if (rentals !== null && rentals !== '' && rentals.length !== 0) {
             
@@ -234,6 +275,7 @@ dashboardHelper.CompanyGraph = async (companyId) => {
             var rental_cnt = 0;
             var transaction_cnt = 0;
             rentals.forEach((element) => {
+                // console.log('element====>', element);
                 var from_time = moment(element.from_time).utc().startOf('days').format('YYYY-MM-DD');
                 var to_time = moment(element.to_time).utc().startOf('days').format('YYYY-MM-DD');
                 if (moment(startOfMonth).isBetween(from_time, to_time, null, '[]')) {
@@ -254,6 +296,7 @@ dashboardHelper.CompanyGraph = async (companyId) => {
                 final.push(obj);
                 startOfMonth = moment(startOfMonth).add(1, 'days').format('YYYY-MM-DD'); 
             }
+            console.log('startMOnth===>', startOfMonth, 'end MOnth====>',endOfMonth);
             if((moment(startOfMonth).isSame(endOfMonth))){
                 var rental_cnt = 0;
                 var transaction_cnt = 0;

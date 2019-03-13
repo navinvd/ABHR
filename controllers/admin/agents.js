@@ -14,8 +14,6 @@ var _ = require('underscore');
 var mailHelper = require('./../../helper/mail');
 var generator = require('generate-password');
 
-
-
 /**
  * @api {post} /admin/agents/add create new agent
  * @apiName Create Agent
@@ -314,7 +312,6 @@ router.put('/update', (req, res, next) => {
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
 router.put('/delete', (req, res, next) => {
-    console.log('here');
     var schema = {
         'user_id': {
             notEmpty: true,
