@@ -161,6 +161,30 @@ dashboardHelper.AdminGraph = async () => {
                 final.push(obj);
                 startOfMonth = moment(startOfMonth).add(1, 'days').format('YYYY-MM-DD'); 
             }
+            if((moment(startOfMonth).isSame(endOfMonth))){
+                var rental_cnt = 0;
+                var transaction_cnt = 0;
+                rentals.forEach((element) => {
+                    var from_time = moment(element.from_time).utc().startOf('days').format('YYYY-MM-DD');
+                    var to_time = moment(element.to_time).utc().startOf('days').format('YYYY-MM-DD');
+                    if (moment(startOfMonth).isBetween(from_time, to_time, null, '[]')) {
+                        rental_cnt = rental_cnt+1;
+                    }
+                    if(element.transaction_status === "successfull"){
+                        var transaction_date = moment(element.transaction_date).utc().startOf('days').format('YYYY-MM-DD');
+                        if(moment(transaction_date).isSame(startOfMonth)){
+                            transaction_cnt = transaction_cnt + element.total_transaction;
+                        }
+                    }
+                });
+                    var obj = {
+                        "Date" : startOfMonth,
+                        "rental_cnt": rental_cnt,
+                        "transaction_cnt": transaction_cnt
+                    };
+                final.push(obj);
+                startOfMonth = moment(startOfMonth).add(1, 'days').format('YYYY-MM-DD'); 
+            }
             return { status: 'success', message: "Rental data found", data: final}
         }
         else {
@@ -272,6 +296,7 @@ dashboardHelper.CompanyGraph = async (companyId) => {
                 final.push(obj);
                 startOfMonth = moment(startOfMonth).add(1, 'days').format('YYYY-MM-DD'); 
             }
+            console.log('startMOnth===>', startOfMonth, 'end MOnth====>',endOfMonth);
             if((moment(startOfMonth).isSame(endOfMonth))){
                 var rental_cnt = 0;
                 var transaction_cnt = 0;
