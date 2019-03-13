@@ -257,6 +257,53 @@ router.post('/change_password', async (req, res, next) => {
     }
 });
 
+// check company admin password
+router.post('/check_password', async (req, res, next) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'password': {
+            notEmpty: true,
+            errorMessage: "Please enter your password"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            var userData = await User.findOne({ "_id": new ObjectId(req.body.user_id), "isDeleted": false});
+            if (userData && userData != undefined) {
+                if (bcrypt.compareSync(req.body.password, userData.password)) {
+                    res.status(config.OK_STATUS).json({
+                        status: 'success',
+                        message: 'old password match'
+                    });
+                }
+                else {
+                    res.status(config.OK_STATUS).json({
+                        status: 'failed',
+                        message: 'Invailid old password'
+                    });
+                }
+            } else {
+                res.status(config.OK_STATUS).json({
+                    status: 'failed',
+                    message: 'No user found with this user id'
+                });
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    } else {
+        res.status(config.OK_STATUS).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
 
 /**
 * @api {get} /admin/details/:id Details of perticular user
