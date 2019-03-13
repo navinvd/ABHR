@@ -210,7 +210,7 @@ router.post('/change_password', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            var userData = await User.findOne({ "_id": new ObjectId(req.body.user_id), "isDeleted": false });
+            var userData = await User.findOne({ "_id": new ObjectId(req.body.user_id), "isDeleted": false, "type": "admin" });
             console.log(userData);
             if (userData && userData.length > 0) {
                 console.log(userData);
