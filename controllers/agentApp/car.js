@@ -2628,7 +2628,7 @@ router.post('/delivering_v3', async (req, res) => {
                         /* save notification to db start */
                         if (deviceToken !== null) {
                             var data = {
-                                "userId": userDeviceToken[0]._id,
+                                "userId": userData[0]._id,
                                 "deviceToken": deviceToken,
                                 "deviceType": 'android',
                                 "notificationText": msg,

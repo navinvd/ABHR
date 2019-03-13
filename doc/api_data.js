@@ -6982,6 +6982,76 @@ define({ "api": [
     "groupTitle": "AppUser"
   },
   {
+    "type": "Post",
+    "url": "/app/user/count-unread-notification",
+    "title": "Count unread notifications",
+    "name": "Count_unread_notifications",
+    "description": "<p>Use to count unread notifications</p>",
+    "group": "AppUser",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>User id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/app/user.js",
+    "groupTitle": "AppUser"
+  },
+  {
     "type": "post",
     "url": "/app/user/addresses/delete",
     "title": "Delete user addresses",
@@ -7776,6 +7846,76 @@ define({ "api": [
         ]
       }
     },
+    "filename": "controllers/app/user.js",
+    "groupTitle": "AppUser"
+  },
+  {
+    "type": "Post",
+    "url": "/app/user/read-notification",
+    "title": "Read unread notification",
+    "name": "Read_unread_notification",
+    "description": "<p>use to read unread notification</p>",
+    "group": "AppUser",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "notification_id",
+            "description": "<p>Notification id</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p>application/json</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-access-token",
+            "description": "<p>Users unique access-key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Validation or error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
     "filename": "controllers/app/user.js",
     "groupTitle": "AppUser"
   },
@@ -11969,6 +12109,7 @@ define({ "api": [
     "groupTitle": "CompanyAdmin___Car"
   },
   {
+<<<<<<< HEAD
     "type": "get",
     "url": "/company/dashboard/graph",
     "title": "ploting graph",
@@ -12026,6 +12167,8 @@ define({ "api": [
     "groupTitle": "CompanyAdmin___Dashboard"
   },
   {
+=======
+>>>>>>> 97bee68f8de0346ae50d351e32cfbc512efc5aca
     "type": "post",
     "url": "/company/dashboard/no_of_cars",
     "title": "counting of cars",
