@@ -83,7 +83,7 @@ router.post('/notifications-v2', async (req, res) => {
     if (!errors) {
         try {
             // const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id) , "isDeleted" : false }).lean().exec();
-            const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id) , "isDeleted" : false }).sort({"_id" : -1}).lean().exec();
+            const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id), "isDeleted": false }).sort({ "_id": -1 }).lean().exec();
             if (notificationResp && notificationResp.length > 0) {
                 res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found", data: { notifications: notificationResp } });
             }
@@ -130,12 +130,12 @@ router.post('/read-notification', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            const notificationResp = await Notifications.updateOne({ "_id": ObjectId(req.body.notification_id)},{ $set : { "isRead" : true} }).lean().exec();
+            const notificationResp = await Notifications.updateOne({ "_id": ObjectId(req.body.notification_id) }, { $set: { "isRead": true } }).lean().exec();
             if (notificationResp && notificationResp.n > 0) {
-                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been readed"});
+                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been readed" });
             }
             else {
-                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been readed"});
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been readed" });
             }
         }
         catch (err) {
@@ -176,12 +176,12 @@ router.post('/count-unread-notification', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            const notificationResp = await Notifications.find({isDeleted : false, "isRead" : false, userId : ObjectId(req.body.user_id)}).lean().exec();
+            const notificationResp = await Notifications.find({ isDeleted: false, "isRead": false, userId: ObjectId(req.body.user_id) }).lean().exec();
             if (notificationResp && notificationResp.length > 0) {
-                res.status(config.OK_STATUS).json({ status: "success", message: "Unread notifications has been counted", data : { count : notificationResp.length}});
+                res.status(config.OK_STATUS).json({ status: "success", message: "Unread notifications has been counted", data: { count: notificationResp.length } });
             }
             else {
-                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Unread notifications has not been counted"});
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Unread notifications has not been counted" });
             }
         }
         catch (err) {
@@ -218,22 +218,32 @@ router.post('/get-notification-id', async (req, res) => {
     if (!errors) {
         try {
             const condition = {
-                isDeleted : false,
-                userId : ObjectId(req.body.user_id),
-                booking_number : req.body.booking_number,
-                notificationText : req.body.notification_text
+                isDeleted: false,
+                userId: ObjectId(req.body.user_id),
+                booking_number: req.body.booking_number,
+                notificationText: req.body.notification_text
             }
 
             const notificationResp = await Notifications.findOne(condition).lean().exec();
-            if (notificationResp) {
-                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found", data : { notification : notificationResp }});
+            if (notificationResp && notificationResp !== null) {
+
+                console.log("DATA==>",notificationResp);
+                const notification_id = notificationResp._id;
+                const notificationResp2 = await Notifications.updateOne({ "_id": ObjectId(notification_id) }, { $set: { "isRead": true } }).lean().exec();
+                if (notificationResp2 && notificationResp2.n > 0) {
+                    res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been readed" });
+                }
+                else {
+                    res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been readed" });
+                }
+                // res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found" });
             }
             else {
-                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been found"});
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been found" });
             }
         }
         catch (err) {
-            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while counting unread notifications", err });
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while finding notification", err });
         }
     } else {
         res.status(config.BAD_REQUEST).json({
@@ -332,9 +342,9 @@ router.post('/remove-notification-v2', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            const notificationResp = await Notifications.updateOne({"_id": ObjectId(req.body.notification_id)},{$set:{isDeleted : true}}).lean().exec();
+            const notificationResp = await Notifications.updateOne({ "_id": ObjectId(req.body.notification_id) }, { $set: { isDeleted: true } }).lean().exec();
             if (notificationResp && notificationResp.n > 0) {
-                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been removed"});
+                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been removed" });
             }
             else {
                 res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been removed" });
