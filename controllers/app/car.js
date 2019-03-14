@@ -4037,7 +4037,7 @@ router.post('/return-request', async (req, res) => {
             // send notification to all agent
             res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
 
-            var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
+            var agentList = await Users.find({ 'type': 'agent', 'isDeleted': false}, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
             var agentDeviceTokenArray = [];
             var agent_data_array = [];

@@ -2589,7 +2589,7 @@ carHelper.car_receive = async (req, car_handover_data) => {
         // after car receive we need to change car booking status to -> finished
         let booking_number = { booking_number: car_hand_over_data.booking_number };
         // let trip_status = { $set: { trip_status: 'finished' } };
-        let trip_status = { $set: { trip_status: 'finished', transaction_status: 'successfull' } };
+        let trip_status = { $set: { trip_status: 'finished', transaction_status: 'successfull', transaction_date: moment().format('YYYY-MM-DD') } };
         let trip_status2 = { $set: { trip_status: 'finished' } };
 
         var updateCarBooking = await CarBooking.updateOne(booking_number, trip_status);
