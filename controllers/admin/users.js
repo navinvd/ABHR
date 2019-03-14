@@ -306,10 +306,16 @@ router.post('/rented_list', async (req, res, next) => {
             },
             {
                 $match: {
-                    'userId': new ObjectId(req.body.user_id),
-                    'to_time': {
-                        $lt: new Date(),
-                    }
+                    'userId': new ObjectId(req.body.user_id)
+                }
+            },
+            {
+                $match: {
+                    $or : [
+                        { "trip_status": "finished"},
+                        { "trip_status": "cancelled"},
+                        { "to_time": { $lt : new Date()}}
+                    ]
                 }
             },
             {
