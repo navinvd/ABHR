@@ -5755,6 +5755,11 @@ router.post('/filter-v7', async (req, res) => {
                 }
             },
             {
+                $match: {
+                    "companyDetails.isDeleted": false
+                }
+            },
+            {
                 "$project": {
                     "_id": 1,
                     "is_available": 1,
@@ -5823,7 +5828,7 @@ router.post('/filter-v7', async (req, res) => {
                         },
                         {
                             "isDeleted": false,
-                            "car_rental_company_id" : false // now
+                            // "car_rental_company_id" : false // now
                             // "is_available": { $ne: true } // & this remove now
                         }
                     ]
