@@ -84,6 +84,7 @@ mail_helper.sendEmail_carBook = async (template_name, options, data) => {
     var template_sender = transporter.templateSender(new EmailTemplate('emails/' + template_name), {
         from: "ABHR <noreply@gmail.com>"
     });
+    
     try {
         // console.log("Mail DAta :",data);
         data = JSON.parse(JSON.stringify(data));
