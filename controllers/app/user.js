@@ -197,6 +197,52 @@ router.post('/count-unread-notification', async (req, res) => {
 
 
 
+// get notification id from db
+router.post('/get-notification-id', async (req, res) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id"
+        },
+        'booking_number': {
+            notEmpty: true,
+            errorMessage: "Please enter booking number"
+        },
+        'notification_text': {
+            notEmpty: true,
+            errorMessage: "Please enter notification text"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            const condition = {
+                isDeleted : false,
+                userId : ObjectId(req.body.user_id),
+                booking_number : req.body.booking_number,
+                notificationText : req.body.notification_text
+            }
+
+            const notificationResp = await Notifications.findOne(condition).lean().exec();
+            if (notificationResp) {
+                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found", data : { notification : notificationResp }});
+            }
+            else {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been found"});
+            }
+        }
+        catch (err) {
+            res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while counting unread notifications", err });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: errors
+        });
+    }
+});
+
 
 
 
