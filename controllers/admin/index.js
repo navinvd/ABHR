@@ -191,7 +191,7 @@ router.post('/forget_password', async (req, res, next) => {
  */
 // change app user password
 router.post('/change_password', async (req, res, next) => {
-    console.log('here');
+    console.log('here', req.body);
     var schema = {
         'user_id': {
             notEmpty: true,
@@ -210,15 +210,13 @@ router.post('/change_password', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         try {
-            var userData = await User.findOne({ "_id": new ObjectId(req.body.user_id), "isDeleted": false, "type": "admin" });
-            console.log(userData);
-            if (userData && userData.length > 0) {
-                console.log(userData);
-                if (bcrypt.compareSync(data.old_password, userData[0].password)) {
-                    var updatedata = { "password": bcrypt.hashSync(data.new_password, SALT_WORK_FACTOR) }
+            var userData = await User.findOne({ "_id": new ObjectId(req.body.user_id), "isDeleted": false, type: 'admin' });
+            if (userData && typeof userData !== 'undefined' && userData !== null) {
+                if (bcrypt.compareSync(req.body.old_password, userData.password)) {
+                    var updatedata = { "password": bcrypt.hashSync(req.body.new_password, SALT_WORK_FACTOR) }
                     var datta = await User.update({ "_id": new ObjectId(req.body.user_id) }, { $set: updatedata });
                     if (datta.n > 0) {
-                        res.status(config.BAD_REQUEST).json({
+                        res.status(config.OK_STATUS).json({
                             status: 'success',
                             message: 'Password has been changed successfully'
                         });
@@ -242,11 +240,11 @@ router.post('/change_password', async (req, res, next) => {
                     message: 'No user found with this user id'
                 });
             }
-        } catch (error) {
+        } catch (e) {
             res.status(config.BAD_REQUEST).json({
                 status: 'failed',
                 message: 'error',
-                err: error
+                err: e
             });
         }
     } else {

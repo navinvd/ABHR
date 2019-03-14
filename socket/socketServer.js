@@ -271,7 +271,6 @@ socketFunction.socketStartUp = function (server) {
         });
 
         client.on('DeleteAgent', async function(agent_id){ 
-            var socketId = this.id;
             var AgentSocket = LoginAgentList.get(agent_id);
             var AgentSockets = AgentSocket && AgentSocket.socketIds && AgentSocket.socketIds.length > 0 ? AgentSocket.socketIds : [];
             if(AgentSockets.length >0){
@@ -284,16 +283,6 @@ socketFunction.socketStartUp = function (server) {
                 }
                     io.to(value).emit("DeletedAgent", obj);
                 });
-            }
-            if(AgentSockets.socketIds.length !== 0){
-                AgentSockets = AgentSockets.socketIds.filter(item => item === socketId);
-                let obj = {
-                    socketIds: AgentSockets
-                }
-                LoginAgentList.set(agent_id, obj);
-                if(AgentSockets.length === 0){
-                    LoginAgentList.delete(agent_id);
-                }
             }
         });
 
