@@ -271,7 +271,55 @@ router.post('/login', (req, res, next) => {
             errors
         });
     }
-})
+});
+
+router.post('/getAgentInfo', (req, res, next) => {
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "user id is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        User.findOne({ _id : { $eq: req.body.user_id}, isDeleted: false }, function (err, data) {
+            if (err) {
+                res.status(config.BAD_REQUEST).json({
+                    status: 'failed',
+                    message: "could not find user please try again!!"
+                });
+            } else {
+                console.log(data);
+                if (data) {
+                    data = JSON.parse(JSON.stringify(data));
+                    delete data['password'];
+                    delete data['otp_email'];
+                    delete data['otp'];
+                    delete data['isDeleted'];
+
+                    const u = data;
+                    res.status(config.OK_STATUS).json({
+                        status: 'success',
+                        message: "User authenticated successfully",
+                        data: { user: u }
+                    });
+                } else {
+                    res.status(config.BAD_REQUEST).json({
+                        status: 'failed',
+                        message: "This user is not registered",
+                    });
+                }
+            }
+        })
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
 
 /**
  * @api {post} /app/social_login Facebook Login
