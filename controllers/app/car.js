@@ -1289,7 +1289,7 @@ router.post('/book', async (req, res) => {
 
                 var notificationType = 1; // means notification for booking 
                 console.log('Dev Token=>', deviceToken);
-                var msg = "Your car has been booked";
+                var msg = "Your car has been booked successfully";
                 if (userDeviceToken[0].deviceType === 'ios') {
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, msg);
                     /* save notification to db start */
@@ -1334,7 +1334,7 @@ router.post('/book', async (req, res) => {
                 var agentDeviceTokenArray = [];
 
                 var agent_data_array = [];
-                var msg = "New car has been book assign to you for delivery process";
+                var msg = "New car has been book assign to you to deliver it";
                 agentList.map((agent, index) => {
                     if (agent.deviceToken !== undefined) {
                         if (agent.deviceToken !== null) {
@@ -1605,7 +1605,8 @@ router.post('/change-booking-v2', async (req, res) => {
 
             var notificationType = 1; // means notification for booking 
             console.log('Dev Token=>', deviceToken);
-            var msg = "Your booking is changed successfully";
+            // var msg = "Your booking is changed successfully";
+            var msg = "Your booking has been updated successfully";
             if (userDeviceToken[0].deviceType === 'ios') {
                 var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
 
@@ -1645,7 +1646,8 @@ router.post('/change-booking-v2', async (req, res) => {
             if (user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null) {
                 var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                 var deviceToken = null;
-                var msg = "Car booking has been changed"
+                // var msg = "Car booking has been changed"
+                var msg = userDeviceToken[0].first_name+"'\s"+" booking has been updated";
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                     if (agentData[0].deviceToken.length > 10) { // temp condition
@@ -1858,7 +1860,7 @@ router.post('/cancel-booking-v2', async (req, res) => {
             }
 
             var notificationType = 1; // means notification for booking 
-            var msg = "Your booking is cancelled successfully";
+            var msg = "Your booking has been cancelled";
             console.log('Dev Token=>', deviceToken);
             if (userDeviceToken[0].deviceType === 'ios') {
                 var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
@@ -1897,7 +1899,7 @@ router.post('/cancel-booking-v2', async (req, res) => {
             if (user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null) {
                 var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                 var deviceToken = null;
-                var msg = "This booking has been cancelled";
+                var msg = "Oopss!! " + userDeviceToken[0].first_name + "'\s" + " booking has been cancelled";
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                     if (agentData[0].deviceToken.length > 10) { // temp condition
@@ -4047,12 +4049,17 @@ router.post('/return-request', async (req, res) => {
             // send notification to all agent
             res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
 
+
+            var bookData = await CarBooking.findOne({"booking_number" : req.body.booking_number}).lean().exec()
+            var userDeviceToken = await Users.find({ '_id': new ObjectId(bookData.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
+
             var agentList = await Users.find({ 'type': 'agent', 'isDeleted': false }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
             var agentDeviceTokenArray = [];
             var agent_data_array = [];
             var notificationFor = "return-process";
-            var msg = "Assign car to you for return process";
+            // var msg = "Assign car to you for return process";
+            var msg = userDeviceToken[0].first_name + " has issued a return request";
 
             agentList.map((agent, index) => {
                 if (agent.deviceToken !== undefined) {
@@ -6321,6 +6328,95 @@ router.post('/extend-booking', async (req, res) => {
                 console.log('Mail sending response =>', mail_resp);
 
                 /** Sending email is over */
+
+                /* Send notification Start*/
+
+                var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, carCompanyId: 1, car_handover_by_agent_id: 1 }).lean().exec();
+                
+                var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
+                var deviceToken = null;
+                console.log('User token =>', userDeviceToken);
+                if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+                    if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+                        // agentDeviceTokenArray.push(agent.deviceToken);
+                        deviceToken = userDeviceToken[0].deviceToken;
+                    }
+                }
+
+                var notificationType = 1; // means notification for booking 
+                console.log('Dev Token=>', deviceToken);
+                var msg = "Your booking has been extended successfully";
+                if (userDeviceToken[0].deviceType === 'ios') {
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
+
+                    /* save notification to db start */
+                    if (deviceToken !== null) {
+                        var data = {
+                            "userId": userDeviceToken[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'ios',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": req.body.booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    }
+                    /* save notification to db over */
+
+                } else if (userDeviceToken[0].deviceType === 'android') {
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
+                    /* save notification to db start */
+                    if (deviceToken !== null) {
+                        var data = {
+                            "userId": userDeviceToken[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": req.body.booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    }
+                    /* save notification to db over */
+                }
+
+                // send notification to agent for change booking
+
+                if (user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null) {
+                    var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
+                    var deviceToken = null;
+                    var msg = userDeviceToken[0].first_name+"'\s" + " booking has been extended"
+                    // Push notification //
+                    if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
+                        if (agentData[0].deviceToken.length > 10) { // temp condition
+                            // agentDeviceTokenArray.push(agent.deviceToken);
+                            deviceToken = agentData[0].deviceToken;
+                            var notificationType = 1; // means notification for booking 
+                            var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+
+                            /* save notification to db start */
+                            if (deviceToken !== null) {
+                                var data = {
+                                    "userId": agentData[0]._id,
+                                    "deviceToken": deviceToken,
+                                    "deviceType": 'android',
+                                    "notificationText": msg,
+                                    "notificationType": 1,
+                                    "booking_number": req.body.booking_number
+                                }
+                                var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                            }
+                            /* save notification to db over */
+                        }
+                    }
+                }
+
+                 /* Send notification Over */
+
+
+
+
+
 
             }
             else {
