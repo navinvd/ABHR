@@ -3221,7 +3221,7 @@ router.post('/report', async (req, res) => {
             // send email to user & super admin
 
             var carData = await carHelper.getcarDetailbyId(ObjectId(req.body.car_id));
-            var bookingData = await CarBooking.findOne({"booking_number" : req.body.booking_number});
+            var bookingData = await CarBooking.findOne({ "booking_number": req.body.booking_number });
             console.log("Car DATA=>", carData);
             var userData = await Users.findOne({ "_id": ObjectId(req.body.user_id) });
             var superAdminData = await Users.findOne({ "type": "admin", isDeleted: false });
@@ -3229,18 +3229,19 @@ router.post('/report', async (req, res) => {
 
             // user
             var options_user = {
-                // to: userData.email,
-                to : "mebixoki@click-mail.net",
+                to: userData.email,
+                // to: "dm@narola.email",
                 subject: 'ABHR - Car Report Notification'
             }
 
             var data_user = {
                 name: userData.first_name,
-                message: `You report for ${carData.data.carDetail.car_brand} ${carData.data.carDetail.car_modal} has been submitted successfully.`,
+                // message: `You report for ${carData.data.carDetail.car_brand} ${carData.data.carDetail.car_modal} has been submitted successfully.`,
+                message: 'You report for ' + '\"' + carData.data.carDetail.car_brand + ' ' + carData.data.carDetail.car_model + ', ' + carData.data.carDetail.car_model_release_year + '\"' + ' has been submitted successfully.',
                 report_message: req.body.report_message
             };
 
-             /** send email to user **/
+            /** send email to user **/
             await mail_helper.send('car_report', options_user, data_user, function (err, res) {
                 if (err) {
                     console.log("Error when send to user:", err);
@@ -3249,46 +3250,55 @@ router.post('/report', async (req, res) => {
                 }
             })
 
+            if (superAdminData && superAdminData !== null) {
 
-            // super admin
-            var options_super_admin = {
-                // to: superAdminData.email,
-                to : "pagelole@virtual-email.com",
-                subject: 'ABHR - Car Report Notification'
+                // super admin
+                var options_super_admin = {
+                    to: superAdminData.email,
+                    // to: "dm@narola.email",
+                    subject: 'ABHR - Car Report Notification'
+                }
+
+
+                var data1 = JSON.parse(JSON.stringify(bookingData));
+                // console.log('DATAT 1=>',data1);
+                // console.log('DATAT 2=>',bookingData);
+
+                // console.log("TEST=======================>",carData.data.carDetail.rent_price);
+
+                data1.rent_price = carData.data.carDetail.rent_price;
+
+                data1.no_of_person = carData.data.carDetail.no_of_person;
+                data1.transmission = carData.data.carDetail.transmission === 'manual' ? 'M' : 'A';
+
+                data1.milage = carData.data.carDetail.milage;
+                data1.car_class = carData.data.carDetail.car_class;
+
+                data1.driving_eligibility_criteria = carData.data.carDetail.driving_eligibility_criteria;
+
+                data1.car_brand = carData.data.carDetail.car_brand;
+                data1.car_model = carData.data.carDetail.car_model;
+                data1.car_model_number = carData.data.carDetail.car_model_number;
+                data1.car_model_release_year = carData.data.carDetail.car_model_release_year;
+                data1.age_of_car = carData.data.carDetail.age_of_car;
+                data1.image_name = carData.data.carDetail.image_name;
+                data1.user_name = userData.first_name;
+                data1.super_admin_name = superAdminData.first_name;
+                data1.user_phone_number = '+' + userData.country_code + ' ' + userData.phone_number
+                data1.user_email = userData.email
+                data1.daily_rate = bookingData.booking_rent
+                data1.total = bookingData.booking_rent * bookingData.days
+                data1.vat = bookingData.vat
+                data1.final_total = ((bookingData.booking_rent * bookingData.days) + ((bookingData.booking_rent * bookingData.days * bookingData.vat) / 100))
+
+                data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+                data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+
+                let mail_resp1 = await mail_helper.sendEmail_carBook("car_report_super_admin", options_super_admin, data1);
+                console.log("Mail sending response 2", mail_resp1);
+
             }
-
-
-            var data1 = JSON.parse(JSON.stringify(bookingData));
-            // console.log('DATAT 1=>',data1);
-            // console.log('DATAT 2=>',bookingData);
-            
-            // console.log("TEST=======================>",carData.data.carDetail.rent_price);
-            
-            data1.rent_price = carData.data.carDetail.rent_price;
-
-            data1.no_of_person = carData.data.carDetail.no_of_person;
-            data1.transmission = carData.data.carDetail.transmission === 'manual' ? 'M' : 'A';
-
-            data1.milage = carData.data.carDetail.milage;
-            data1.car_class = carData.data.carDetail.car_class;
-
-            data1.driving_eligibility_criteria = carData.data.carDetail.driving_eligibility_criteria;
-
-            data1.car_brand = carData.data.carDetail.car_brand;
-            data1.car_model = carData.data.carDetail.car_model;
-            data1.car_model_number = carData.data.carDetail.car_model_number;
-            data1.car_model_release_year = carData.data.carDetail.car_model_release_year;
-            data1.image_name = carData.data.carDetail.image_name;
-            data1.user_name = userData.first_name;
-            // data1.user_name = 'dipesh';
-            data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
-            data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY"); 
-
-
-            let mail_resp1 = await mail_helper.sendEmail_carBook("car_report_super_admin", options_super_admin, data1);
-            console.log("Mail sending response 2", mail_resp1);
-
-
 
             // var data_superAdmin = {
             //     name: superAdminData.first_name,
@@ -3296,7 +3306,7 @@ router.post('/report', async (req, res) => {
             //     report_message: req.body.report_message
             // };
 
-           
+
 
             /** send email to super admin **/
             // await mail_helper.send('car_report', options_superAdmin, data_superAdmin, function (err, res) {
@@ -4037,7 +4047,7 @@ router.post('/return-request', async (req, res) => {
             // send notification to all agent
             res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
 
-            var agentList = await Users.find({ 'type': 'agent', 'isDeleted': false}, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
+            var agentList = await Users.find({ 'type': 'agent', 'isDeleted': false }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
             var agentDeviceTokenArray = [];
             var agent_data_array = [];
