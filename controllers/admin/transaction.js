@@ -145,7 +145,7 @@ router.post('/report_list', async (req, res, next) => {
                 "first_name": "$user_details.first_name",
                 "last_name": "$user_details.last_name",
                 "from_time": 1,
-                "to_time": 1,
+                "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
                 "total_booking_amount": 1,
                 "vat": 1,
                 "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
@@ -401,7 +401,7 @@ router.post('/export_report_list', async (req, res, next) => {
                 "first_name": "$user_details.first_name",
                 "last_name": "$user_details.last_name",
                 "from_time": 1,
-                "to_time": 1,
+                "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
                 "total_booking_amount": 1,
                 "vat": 1,
                 "car_handover_first_name": { $arrayElemAt: [ "$agent_for_handover.first_name", 0 ] },
@@ -675,7 +675,7 @@ router.post('/list', async (req, res, next) => {
                 // "firts_name": "$user_details.first_name",
                 // "last_name": "$user_details.last_name",
                 "from_time": 1,
-                "to_time": 1,
+                "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
                 "total_booking_amount": 1,
                 "defect_amount":1,
                 "transaction_status":1,
@@ -879,24 +879,24 @@ router.post('/details', async (req, res, next) => {
         try{
             var defaultQuery = [
                 {
-                "$match": {
-                    "isDeleted": false,
-                    "_id": new ObjectId(req.body.booking_id)
-                }
-                },
-                {
-                "$lookup": {
-                    "from": "cars",
-                    "localField": "carId",
-                    "foreignField": "_id",
-                    "as": "car_details",
-                }
-                },
-                {
-                "$unwind": {
-                    "path": "$car_details",
-                    "preserveNullAndEmptyArrays": true
+                    "$match": {
+                        "isDeleted": false,
+                        "_id": new ObjectId(req.body.booking_id)
                     }
+                },
+                {
+                    "$lookup": {
+                        "from": "cars",
+                        "localField": "carId",
+                        "foreignField": "_id",
+                        "as": "car_details",
+                    }
+                },
+                {
+                    "$unwind": {
+                        "path": "$car_details",
+                        "preserveNullAndEmptyArrays": true
+                        }
                 },
                 {
                     "$lookup": {
@@ -955,7 +955,7 @@ router.post('/details', async (req, res, next) => {
                         "first_name": "$user_details.first_name",
                         "last_name": "$user_details.last_name",
                         "from_time": 1,
-                        "to_time": 1,
+                        "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
                         "days": 1,
                         // "extended_days":1,
                         "extended_days": { $ifNull: [ "$extended_days", null ] },

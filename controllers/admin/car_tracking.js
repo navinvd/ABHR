@@ -108,7 +108,7 @@ router.post('/delivering', (req, res, next) => {
                     "agent_last_name": "$agent_for_handover.last_name",
                     "booking_number": 1,
                     "from_time": 1,
-                    "to_time": 1,
+                    "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
                     "trip_status": 1,
                     "model_name": "$car_model.model_name",
                     "brand_name": "$car_brand.brand_name",
@@ -322,8 +322,6 @@ router.post('/returned/details', async (req, res, next) => {
     }
 });
 
-
-
 /**
  * @api {post} /admin/tracking/returning List of car which is in delivering process
  * @apiName Car Returning List
@@ -426,7 +424,7 @@ router.post('/returning', (req, res, next) => {
                     "agent_last_name": "$agent_for_reciever.last_name",
                     "booking_number": 1,
                     "from_time": 1,
-                    "to_time": 1,
+                    "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
                     "trip_status": 1,
                     "model_name": "$car_model.model_name",
                     "brand_name": "$car_brand.brand_name",

@@ -109,7 +109,7 @@ router.post('/report_list', async (req, res, next) => {
                 car_brand: "$car_brand.brand_name",
                 isDeleted: "$car_details.isDeleted",
                 from_time: 1,
-                to_time: 1,
+                to_time: { $subtract: [ "$to_time", 1*24*60*60000 ] },
                 trip_status:1,
                 booking_rent:1,
                 createdAt:1
@@ -310,7 +310,7 @@ router.post('/export_report_list', async (req, res, next) => {
                 car_brand: "$car_brand.brand_name",
                 isDeleted: "$car_details.isDeleted",
                 from_time: 1,
-                to_time: 1,
+                to_time: { $subtract: [ "$to_time", 1*24*60*60000 ] },
                 trip_status:1,
                 booking_rent:1
             }

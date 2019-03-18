@@ -762,7 +762,116 @@ router.post('/details', async (req, res, next) => {
                         "car_color": "$car_details.car_color",
                         "deposit": "$car_details.deposit",
                         "age_of_car": "$car_details.age_of_car",
-                        "createdAt": 1
+                        "createdAt": 1,
+                        "from_time": "$bookingDetails.from_time",
+                        "to_time": { $subtract: [ "$bookingDetails.to_time", 1*24*60*60000 ] },
+                        "vat_amount": {
+                            "$cond": {
+                              "if": {"$eq":["$bookingDetails.coupon_code", null]},
+                              "then": {$divide :[
+                                            {$multiply : [
+                                                {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.days"]}, 
+                                                "$bookingDetails.vat"
+                                            ]},
+                                            100
+                                        ]},
+                              "else":{
+                                  $divide :[
+                                            {$multiply : [
+                                                {$subtract: [ 
+                                                    {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.days"]},
+                                                    {$divide :[
+                                                        {$multiply : [
+                                                            {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.days"]}, 
+                                                            "$bookingDetails.coupon_percentage"
+                                                        ]},
+                                                        100
+                                                    ]}
+                                               ]}, 
+                                                "$bookingDetails.vat"
+                                            ]},
+                                            100
+                                        ]}
+                                    }
+                        },
+                        "extend_vat_amount": {
+                          "$cond": {
+                            "if": {"$eq":["$bookingDetails.coupon_code", null]},
+                            "then": {$divide :[
+                                          {$multiply : [
+                                              {$multiply : ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"]}]}, 
+                                              "$bookingDetails.vat"
+                                          ]},
+                                          100
+                                      ]},
+                            "else":{
+                                $divide :[
+                                          {$multiply : [
+                                              {$subtract: [ 
+                                                  {$multiply : ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"]}]},
+                                                  {$divide :[
+                                                      {$multiply : [
+                                                          {$multiply : ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"]}]}, 
+                                                          "$bookingDetails.coupon_percentage"
+                                                      ]},
+                                                      100
+                                                  ]}
+                                             ]}, 
+                                              "$bookingDetails.vat"
+                                          ]},
+                                          100
+                                      ]}
+                                  }
+                        },
+                        "booking_amount": {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.days"]},
+                        "extended_days": { $ifNull: [ "$bookingDetails.extended_days", null ] },
+                        "extend_booking_amount": {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.extended_days"]},
+                        "total_booking_amount": "$bookingDetails.total_booking_amount"
+                    }
+                },
+                {
+                    $project:{
+                        "_id":1,
+                        "user_name": 1,
+                        "booking_number": 1,
+                        "report_message": 1,
+                        "status": 1,
+                        "user_email": 1,
+                        "user_phone_number": 1,
+                        "car_model":1,
+                        // "car_model": 1,
+                        "car_brand": 1,
+                        "from_time":1,
+                        "to_time":1,
+                        // "car_brand":1,
+                        "is_navigation": 1,
+                        "is_AC": 1,
+                        "is_luggage_carrier": 1,
+                        "driving_eligibility_criteria": 1,
+                        "is_delieverd": 1,
+                        "rent_price": 1,
+                        "no_of_person": 1,
+                        "transmission": 1,
+                        "milage": 1,
+                        "car_class": 1,
+                        "licence_plate": 1,
+                        "car_color": 1,
+                        "deposit": 1,
+                        "age_of_car": 1,
+                        "createdAt": 1,
+                        "vat_amount": 1,
+                        "extend_vat_amount": 1,
+                        "booking_amount": 1,
+                        "extended_days":1,
+                        "extend_booking_amount": 1,
+                        "total_booking_amount": 1,
+                        "AED": {
+                            "$cond": {
+                              "if": {"$eq":["$extended_days", null]},
+                              "then": {$add :["$booking_amount","$vat_amount"]},
+                              "else":{$add :["$booking_amount","$extend_vat_amount","$extend_booking_amount"]}
+                            }
+                        },
                     }
                 }
             ];

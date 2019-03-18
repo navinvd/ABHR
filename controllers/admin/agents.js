@@ -595,15 +595,12 @@ router.post('/rental_list',async (req, res, next) => {
                         _id: 1,
                         booking_number: 1,
                         name: { $concat: [ "$userId.first_name", " ", "$userId.last_name" ] },
-                        booking_rent: 1,
                         isDeleted: 1,
                         from_time: 1,
-                        to_time: 1,
-                        trip_status:1,
-                        booking_rent:1,
-                        car_handover_by_agent_id:1,
-                        car_receive_by_agent_id:1,
-                        createdAt:1
+                        to_time: { $subtract: [ "$to_time", 1*24*60*60000 ] },
+                        booking_rent:"$total_booking_amount",
+                        createdAt:1,
+                        days: 1
                     }
                 });
                 if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {

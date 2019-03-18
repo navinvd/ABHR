@@ -293,12 +293,14 @@ socketFunction.socketStartUp = function (server) {
 
             // It will notify the agent while admin  delete agent
             client.on('DeleteAgent', async function(data){ 
+                console.log('data=====>', data);
                 var AgentSocket = LoginAgentList.get(data.agent_id);
                 var AgentSockets = AgentSocket && AgentSocket.socketIds && AgentSocket.socketIds.length > 0 ? AgentSocket.socketIds : [];
+                console.log('AgentIds=============>', AgentSockets);
                 if(AgentSockets.length >0){
                     console.log('AgentSockets===>', AgentSockets);
                     AgentSockets.forEach((value)=>{
-                        console.log('emitting data====>',data);
+                        console.log('emitting data====>',value);
                         var obj =  {
                             "agent_id": data.agent_id,
                             "device_token": value.deviceToken,

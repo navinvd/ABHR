@@ -499,8 +499,8 @@ router.post('/rented_list', async (req, res, next) => {
                     "booking_number": 1,
                     "user_name": { $concat: ["$user_details.first_name", " ", "$user_details.last_name"]},
                     "from_time": 1,
-                    "booking_rent":1,
-                    "to_time": 1,
+                    "booking_rent":"$total_booking_amount",
+                    "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
                     "model_name": "$car_model.model_name",
                     "brand_name": "$car_brand.brand_name"
                 }
@@ -941,7 +941,7 @@ router.post('/export_report_list', async (req, res, next) => {
                 car_brand: "$car_brand.brand_name",
                 isDeleted: "$car_details.isDeleted",
                 from_time: 1,
-                to_time: 1,
+                to_time: { $subtract: [ "$to_time", 1*24*60*60000 ] },
                 trip_status: 1,
                 booking_rent: 1
             }

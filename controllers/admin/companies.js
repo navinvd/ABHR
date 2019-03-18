@@ -621,7 +621,7 @@ router.post('/car/rental_list', (req, res, next) => {
                     "booking_rent": 1,
                     "booking_number": 1,
                     "from_time": 1,
-                    "to_time": 1,
+                    "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
                     "model_name": "$car_model.model_name",
                     "brand_name": "$car_brand.brand_name"
                 }
