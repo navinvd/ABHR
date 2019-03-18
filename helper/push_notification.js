@@ -53,8 +53,8 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
                 data: {  //you can send only notification or only data(or include both)
                     booking_number: car_booking_number,
                     title: 'ABHR Agent',
-                    message: 'Assign car return request to you for return process',
-                    body: 'Assign car return request to you for return process'
+                    message: message_text,
+                    body: message_text
                 }
             };
         }

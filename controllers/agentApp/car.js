@@ -896,7 +896,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
                         if (carAssignResp.status === 'success') {
 
                             // add this later on
-                            var msg = "Your car is getting ready we will notify you once our agent is on their way to deliver you car";
+                            // var msg = "Your car is getting ready we will notify you once our agent is on their way to deliver you car";
+                            var msg = "Congratulations your booking has been confirmed";
                             commonHelper.sendNoti(req.body.user_id, req.body.booking_number, msg);
 
                             // update car_booking table
@@ -972,7 +973,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
                         if (get_agent && get_agent.length > 0) {
 
                             //add this later
-                            var msg = "Your car is getting ready we will notify you once our agent is on their way to returning car from you";
+                            // var msg = "Your car is getting ready we will notify you once our agent is on their way to returning car from you";
+                            var msg = "Agent is on the way to collect the car";
                             commonHelper.sendNoti(req.body.user_id, req.body.booking_number, msg);
 
                             // alredy assign for handover so just update his entry
@@ -2603,7 +2605,8 @@ router.post('/delivering_v3', async (req, res) => {
                     // agentDeviceTokenArray.push(agent.deviceToken);
                     deviceToken = userData[0].deviceToken;
                     var notificationType = 1; // means notification for booking 
-                    var msg = "Your agent is on delivering track";
+                    // var msg = "Your agent is on delivering track";
+                    var msg = "Your car is on the way. Tap here to track the car";
                     if (userData[0].deviceType === 'ios') {
                         var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, parseInt(req.body.booking_number), notificationType, msg);
 
