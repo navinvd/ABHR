@@ -402,38 +402,38 @@ carHelper.getcarDetails = async (car_id) => {
         },
         {
             $match: {
-                "carBookingDetails.trip_status": { $ne : "finished"},
-                "carBookingDetails.trip_status": { $ne : "cancelled"}
+                "carBookingDetails.trip_status": { $ne: "finished" },
+                "carBookingDetails.trip_status": { $ne: "cancelled" }
             }
         },
         {
-            "$group":{
-                "_id":"$_id",
-                "car_rental_company_id": {"$first":"$car_rental_company_id"},
-                "car_brand_id":{"$first":"$car_brand_id"},
-                "car_model_id":{"$first":"$car_model_id"},
-                "milage":{"$first":"$milage"},
-                "car_rental_company_name": {"$first":"$carCompanyDetails.name"},
-                "car_rental_company_country":  {"$first":"$carCompanyDetails.company_address.country"},
-                "car_model": {"$first":"$modelDetails.model_name"},
-                "car_brand": {"$first":"$brandDetails.brand_name"},
-                "car_model_number":{"$first":"$modelDetails.model_number"},
-                "car_color":{"$first":"$car_color"},
-                "rent_price": {"$first":"$rent_price"},
-                "is_AC": {"$first":"$is_AC"},
-                "is_luggage_carrier": {"$first":"$is_luggage_carrier"},
-                "licence_plate": {"$first":"$licence_plate"},
-                "no_of_person": {"$first":"$no_of_person"},
-                "transmission": {"$first":"$transmission"},
-                "is_navigation": {"$first":"$is_navigation"},
-                "driving_eligibility_criteria": {"$first":"$driving_eligibility_criteria"},
-                "car_class": {"$first":"$car_class"},
-                "car_gallery": {"$first":"$car_gallery"},
-                "resident_criteria": {"$first":"$resident_criteria"},
-                "deposit": {"$first":"$deposit"},
-                "age_of_car": {"$first":"$age_of_car"},
-                "availableData": {"$first":"$is_available"},
-                "carBookingDetails":{$push: "$carBookingDetails"},
+            "$group": {
+                "_id": "$_id",
+                "car_rental_company_id": { "$first": "$car_rental_company_id" },
+                "car_brand_id": { "$first": "$car_brand_id" },
+                "car_model_id": { "$first": "$car_model_id" },
+                "milage": { "$first": "$milage" },
+                "car_rental_company_name": { "$first": "$carCompanyDetails.name" },
+                "car_rental_company_country": { "$first": "$carCompanyDetails.company_address.country" },
+                "car_model": { "$first": "$modelDetails.model_name" },
+                "car_brand": { "$first": "$brandDetails.brand_name" },
+                "car_model_number": { "$first": "$modelDetails.model_number" },
+                "car_color": { "$first": "$car_color" },
+                "rent_price": { "$first": "$rent_price" },
+                "is_AC": { "$first": "$is_AC" },
+                "is_luggage_carrier": { "$first": "$is_luggage_carrier" },
+                "licence_plate": { "$first": "$licence_plate" },
+                "no_of_person": { "$first": "$no_of_person" },
+                "transmission": { "$first": "$transmission" },
+                "is_navigation": { "$first": "$is_navigation" },
+                "driving_eligibility_criteria": { "$first": "$driving_eligibility_criteria" },
+                "car_class": { "$first": "$car_class" },
+                "car_gallery": { "$first": "$car_gallery" },
+                "resident_criteria": { "$first": "$resident_criteria" },
+                "deposit": { "$first": "$deposit" },
+                "age_of_car": { "$first": "$age_of_car" },
+                "availableData": { "$first": "$is_available" },
+                "carBookingDetails": { $push: "$carBookingDetails" },
             }
         },
         {
@@ -465,7 +465,7 @@ carHelper.getcarDetails = async (car_id) => {
                 resident_criteria: 1,
                 deposit: 1,
                 age_of_car: 1,
-                carBookingDetails:1
+                carBookingDetails: 1
             }
         }
     ];
@@ -473,49 +473,49 @@ carHelper.getcarDetails = async (car_id) => {
         let carDetail = await Car.aggregate(defaultQuery);
         if (carDetail && carDetail.length > 0) {
             // console.log(carDetail[0].carBookingDetails);
-            if(carDetail[0].carBookingDetails && carDetail[0].carBookingDetails.length > 0){
+            if (carDetail[0].carBookingDetails && carDetail[0].carBookingDetails.length > 0) {
                 var BookingDetail = carDetail[0].carBookingDetails;
                 BookingDetail.forEach((Booking) => {
                     let fromDate = moment(Booking.from_time).utc().startOf('days');
                     let toDate = moment(Booking.to_time).utc().startOf('days');
-                    
+
                     var cnt = 0;
-                    while(!(moment(fromDate).isSame(toDate))) {
+                    while (!(moment(fromDate).isSame(toDate))) {
                         var fromMonth = 1 + moment(fromDate).month();
-                        if(carDetail[0].availableData && carDetail[0].availableData.length>0){
+                        if (carDetail[0].availableData && carDetail[0].availableData.length > 0) {
                             var availableData = carDetail[0].availableData;
                             availableData.forEach((calender, i) => {
-                                if(calender.month === fromMonth){
-                                    if(calender.availability && calender.availability.length >0){
+                                if (calender.month === fromMonth) {
+                                    if (calender.availability && calender.availability.length > 0) {
                                         var calenderDates = calender.availability;
                                         calenderDates.forEach((Dates, j) => {
                                             var tempDate = moment(Dates).utc().startOf('days');
-                                            if(moment(tempDate).isSame(fromDate)){
+                                            if (moment(tempDate).isSame(fromDate)) {
                                                 delete carDetail[0].availableData[i].availability[j];
                                             }
-                                            console.log('Dates=====>',Dates);
+                                            console.log('Dates=====>', Dates);
                                         });
                                     }
                                 }
                             });
                         }
-                    fromDate = moment(fromDate).add(1, 'days');
+                        fromDate = moment(fromDate).add(1, 'days');
                     }
                     console.log('fromDate====>', fromDate);
-                    if(moment(fromDate).isSame(toDate)){
+                    if (moment(fromDate).isSame(toDate)) {
                         var fromMonth = 1 + moment(fromDate).month();
-                        if(carDetail[0].availableData && carDetail[0].availableData.length>0){
+                        if (carDetail[0].availableData && carDetail[0].availableData.length > 0) {
                             var availableData = carDetail[0].availableData;
                             availableData.forEach((calender, i) => {
-                                if(calender.month === fromMonth){
-                                    if(calender.availability && calender.availability.length >0){
+                                if (calender.month === fromMonth) {
+                                    if (calender.availability && calender.availability.length > 0) {
                                         var calenderDates = calender.availability;
                                         calenderDates.forEach((Dates, j) => {
                                             var tempDate = moment(Dates).utc().startOf('days');
-                                            if(moment(tempDate).isSame(fromDate)){
+                                            if (moment(tempDate).isSame(fromDate)) {
                                                 delete carDetail[0].availableData[i].availability[j];
                                             }
-                                            console.log('Dates=====>',Dates);
+                                            console.log('Dates=====>', Dates);
                                         });
                                     }
                                 }
@@ -524,12 +524,12 @@ carHelper.getcarDetails = async (car_id) => {
                     }
                 });
             }
-            return { status: 'success', message: "Car data found", data: carDetail}
+            return { status: 'success', message: "Car data found", data: carDetail }
         } else {
             return { status: 'failed', message: "No car available" };
         }
     } catch (err) {
-        return { status: 'failed', message: "Error occured while fetching car list" , err};
+        return { status: 'failed', message: "Error occured while fetching car list", err };
     }
 };
 
@@ -2073,14 +2073,14 @@ carHelper.checkRadius_v2 = async function (data) {
                     $and: [
                         { _id: new ObjectId(data.company_id) }, //0.621371 1 km  // 62.1371 = 100km
                         // { service_location: { $geoWithin: { $centerSphere: [[data.longitude, data.latitude], 62.1371 / 3963.2] } } }
-                        {"city" : {$eq : data.city} } // lowercase here
+                        { "city": { $eq: data.city } } // lowercase here
                     ]
                 }
             }
         ]
         );
         if (radius && radius.length > 0) {
-            return { status: 'success', message: "Service is available to your location"}
+            return { status: 'success', message: "Service is available to your location" }
         }
         else {
             return { status: 'failed', message: "Service is not available to your location" }
@@ -2702,12 +2702,35 @@ carHelper.car_report_list = async (user_id) => {
 // Report a car save into car_report collection
 carHelper.car_report = async (report_data) => {
     try {
-        let car_report_data = new CarReport(report_data);
 
-        let data = await car_report_data.save();
-        // var car_report_status = await CarBooking.updateOne({ "booking_number": report_data.booking_number }, { $set: { "is_car_reported": true } })
+        const condition = {
+            user_id: report_data.user_id,
+            car_id: report_data.car_id,
+            report_type: report_data.report_type
+        }
 
-        return { status: "success", message: "Car has been reported" };
+        var report = await CarReport.find(condition).lean().exec();
+
+        if (report && report.length < 1) {
+            let car_report_data = new CarReport(report_data);
+
+            let data = await car_report_data.save();
+           
+            return { status: "success", message: "Thank you for reporting a car, our team will get back to you soon!"};
+        }
+        else{
+            if(report[0].status === 'pending'){
+                // return { status: "failed", message: "Your reported car is pending"};
+                return { status: "failed", message: "You already reported this issues, we will get back to you soon!"};
+            }
+            else if(report[0].status === 'resolved'){
+                // return { status: "failed", message: "Your reported car is resolved"};
+                return { status: "failed", message: "Reported issues resolved, please check your email"};
+            }
+            else{
+                return { status: "failed", message: "No status"};
+            }
+        }
     }
     catch (err) {
         return { status: 'failed', message: "Error accured while reporting car", err }
@@ -2854,11 +2877,11 @@ carHelper.assign_car_to_agent = async (data) => {
 carHelper.get_email = async function (id) {
     try {
         // var data = await User.updateOne({ _id : new ObjectId(user_id)}, { $set : { password : bcrypt.hashSync(password, SALT_WORK_FACTOR)  } } );
-        var data = await User.find({ _id : new ObjectId(id), isDeleted : false });
-        if(data && data.length > 0){
+        var data = await User.find({ _id: new ObjectId(id), isDeleted: false });
+        if (data && data.length > 0) {
             return { status: 'success', message: "Get email successfully" }
         }
-        else{
+        else {
             return { status: 'failed', message: "Get email failure" }
         }
     } catch (err) {

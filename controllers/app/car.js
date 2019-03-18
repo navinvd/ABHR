@@ -14,6 +14,7 @@ const CarCompany = require('./../../models/car_company');
 const Coupon = require('./../../models/coupon');
 const UserCoupon = require('./../../models/user_coupon');
 const ReportCategory = require('./../../models/report_category');
+const CarReport = require('./../../models/car_report');
 const CarNotification = require('./../../models/car_notification');
 const Notifications = require('./../../models/notifications');
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -3336,6 +3337,65 @@ router.post('/report', async (req, res) => {
     }
     // res.json(carHistoryResp);
 });
+
+
+
+// report status
+
+router.post('/report-status', async (req, res) => {
+
+    var schema = {
+        'user_id': {
+            notEmpty: true,
+            errorMessage: "Please enter user id",
+        },
+        'car_id': {
+            notEmpty: true,
+            errorMessage: "Please enter car id",
+        },
+        'report_type': { // report category id
+            notEmpty: true,
+            errorMessage: "Please enter car report category id",
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        const condition = {
+            user_id: req.body.user_id,
+            car_id: req.body.car_id,
+            report_type: req.body.report_type
+        }
+
+        var report = await CarReport.find(condition).lean().exec();
+
+        if (report && report.length > 0) {
+            if(report[0].status === 'pending'){
+                res.status(config.OK_STATUS).json({ status: "success", message: "You already reported this issues, we will get back to you soon!"});
+            }
+            else if(report[0].status === 'resolved'){
+                res.status(config.OK_STATUS).json({ status: "success", message: "Reported issues resolved, please check your email"});
+            }
+        }
+        else{
+            res.status(config.BAD_REQUEST).json({status : "failed" , "message" : "You have not reported any car." } )
+        }
+    }
+    else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
+
+
+
+
+
+
+
 
 
 
