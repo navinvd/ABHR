@@ -3370,14 +3370,14 @@ router.post('/report-status', async (req, res) => {
 
         if (report && report.length > 0) {
             if(report[0].status === 'pending'){
-                res.status(config.OK_STATUS).json({ status: "success", message: "You already reported this issues, we will get back to you soon!"});
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "You already reported this issues, we will get back to you soon!"});
             }
             else if(report[0].status === 'resolved'){
-                res.status(config.OK_STATUS).json({ status: "success", message: "Reported issues resolved, please check your email"});
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Reported issues resolved, please check your email"});
             }
         }
         else{
-            res.status(config.BAD_REQUEST).json({status : "failed" , "message" : "You have not reported any car." } )
+            res.status(config.OK_STATUS).json({status : "success" , "message" : "You have not reported any car." } )
         }
     }
     else {
