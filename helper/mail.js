@@ -106,6 +106,9 @@ mail_helper.Resend_Invoice = async (template_name, options, data) => {
     try {
         // console.log("Mail DAta :",data);
         data = JSON.parse(JSON.stringify(data));
+
+        console.log("DATATATATATAT=======> ",data);
+
         var email_data = await template_sender({ to: options.to, subject: options.subject }, data);
         return { status: 'success', message: "Email has been sent"}      
     }

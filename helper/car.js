@@ -15,6 +15,7 @@ const CarHandOver = require('./../models/car_hand_over');
 const CarReceive = require('./../models/car_receive');
 const CarReport = require('./../models/car_report');
 const CarVAT = require('./../models/car_vat');
+const invoiceHelper = require('../helper/inovice');
 const moment = require('moment');
 const _ = require('underscore');
 var config = require('./../config');
@@ -2816,15 +2817,27 @@ carHelper.resend_invoice = async (booking_number, email) => {
         ]);
         if (data && data.length > 0) {
 
-            console.log('DATA==>', data);
+            console.log('DATA==>', JSON.stringify(data));
 
+            var invoiceData = await invoiceHelper.Userinvoice(data[0]._id); // booking_id
+
+
+            
+
+            var invoiceData = JSON.parse(JSON.stringify(invoiceData));
+
+            invoiceData.data['car_model_release_year'] = data[0].car_details.car_model_release_year;
+            invoiceData.data['from_date'] = moment(data[0].from_time).format('YYYY-MM-DD');
+
+            console.log("invoiceData=>",JSON.stringify(invoiceData.data))
 
             // send email to customer's email
             var options = {
                 to: email,
+                // to: 'dm@narola.email',
                 subject: 'ABHR - Resend Invoice'
             }
-            let mail_resp = await mail_helper.Resend_Invoice("resend_invoice", options, data[0]);
+            let mail_resp = await mail_helper.Resend_Invoice("resend_invoice", options, invoiceData.data);
 
             console.log('Mail Response ===>', mail_resp);
 

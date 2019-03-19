@@ -3341,7 +3341,6 @@ router.post('/report', async (req, res) => {
 
 
 // report status
-
 router.post('/report-status', async (req, res) => {
 
     var schema = {
