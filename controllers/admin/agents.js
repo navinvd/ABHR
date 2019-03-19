@@ -56,13 +56,11 @@ router.post('/add', (req, res, next) => {
             length: 10,
             numbers: true
         });
-
-
-
         var userData = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
-            phone_number: req.body.phone_number,
+            phone_number: req.body.phone_number? req.body.phone_number: null,
+            country_code: req.body.country_code? req.body.country_code: null,
             email: req.body.email,
             type: "agent",
             deviceType: 'android',
@@ -74,35 +72,6 @@ router.post('/add', (req, res, next) => {
         }
         try{
         async.waterfall([
-            function (callback) {
-                // Finding place and insert if not found
-                if (req.body.address) {
-                    Place.findOne({ "google_place_id": { $eq: req.body.address.placeId } }, function (err, data) {
-                        if (err) {
-                            callback(err);
-                        } else {
-                            if (data.length != 0) {
-                                userData.place_id = data.google_place_id
-                                callback(null);
-                            }
-                            else {
-                                var addressData = req.body.address;
-                                var placeModel = new Place(addressData);
-                                placeModel.save(function (err, placeData) {
-                                    if (err) {
-                                        callback(err);
-                                    } else {
-                                        userData.place_id = placeData._id;
-                                        callback(null);
-                                    }
-                                });
-                            }
-                        }
-                    });
-                } else {
-                    callback(null);
-                }
-            },
             function (callback) {
                 var email = 0;
                 User.find({ "email": req.body.email, "isDeleted": false}, function (err, data) {
@@ -212,40 +181,13 @@ router.put('/update', (req, res, next) => {
         var userData = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
-            phone_number: req.body.phone_number,
+            phone_number: req.body.phone_number ? req.body.country_code: null,
+            country_code: req.body.country_code? req.body.country_code: null,
             email: req.body.email,
             deviceType: req.body.deviceType
         };
         try{
         async.waterfall([
-            function (callback) {
-                if (req.body.address) {
-                    Place.findOne({ "google_place_id": { $eq: req.body.address.placeId } }, function (err, data) {
-                        if (err) {
-                            callback(err);
-                        } else {
-                            if (data.length != 0) {
-                                userData.place_id = data.google_place_id
-                                callback(null);
-                            }
-                            else {
-                                var addressData = req.body.address;
-                                var placeModel = new Place(addressData);
-                                placeModel.save(function (err, placeData) {
-                                    if (err) {
-                                        callback(err);
-                                    } else {
-                                        userData.place_id = placeData._id;
-                                        callback(null);
-                                    }
-                                });
-                            }
-                        }
-                    });
-                } else {
-                    callback(null);
-                }
-            },
             function (callback) {
                 var email = 0;
                 User.find({ "email": req.body.email, "isDeleted":false, "_id": { $ne: new ObjectId(req.body.user_id)} }, function (err, data) {

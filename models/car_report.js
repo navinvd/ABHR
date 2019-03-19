@@ -9,6 +9,9 @@ var CarReportSChema = new Schema({
     car_rental_company_id :  mongoose.Schema.Types.ObjectId,
     booking_number : { type : Number, required : true},
     report_type : mongoose.Schema.Types.ObjectId,
+    resolved_message: {
+        type: String
+    },
     status: {
         type: String,
         enum: ["pending", "resolved"],

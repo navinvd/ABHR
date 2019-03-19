@@ -509,7 +509,8 @@ router.post('/change_status', async (req, res, next) => {
             };
             var updateData = {
                 $set: {
-                    "status": req.body.status
+                    "status": req.body.status,
+                    "resolved_message": req.body.resolved_message ? req.body.resolved_message : ''
                 }
             };
             check = await Report.update(cond, updateData);
@@ -596,7 +597,7 @@ router.post('/change_status', async (req, res, next) => {
                 }else{
                     var data = { name: checkUser[0].user_name , 
                         message: `Your report for “${checkUser[0].car_brand} ${checkUser[0].car_modal}” has been resolved successfully.`,
-                       report_message : ''};
+                        report_message : req.body.resolved_message? req.body.resolved_message : ''};
                 }
                 await mailHelper.send('car_report', option, data, function (err, res) {
                     if (err) {
