@@ -9,6 +9,7 @@ var debug = require("debug")("carbookingapi:server");
 var http = require("http");
 var config = require("./../config");
 var socket = require("./../socket/socketServer");
+var fs = require('fs');
 
 /**
  * Get port from environment and store in Express.
