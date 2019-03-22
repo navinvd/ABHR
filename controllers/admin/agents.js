@@ -181,7 +181,7 @@ router.put('/update', (req, res, next) => {
         var userData = {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
-            phone_number: req.body.phone_number ? req.body.country_code: null,
+            phone_number: req.body.phone_number ? req.body.phone_number: null,
             country_code: req.body.country_code? req.body.country_code: null,
             email: req.body.email,
             deviceType: req.body.deviceType
