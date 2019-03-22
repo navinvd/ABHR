@@ -208,12 +208,13 @@ invoiceHelper.Userinvoice = async (booking_id) => {
         ];
         let invoiceData = await CarBooking.aggregate(defaultQuery);
         console.log(invoiceData);
-        let admin = await User.findOne({"type": "admin", "isDeleted": false}, { _id :0, support_email:1, support_phone_number:1});
+        let admin = await User.findOne({"type": "admin", "isDeleted": false}, { _id :0, support_email:1, support_phone_number:1, support_site_url : 1});
         // console.log('invoice Data=====<', invoiceData);
         if (invoiceData !== null && invoiceData !== '' && invoiceData) {
             if(admin !==null && admin !== ''){
                 invoiceData[0]['email'] = admin.support_email? admin.support_email : '';
                 invoiceData[0]['phone_number']= admin.support_phone_number? admin.support_phone_number: '';
+                invoiceData[0]['website']= admin.support_site_url ? admin.support_site_url : '';// added by dm
             }
             return { status: 'success', message: "Invoice data found", data: invoiceData[0]}
         }

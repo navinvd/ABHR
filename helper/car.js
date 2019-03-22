@@ -2817,19 +2817,20 @@ carHelper.resend_invoice = async (booking_number, email) => {
         ]);
         if (data && data.length > 0) {
 
-            console.log('DATA==>', JSON.stringify(data));
+            // console.log('DATA==>', JSON.stringify(data));
 
             var invoiceData = await invoiceHelper.Userinvoice(data[0]._id); // booking_id
 
-
+            // console.log('Rd Invoice DATA =>', JSON.stringify(invoiceData));
             
 
             var invoiceData = JSON.parse(JSON.stringify(invoiceData));
 
             invoiceData.data['car_model_release_year'] = data[0].car_details.car_model_release_year;
+            invoiceData.data['car_class'] = data[0].car_details.car_class;
             invoiceData.data['from_date'] = moment(data[0].from_time).format('YYYY-MM-DD');
 
-            console.log("invoiceData=>",JSON.stringify(invoiceData.data))
+            console.log("DM invoiceData=>",JSON.stringify(invoiceData.data))
 
             // send email to customer's email
             var options = {
