@@ -324,7 +324,7 @@ dashboardHelper.CompanyGraph = async (companyId) => {
             return { status: 'success', message: "Rental data found", data: final}
         }
         else {
-            return { status: 'success', message: "No rental data found" };
+            return { status: 'success', message: "No rental data found", data: []};
         }
     } catch(e){
         return { status: 'failed', message: "Error occured while fetching dashboard" , err:e};
