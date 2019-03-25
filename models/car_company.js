@@ -12,6 +12,7 @@ var CarCompanySchema = new Schema({
     description: {
         type: String,
     },
+    country_code: String,
     phone_number: String,
     site_url: String,
     email: {
