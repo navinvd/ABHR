@@ -1696,11 +1696,14 @@ router.post('/change-booking-v2', async (req, res) => {
             data1.car_model = carResp.data.carDetail.car_model;
             data1.car_model_number = carResp.data.carDetail.car_model_number;
             data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+            data1.age_of_car = carResp.data.carDetail.age_of_car;
             data1.image_name = carResp.data.carDetail.image_name;
             data1.user_name = userDeviceToken[0].first_name;
             // data1.user_name = 'dipesh';
             data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
             data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+            // console.log("Change DATA =>",data1);
 
             // changes over
 
@@ -6353,9 +6356,34 @@ router.post('/extend-booking', async (req, res) => {
                 var userData = await Users.findOne({ _id: new ObjectId(carBookingData.userId) });
                 const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
 
+                // Primary amount calculation
+                var total_rat = data1.booking_rent * data1.days;
+                if(data1.coupon_percentage !== null){
+                    total_rat = (total_rat - (total_rat * data1.coupon_percentage) /100)
+                }
+                var primary_vat_amount = (total_rat * data1.vat) / 100;
+                var total_primary_amount = total_rat + primary_vat_amount;
+
+            
+                // Extend amount calculation
+                var extended_amount =  data1.booking_rent * data1.extended_days;
+                var extended_vat_amount =  ( extended_amount * data1.vat ) / 100;
+                var total_extended_amount = extended_amount + extended_vat_amount;
+
+                // Grand Total
+                var grand_total = total_primary_amount + total_extended_amount;
+
+                data1.total_rat = total_rat;
+                data1.primary_vat_amount = primary_vat_amount;
+                data1.total_primary_amount = total_primary_amount;
+
+                data1.extended_amount = extended_amount;
+                data1.extended_vat_amount = extended_vat_amount;
+                data1.total_extended_amount = total_extended_amount;
+
+                data1.grand_total = grand_total;
 
                 data1.rent_price = carResp.data.carDetail.rent_price;
-
                 data1.no_of_person = carResp.data.carDetail.no_of_person;
                 data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
 
@@ -6368,19 +6396,30 @@ router.post('/extend-booking', async (req, res) => {
                 data1.car_model = carResp.data.carDetail.car_model;
                 data1.car_model_number = carResp.data.carDetail.car_model_number;
                 data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+                data1.age_of_car = carResp.data.carDetail.age_of_car;
                 data1.image_name = carResp.data.carDetail.image_name;
 
-                data1.user_name = userData.first_name;
+                data1.user_name = userData.first_name + ' ' + userData.last_name;
+                data1.user_phone_number = '+' + userData.country_code + ' ' + userData.phone_number;
+                data1.user_email = userData.email;
+                
+                
 
                 data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
                 data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
 
+                data1.extended_from_date = moment(data1.to_time, "YYYY-MM-DD").subtract(data1.extended_days,"days").format("YYYY-MMM-DD");
+                data1.extended_to_date = moment(data1.to_time).format("MMM-DD-YYYY");
 
+
+                console.log('DATA 1=>',data1);
+
+                
+            
                 /* send email to user after car has been booked start*/
 
                 var options = {
                     to: userData.email,
-                    // to: 'dm@narola.email',
                     subject: 'ABHR - Booking has been extended'
                 }
 
