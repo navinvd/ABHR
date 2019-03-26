@@ -94,6 +94,7 @@ var UserSchema = new Schema({
         enum: ["only registered", "rented"],
         default: "only registered"
     },
+    support_country_code: { type: String},
     support_phone_number: {
         type: String
     },
