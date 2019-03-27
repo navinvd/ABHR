@@ -489,6 +489,82 @@ router.post('/checkemail', async (req, res, next) => {
     }
 });
 
+/**
+ * @api {post} /admin/checkphone userList for phone already exist check
+ * @apiName User List 
+ * @apiDescription Used to get user list
+ * @apiGroup Admin - Admin
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} [user_id] User Id
+ * @apiParam {String} phone_number Email
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/checkphone', async (req, res, next) => {
+    var schema = {
+        'phone_number': {
+            notEmpty: true,
+            errorMessage: "phone_number is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try{
+            var obj = { "phone_number" : req.body.phone_number, "isDeleted" : false};
+            if(req.body.user_id){
+                var obj = { "phone_number" : req.body.phone_number,"isDeleted" : false, "_id": { "$ne": new ObjectId(req.body.user_id) }};
+            }
+            var userId = await User.findOne(obj); 
+            if(userId !== null && userId !== ''){
+                var message = '';
+                if(userId.type === 'agent'){
+                    message = 'Agent already have this phone number';
+                }else if(userId.type === 'user'){
+                    message = 'User already have this phone number.';
+                }else if(userId.type === 'admin'){
+                    message = 'Super Admin already have this phone number';
+                }
+                res.status(config.OK_STATUS).json({
+                    status: "success",
+                    message: message
+                });
+            }else{
+                var CompanyCheck = await Company.findOne(obj);
+                if (CompanyCheck !== null && CompanyCheck !== '') {
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message: "Company Admin already have this phone number"
+                    });
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        status: "failed",
+                        message: "record not found"
+                    });
+                }
+            }
+        } catch (error) {
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "something went wrong",
+                error: error
+            });
+        }   
+    } else{
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message:"Validation error",
+            error: e
+        });
+    }
+});
+
+
 
 /**
  * @api {get} /admin/vat get VAT TAX

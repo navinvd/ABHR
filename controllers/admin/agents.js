@@ -90,7 +90,28 @@ router.post('/add', (req, res, next) => {
                 });
             },
             function (err, callback) {
-                if (err.email === 0) {
+                if(req.body.phone_number){
+                    var phone_number = 0;
+                    User.find({ "phone_number": req.body.phone_number, "isDeleted": false}, function (err, data) {
+                        if (data && data.length > 0) {
+                            phone_number = 1;
+                            callback({message:"phone_number is already exist", phone_number :phone_number, email: err.email});
+                        }
+                        else {
+                            // callback(null);
+                            callback(null,{"phone_number":phone_number});
+                        }
+                        if (err) {
+                            console.log('Error====>', err);
+                            callback(err);
+                        }
+                    });
+                }else{
+                    callback(null);
+                }   
+            },
+            function (err, callback) {
+                if (err.email === 0 && err.phone_number === 0) {
                     var userModel = new User(userData);
                     userModel.save(function (err, data) {
                         if (err) {
@@ -204,6 +225,27 @@ router.put('/update', (req, res, next) => {
                         callback(err);
                     }
                 });
+            },
+            function (err, callback) {
+                if(req.body.phone_number){
+                    var phone_number = 0;
+                    User.find({ "phone_number": req.body.phone_number, "isDeleted": false, "_id": { $ne: new ObjectId(req.body.user_id)}}, function (err, data) {
+                        if (data && data.length > 0) {
+                            phone_number = 1;
+                            callback({message:"phone_number is already exist", phone_number :phone_number});
+                        }
+                        else {
+                            // callback(null);
+                            callback(null,{"phone_number":phone_number});
+                        }
+                        if (err) {
+                            console.log('Error====>', err);
+                            callback(err);
+                        }
+                    });
+                }else{
+                    callback(null);
+                }
             },
             function (userdata, callback) {
                 console.log('userdata===>',userdata, "userData===>", userData);

@@ -522,6 +522,31 @@ router.put('/update', async (req, res, next) => {
                             message: 'You cannot perform any activity from now with this Account'
                         });
                     }else{
+                        if(req.body.phone_number){
+                            var check_phone = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
+                            if(check_phone !== null){
+                                res.status(config.BAD_REQUEST).json({
+                                    status: 'faild',
+                                    message: "phone number is already exist."
+                                });
+                            }else{
+                                var check_user_phone = await User.findOne({"phone_number": req.body.phone_number, "isDeleted": false});
+                                if(check_user_phone){
+                                    var message = '';
+                                    if(check_user_email.type === 'agent'){
+                                        message = 'Agent have already this phone number.';
+                                    }else if(check_user_email.type === 'user'){
+                                        message = 'User have already this phone number.';
+                                    }else if(check_user_email.type === 'admin'){
+                                        message = 'Super Admin have already this phone number.';
+                                    }
+                                    res.status(config.BAD_REQUEST).json({
+                                        status: 'faild',
+                                        message: message
+                                    });
+                                }
+                            }
+                        }
                         await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, async function (err, response) {
                             if (err) {
                                 res.status(config.BAD_REQUEST).json({

@@ -99,6 +99,31 @@ router.post('/add', async (req, res, next) => {
                         message: message
                     });
                 }else{
+                    if(req.body.phone_number){
+                        var check_phone = await Company.findOne({"phone_number": req.body.phone_number, "isDeleted": false});
+                        if(check_phone !== null){
+                            res.status(config.BAD_REQUEST).json({
+                                status: 'faild',
+                                message: "phone number is already exist."
+                            });
+                        }else{
+                            var check_user_phone = await User.findOne({"phone_number": req.body.phone_number, "isDeleted": false});
+                            if(check_user_phone){
+                                var message = '';
+                                if(check_user_email.type === 'agent'){
+                                    message = 'Agent have already this phone number.';
+                                }else if(check_user_email.type === 'user'){
+                                    message = 'User have already this phone number.';
+                                }else if(check_user_email.type === 'admin'){
+                                    message = 'Super Admin have already this phone number.';
+                                }
+                                res.status(config.BAD_REQUEST).json({
+                                    status: 'faild',
+                                    message: message
+                                });
+                            }
+                        }
+                    }
                     var generatepassword = generator.generate({
                         length: 10,
                         numbers: true
@@ -256,6 +281,31 @@ router.put('/update', async (req, res, next) => {
                         message: message
                     });
                 }else{
+                    if(req.body.phone_number){
+                        var check_phone = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
+                        if(check_phone !== null){
+                            res.status(config.BAD_REQUEST).json({
+                                status: 'faild',
+                                message: "phone number is already exist."
+                            });
+                        }else{
+                            var check_user_phone = await User.findOne({"phone_number": req.body.phone_number, "isDeleted": false});
+                            if(check_user_phone){
+                                var message = '';
+                                if(check_user_email.type === 'agent'){
+                                    message = 'Agent have already this phone number.';
+                                }else if(check_user_email.type === 'user'){
+                                    message = 'User have already this phone number.';
+                                }else if(check_user_email.type === 'admin'){
+                                    message = 'Super Admin have already this phone number.';
+                                }
+                                res.status(config.BAD_REQUEST).json({
+                                    status: 'faild',
+                                    message: message
+                                });
+                            }
+                        }
+                    }
                     await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, function (err, response) {
                         if (err) {
                             res.status(config.BAD_REQUEST).json({
@@ -1523,6 +1573,81 @@ router.post('/checkemail', async (req, res, next) => {
                         message = 'You are already a User.';
                     }else if(userdata.type === 'admin'){
                         message = 'You are already a Super Admin.';
+                    }
+                    res.status(config.OK_STATUS).json({
+                        status: "success",
+                        message: message
+                    });
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        status: "failed",
+                        message: "record not found"
+                    });
+                }
+            }
+        } catch (error) {
+            res.status(config.BAD_REQUEST).json({
+                status: "failed",
+                message: "something went wrong",
+                error: error
+            });
+        }
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            message: "Validation error",
+            error: e
+        });
+    }
+});
+
+/**
+ * @api {post} /admin/company/checkphone CompanyList for phone number already exist check
+ * @apiName Company Check Phone Number 
+ * @apiDescription Used to get company check phone
+ * @apiGroup Admin - Companies
+ * @apiVersion 0.0.0
+ * 
+ * @apiParam {String} [company_id] Company Id
+ * @apiParam {String} phone_number Phone Number
+ * 
+ * @apiHeader {String}  Content-Type application/json 
+ * @apiHeader {String}  x-access-token Admin unique access-key   
+ * 
+ * @apiSuccess (Success 200) {String} message Success message.
+ * @apiError (Error 4xx) {String} message Validation or error message.
+ */
+router.post('/checkphone', async (req, res, next) => {
+    var schema = {
+        'phone_number': {
+            notEmpty: true,
+            errorMessage: "phone_number is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        try {
+            var obj = { "phone_number": req.body.phone_number, "isDeleted": false };
+            if (req.body.company_id) {
+                var obj = { "phone_number": req.body.phone_number, "isDeleted": false, "_id": { "$ne": new ObjectId(req.body.company_id) } };
+            }
+            var userId = await Company.findOne(obj);
+            if (userId !== null && userId !== '') {
+                res.status(config.OK_STATUS).json({
+                    status: "success",
+                    message: "You have already this phone number for company admin"
+                });
+            } else {
+                var userdata = await User.findOne({ "phone_number": req.body.phone_number, "isDeleted": false });
+                if (userdata !== null && userdata !== '') {
+                    var message = '';
+                    if(userdata.type === 'agent'){
+                        message = 'You have already this phone number for Agent.';
+                    }else if(userdata.type === 'user'){
+                        message = 'You have already this phone number for User.';
+                    }else if(userdata.type === 'admin'){
+                        message = 'You have already this phone number for Super Admin.';
                     }
                     res.status(config.OK_STATUS).json({
                         status: "success",
