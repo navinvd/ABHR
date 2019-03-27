@@ -1336,6 +1336,7 @@ router.post('/book', async (req, res) => {
 
                 var agent_data_array = [];
                 var msg = "New car has been book assign to you to deliver it";
+                var flag = "deliver";
                 agentList.map((agent, index) => {
                     if (agent.deviceToken !== undefined) {
                         if (agent.deviceToken !== null) {
@@ -1356,7 +1357,8 @@ router.post('/book', async (req, res) => {
                 });
 
                 var notificationFor = "new-booking";
-                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg);
+                // var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg);
+                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg, flag);
 
                 // save multile notification for (agent)
                 var saveNotiResp = await pushNotificationHelper.save_multiple_notification_to_db(agent_data_array);
@@ -1649,13 +1651,14 @@ router.post('/change-booking-v2', async (req, res) => {
                 var deviceToken = null;
                 // var msg = "Car booking has been changed"
                 var msg = userDeviceToken[0].first_name+"'\s"+" booking has been updated";
+                var flag = "other";
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                     if (agentData[0].deviceToken.length > 10) { // temp condition
                         // agentDeviceTokenArray.push(agent.deviceToken);
                         deviceToken = agentData[0].deviceToken;
                         var notificationType = 1; // means notification for booking 
-                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                         /* save notification to db start */
                         if (deviceToken !== null) {
@@ -1904,13 +1907,15 @@ router.post('/cancel-booking-v2', async (req, res) => {
                 var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                 var deviceToken = null;
                 var msg = "Oopss!! " + userDeviceToken[0].first_name + "'\s" + " booking has been cancelled";
+                var flag = "other";
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                     if (agentData[0].deviceToken.length > 10) { // temp condition
                         // agentDeviceTokenArray.push(agent.deviceToken);
                         deviceToken = agentData[0].deviceToken;
                         var notificationType = 1; // means notification for booking 
-                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+                        // var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                         /* save notification to db start */
                         if (deviceToken !== null) {
@@ -4122,6 +4127,7 @@ router.post('/return-request', async (req, res) => {
             var notificationFor = "return-process";
             // var msg = "Assign car to you for return process";
             var msg = userDeviceToken[0].first_name + " has issued a return request";
+            var flag = "return";
 
             agentList.map((agent, index) => {
                 if (agent.deviceToken !== undefined) {
@@ -4143,7 +4149,8 @@ router.post('/return-request', async (req, res) => {
                 }
             });
 
-            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, msg);
+            // var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, msg);
+            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, msg, flag);
 
             var saveNotiResp = await pushNotificationHelper.save_multiple_notification_to_db(agent_data_array);
 
@@ -6485,13 +6492,14 @@ router.post('/extend-booking', async (req, res) => {
                     var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                     var deviceToken = null;
                     var msg = userDeviceToken[0].first_name+"'\s" + " booking has been extended"
+                    var flag = "other";
                     // Push notification //
                     if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                         if (agentData[0].deviceToken.length > 10) { // temp condition
                             // agentDeviceTokenArray.push(agent.deviceToken);
                             deviceToken = agentData[0].deviceToken;
                             var notificationType = 1; // means notification for booking 
-                            var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+                            var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                             /* save notification to db start */
                             if (deviceToken !== null) {

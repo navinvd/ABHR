@@ -28,9 +28,10 @@ var apnProvider = new apn.Provider(options); // IOS
 
 
 // send notification to all agent when new car has been booked or return request from user app
-push_notification_helper.sendToAndroid = async (device_token, car_booking_number, notificationFor, message_text) => {
+push_notification_helper.sendToAndroid = async (device_token, car_booking_number, notificationFor, message_text, flag) => {
     console.log('Token ARRAY =>>>>', device_token);
     console.log('Notification For =>>>>', notificationFor);
+    console.log('Flag =>>>>', flag);
     try {
         if (notificationFor === 'new-booking') {
             var message = {
@@ -41,7 +42,8 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
                     booking_number: car_booking_number,
                     title: 'ABHR Agent',
                     message: message_text,
-                    body: message_text
+                    body: message_text,
+                    flag : flag
                 }
             };
         }
@@ -54,7 +56,8 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
                     booking_number: car_booking_number,
                     title: 'ABHR Agent',
                     message: message_text,
-                    body: message_text
+                    body: message_text,
+                    flag : flag
                 }
             };
         }
@@ -126,7 +129,7 @@ push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, 
 }
 
 // send notification to agent when new car booking has been cancelled
-push_notification_helper.sendToAndroidAgent = (device_token, car_booking_number, message_text) => {
+push_notification_helper.sendToAndroidAgent = (device_token, car_booking_number, message_text, flag) => {
     console.log('Agent Token ARRAY =>>>>', device_token);
 
     try {
@@ -139,7 +142,8 @@ push_notification_helper.sendToAndroidAgent = (device_token, car_booking_number,
                 booking_number: car_booking_number,
                 title: 'ABHR',
                 message: message_text,
-                body: message_text
+                body: message_text,
+                flag : flag
             }
         };
 
