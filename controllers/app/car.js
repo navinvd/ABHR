@@ -1336,6 +1336,7 @@ router.post('/book', async (req, res) => {
 
                 var agent_data_array = [];
                 var msg = "New car has been book assign to you to deliver it";
+                var flag = "deliver";
                 agentList.map((agent, index) => {
                     if (agent.deviceToken !== undefined) {
                         if (agent.deviceToken !== null) {
@@ -1356,7 +1357,8 @@ router.post('/book', async (req, res) => {
                 });
 
                 var notificationFor = "new-booking";
-                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg);
+                // var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg);
+                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg, flag);
 
                 // save multile notification for (agent)
                 var saveNotiResp = await pushNotificationHelper.save_multiple_notification_to_db(agent_data_array);
@@ -1649,13 +1651,14 @@ router.post('/change-booking-v2', async (req, res) => {
                 var deviceToken = null;
                 // var msg = "Car booking has been changed"
                 var msg = userDeviceToken[0].first_name+"'\s"+" booking has been updated";
+                var flag = "other";
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                     if (agentData[0].deviceToken.length > 10) { // temp condition
                         // agentDeviceTokenArray.push(agent.deviceToken);
                         deviceToken = agentData[0].deviceToken;
                         var notificationType = 1; // means notification for booking 
-                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                         /* save notification to db start */
                         if (deviceToken !== null) {
@@ -1696,11 +1699,14 @@ router.post('/change-booking-v2', async (req, res) => {
             data1.car_model = carResp.data.carDetail.car_model;
             data1.car_model_number = carResp.data.carDetail.car_model_number;
             data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+            data1.age_of_car = carResp.data.carDetail.age_of_car;
             data1.image_name = carResp.data.carDetail.image_name;
             data1.user_name = userDeviceToken[0].first_name;
             // data1.user_name = 'dipesh';
             data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
             data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+            // console.log("Change DATA =>",data1);
 
             // changes over
 
@@ -1901,13 +1907,15 @@ router.post('/cancel-booking-v2', async (req, res) => {
                 var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                 var deviceToken = null;
                 var msg = "Oopss!! " + userDeviceToken[0].first_name + "'\s" + " booking has been cancelled";
+                var flag = "other";
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                     if (agentData[0].deviceToken.length > 10) { // temp condition
                         // agentDeviceTokenArray.push(agent.deviceToken);
                         deviceToken = agentData[0].deviceToken;
                         var notificationType = 1; // means notification for booking 
-                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+                        // var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                         /* save notification to db start */
                         if (deviceToken !== null) {
@@ -4119,6 +4127,7 @@ router.post('/return-request', async (req, res) => {
             var notificationFor = "return-process";
             // var msg = "Assign car to you for return process";
             var msg = userDeviceToken[0].first_name + " has issued a return request";
+            var flag = "return";
 
             agentList.map((agent, index) => {
                 if (agent.deviceToken !== undefined) {
@@ -4140,7 +4149,8 @@ router.post('/return-request', async (req, res) => {
                 }
             });
 
-            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, msg);
+            // var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, msg);
+            var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, booking_number, notificationFor, msg, flag);
 
             var saveNotiResp = await pushNotificationHelper.save_multiple_notification_to_db(agent_data_array);
 
@@ -6353,9 +6363,34 @@ router.post('/extend-booking', async (req, res) => {
                 var userData = await Users.findOne({ _id: new ObjectId(carBookingData.userId) });
                 const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
 
+                // Primary amount calculation
+                var total_rat = data1.booking_rent * data1.days;
+                if(data1.coupon_percentage !== null){
+                    total_rat = (total_rat - (total_rat * data1.coupon_percentage) /100)
+                }
+                var primary_vat_amount = (total_rat * data1.vat) / 100;
+                var total_primary_amount = total_rat + primary_vat_amount;
+
+            
+                // Extend amount calculation
+                var extended_amount =  data1.booking_rent * data1.extended_days;
+                var extended_vat_amount =  ( extended_amount * data1.vat ) / 100;
+                var total_extended_amount = extended_amount + extended_vat_amount;
+
+                // Grand Total
+                var grand_total = total_primary_amount + total_extended_amount;
+
+                data1.total_rat = total_rat;
+                data1.primary_vat_amount = primary_vat_amount;
+                data1.total_primary_amount = total_primary_amount;
+
+                data1.extended_amount = extended_amount;
+                data1.extended_vat_amount = extended_vat_amount;
+                data1.total_extended_amount = total_extended_amount;
+
+                data1.grand_total = grand_total;
 
                 data1.rent_price = carResp.data.carDetail.rent_price;
-
                 data1.no_of_person = carResp.data.carDetail.no_of_person;
                 data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
 
@@ -6368,14 +6403,26 @@ router.post('/extend-booking', async (req, res) => {
                 data1.car_model = carResp.data.carDetail.car_model;
                 data1.car_model_number = carResp.data.carDetail.car_model_number;
                 data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+                data1.age_of_car = carResp.data.carDetail.age_of_car;
                 data1.image_name = carResp.data.carDetail.image_name;
 
-                data1.user_name = userData.first_name;
+                data1.user_name = userData.first_name + ' ' + userData.last_name;
+                data1.user_phone_number = '+' + userData.country_code + ' ' + userData.phone_number;
+                data1.user_email = userData.email;
+                
+                
 
                 data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
                 data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
 
+                data1.extended_from_date = moment(data1.to_time, "YYYY-MM-DD").subtract(data1.extended_days,"days").format("YYYY-MMM-DD");
+                data1.extended_to_date = moment(data1.to_time).format("MMM-DD-YYYY");
 
+
+                console.log('DATA 1=>',data1);
+
+                
+            
                 /* send email to user after car has been booked start*/
 
                 var options = {
@@ -6445,13 +6492,14 @@ router.post('/extend-booking', async (req, res) => {
                     var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                     var deviceToken = null;
                     var msg = userDeviceToken[0].first_name+"'\s" + " booking has been extended"
+                    var flag = "other";
                     // Push notification //
                     if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
                         if (agentData[0].deviceToken.length > 10) { // temp condition
                             // agentDeviceTokenArray.push(agent.deviceToken);
                             deviceToken = agentData[0].deviceToken;
                             var notificationType = 1; // means notification for booking 
-                            var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg);
+                            var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                             /* save notification to db start */
                             if (deviceToken !== null) {
