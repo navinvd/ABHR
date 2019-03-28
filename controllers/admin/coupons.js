@@ -350,7 +350,7 @@ router.post('/update', async (req, res) => {
                 extention = path.extname(file.name);
                 filename = req.body.coupon_code + extention;
                 var filepath = dir + '/' + filename;
-                if(req.body.old_banner_image !== 'null' && req.body.old_banner_image !== null){
+                if(req.body.old_banner_image && req.body.old_banner_image !== ''){
                     if (fs.existsSync(dir + '/' + req.body.old_banner_image)) {
                         fs.unlinkSync(dir + '/' + req.body.old_banner_image);
                     }
