@@ -254,12 +254,6 @@ router.post('/get-notification-id', async (req, res) => {
     }
 });
 
-
-
-
-
-
-
 /**
  * @api {get} /app/user/notification_setting/:userId get notification setting data for perticular user
  * @apiName User Notificationsetting Data
@@ -925,7 +919,7 @@ router.get('/verification_details/:id', function (req, res, next) {
     User.findOne({ "_id": new ObjectId(req.params.id), "isDeleted": false, "type": "user" }, function (err, data) {
         if (err) {
             return next(err);
-        } else {
+        } else {    
             res.status(config.OK_STATUS).json({
                 status: "success",
                 message: "user Details data Found",

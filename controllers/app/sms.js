@@ -4,6 +4,8 @@ var config = require('./../../config');
 const smsHelper = require('./../../helper/sms');
 var ObjectId = require('mongoose').Types.ObjectId;
 var auth = require('./../../middlewares/auth');
+var User = require('./../../models/users');
+var Company = require('./../../models/car_company');
 
 /**
  * @api {post} /app/sms/sendOTP Send otp on mobile number
@@ -42,18 +44,42 @@ router.post('/sendOTP', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var data = {
-            user_id: req.body.user_id,
-            mobile_number: parseInt(req.body.mobile_number),
-            country_code: parseInt(req.body.country_code),
-        }
-        const sendOtpResp = await smsHelper.sendOTP(data);
-
-        if(sendOtpResp.status === 'success'){
-            res.status(config.OK_STATUS).json(sendOtpResp);
-        }
-        else{
-            res.status(config.BAD_REQUEST).json(sendOtpResp);
+        var check_phone = await User.findOne({"_id": { $ne: new ObjectId(req.body.user_id)}, "phone_number": req.body.mobile_number, "isDeleted": false});
+        if(check_phone !== null){
+            var message = '';
+            if(check_phone.type === 'agent'){
+                message = 'Agent have already this phone number.';
+            }else if(check_phone.type === 'user'){
+                message = 'User have already this phone number.';
+            }else if(check_phone.type === 'admin'){
+                message = 'Super Admin have already this phone number.';
+            }
+            res.status(config.BAD_REQUEST).json({
+                status: 'failed',
+                message: message
+            });
+        }else{
+            var check_phone = await Company.findOne({"phone_number": req.body.mobile_number, "isDeleted": false});
+            if(check_phone !== null){
+                res.status(config.BAD_REQUEST).json({
+                    status: 'failed',
+                    message: "Company have already this phone number."
+                });
+            }else{
+                var data = {
+                    user_id: req.body.user_id,
+                    mobile_number: parseInt(req.body.mobile_number),
+                    country_code: parseInt(req.body.country_code),
+                }
+                const sendOtpResp = await smsHelper.sendOTP(data);
+        
+                if(sendOtpResp.status === 'success'){
+                    res.status(config.OK_STATUS).json(sendOtpResp);
+                }
+                else{
+                    res.status(config.BAD_REQUEST).json(sendOtpResp);
+                }
+            }
         }
         // res.json(sendOtpResp);
     } else {

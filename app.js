@@ -12,6 +12,7 @@ var fileUpload = require('express-fileupload');
 var config = require('./config');
 var app = express();
 var io = require('socket.io');
+// var cron = require('./cron/index');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
