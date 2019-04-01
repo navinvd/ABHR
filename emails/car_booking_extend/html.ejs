@@ -23,7 +23,7 @@
                 <tr>
                   <th style="text-align:center;padding: 26px 0 28px 0;margin:0;vertical-align: middle;">
                     <a href="" style="display:block;padding:0;margin:0;vertical-align: middle;">
-                      <img style="padding:0;margin:0;vertical-align: middle;" src=" http://18.219.16.50:4000/upload/images/ABHR2-05.png" alt=""
+                      <img style="padding:0;margin:0;vertical-align: middle;" src=" <%= icons %>ABHR2-05.png" alt=""
                       />
                     </a>
                   </th>
@@ -39,7 +39,7 @@
                 <tr>
                   <td style="text-align: center;padding: 20px 0;background: #EFEFF5;margin: 0;vertical-align: middle;">
                     <a href="" style="display: block;padding: 0;margin: 0;vertical-align: middle;font-family: Montserrat;font-size: 18px;color: rgba(0,0,0,0.90);line-height: 18px;text-decoration: none;text-transform: uppercase;font-weight: 700;">
-                      <img style="padding:0;margin:0;vertical-align: middle;margin-right: 18px;" src="http://18.219.16.50:4000/upload/images/congo.png"
+                      <img style="padding:0;margin:0;vertical-align: middle;margin-right: 18px;" src="<%= icons %>congo.png"
                         alt="" /> Congratulations!
                     </a>
                   </td>
@@ -76,7 +76,7 @@
                         <%= car_model %>,
                           <%= age_of_car %>
                     </h2>
-                    <img style="padding:0;margin:0;vertical-align: middle;margin-right: 18px;" src='http://18.219.16.50:4000/upload/car/<%= image_name %>'
+                    <img style="padding:0;margin:0;vertical-align: middle;margin-right: 18px;" src='<%= carImagePath %><%= image_name %>'
                       alt="" width="200" height="150" />
                   </td>
                   <td style="padding:0;margin:0;vertical-align:top;">
@@ -93,19 +93,19 @@
                         <tr>
                           <td style="vertical-align: middle;padding: 0 5px;margin: 0;">
                             <% if(no_of_person === 2){ %>
-                              <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/p2.png" alt="" />
+                              <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>p2.png" alt="" />
                               <% } else if(no_of_person === 4){ %>
-                                <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/p4.png" alt="" />
+                                <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>p4.png" alt="" />
                                 <% } else if(no_of_person === 5){ %>
-                                  <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/p5.png" alt="" />
+                                  <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>p5.png" alt="" />
                                   <% } else if(no_of_person === 6){ %>
-                                    <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/p6.png" alt="" />
+                                    <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>p6.png" alt="" />
                                     <% } else if(no_of_person === 8){  %>
-                                      <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/p8.png" alt="" />
+                                      <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>p8.png" alt="" />
                                       <% } else if(no_of_person === 12){ %>
-                                        <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/p12.png" alt="" />
+                                        <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>p12.png" alt="" />
                                         <% } else { %>
-                                          <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/p2.png" alt="" />
+                                          <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>p2.png" alt="" />
                                           <% }  %>
 
 
@@ -117,7 +117,7 @@
                           </td>
                           <td style="vertical-align: middle;padding: 0 5px;margin: 0;">
                             <% if(milage === 'open'){ %>
-                              <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/three.png" alt="" />
+                              <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>three.png" alt="" />
                               <% } else{ %>
                                 <p style="font-size: 18px;color: #4A4A4A;letter-spacing: 0.38px;margin: 0;padding: 0;text-align: center;font-family: 'Montserrat';font-weight: 600;">
                                 M </p>
@@ -125,17 +125,17 @@
                           </td>
                           <td style="vertical-align: middle;padding: 0 5px;margin: 0;">
                             <% if(driving_eligibility_criteria === 18){ %>
-                              <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/a18.png" alt="" />
+                              <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>a18.png" alt="" />
                               <% } else if(driving_eligibility_criteria === 21){ %>
-                                <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/a21.png" alt="" />
+                                <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>a21.png" alt="" />
                                 <% } else if(driving_eligibility_criteria === 30){ %>
-                                  <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/a30.png" alt="" />
+                                  <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>a30.png" alt="" />
                                   <% } else { %>
-                                    <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/a18.png" alt="" />
+                                    <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>a18.png" alt="" />
                                     <% }  %>
                           </td>
                           <td style="vertical-align: middle;padding: 0 5px;margin: 0;">
-                            <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/five.png" alt="" />
+                            <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>five.png" alt="" />
                           </td>
                         </tr>
                       </tbody>
@@ -158,7 +158,7 @@
                     </p>
                   </td>
                   <td style="padding: 15px 0;margin: 0;vertical-align: middle;border-top: 2px solid #cfcfcf;border-bottom: 2px solid #cfcfcf;text-align: center;">
-                    <img style="padding:0;margin:0;vertical-align: middle;" src="http://18.219.16.50:4000/upload/images/Call-1.png" alt="" />
+                    <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>Call-1.png" alt="" />
                   </td>
                   <td style="padding: 15px 0;margin: 0;vertical-align: middle;border-top: 2px solid #cfcfcf;border-bottom: 2px solid #cfcfcf;    text-align: right;">
                     <p style="font-family: 'Montserrat';font-size: 14px;color: #4A4A4A;line-height: 19px;font-weight: 600;margin: 0;padding: 0 0 0px 0;vertical-align: middle;margin:0;">
@@ -360,7 +360,7 @@
               <table style="width:100%; padding:0;margin:0;" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="width: 100%;text-align: left;padding: 20px 25px;background: #EFEFF5;margin: 0;vertical-align: middle;border-bottom: 5px solid #50E3C2;">
-                    <p style="font-family: 'Montserrat';font-size: 12.5px;color: #000;line-height: 19px;font-weight: 300;padding: 0;vertical-align: middle;margin: 0;">Please be sure to get in touch with us via chat or on +971 4 5579200 if you need any help!</p>
+                    <p style="font-family: 'Montserrat';font-size: 12.5px;color: #000;line-height: 19px;font-weight: 300;padding: 0;vertical-align: middle;margin: 0;">Please be sure to get in touch with us via chat or on <%= support_phone_number %> if you need any help!</p>
                   </td>
                 </tr>
               </table>
@@ -375,19 +375,19 @@
                   <tr>
                     <td style="padding: 0 0 20px 0;margin: 0;vertical-align: middle;">
                       <a href="" style="padding: 0 5px;margin: 0;display: inline-block;vertical-align: middle;">
-                        <img style="vertical-align: middle;padding: 0;margin: 0;" src="http://18.219.16.50:4000/upload/images/ic-1.png" alt="">
+                        <img style="vertical-align: middle;padding: 0;margin: 0;" src="<%= icons %>ic-1.png" alt="">
                       </a>
                       <a href="" style="padding: 0 5px;margin: 0;display: inline-block;vertical-align: middle;">
-                        <img style="vertical-align: middle;padding: 0;margin: 0;" src="http://18.219.16.50:4000/upload/images/ic-2.png" alt="">
+                        <img style="vertical-align: middle;padding: 0;margin: 0;" src="<%= icons %>ic-2.png" alt="">
                       </a>
                       <a href="" style="padding: 0 5px;margin: 0;display: inline-block;vertical-align: middle;">
-                        <img style="vertical-align: middle;padding: 0;margin: 0;" src="http://18.219.16.50:4000/upload/images/ic-3.png" alt="">
+                        <img style="vertical-align: middle;padding: 0;margin: 0;" src="<%= icons %>ic-3.png" alt="">
                       </a>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding: 0;margin: 0;vertical-align: middle;">
-                      <p style="text-align: center;font-family: 'Montserrat';font-size: 12.5px;color: #fff;line-height: 19px;font-weight: 300;padding: 0;vertical-align: middle;margin: 0;">You are receiving this email as tony.naief@gmail.com is registered on ABHR.if you wish to unsubscribe,
+                      <p style="text-align: center;font-family: 'Montserrat';font-size: 12.5px;color: #fff;line-height: 19px;font-weight: 300;padding: 0;vertical-align: middle;margin: 0;">You are receiving this email as <%= support_email %> is registered on ABHR.if you wish to unsubscribe,
                         Click here.</p>
                     </td>
                   </tr>
