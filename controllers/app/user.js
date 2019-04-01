@@ -219,6 +219,7 @@ router.post('/get-notification-id', async (req, res) => {
         try {
             const condition = {
                 isDeleted: false,
+                isRead : false,
                 userId: ObjectId(req.body.user_id),
                 booking_number: req.body.booking_number,
                 notificationText: req.body.notification_text

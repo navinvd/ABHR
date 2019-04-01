@@ -1684,6 +1684,9 @@ router.post('/change-booking-v2', async (req, res) => {
             // new changes start
             var bookData = await CarBooking.findOne({ "booking_number": req.body.booking_number }).lean().exec();
             const carResp = await carHelper.getcarDetailbyId(new ObjectId(bookData.carId)); // re-usable api
+
+            // console.log("Car DATA=>>",JOSN.stringify(carResp));
+
             var data1 = bookData;
 
             data1.rent_price = carResp.data.carDetail.rent_price;
@@ -1705,6 +1708,12 @@ router.post('/change-booking-v2', async (req, res) => {
             // data1.user_name = 'dipesh';
             data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
             data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+            
+            data1.support_phone_number = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
+            data1.support_email = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
+            data1.carImagePath = config.CAR_IMAGES; 
+            data1.icons = config.ICONS; 
+
 
             // console.log("Change DATA =>",data1);
 
