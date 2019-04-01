@@ -271,7 +271,7 @@ router.post('/get-notification-id', async (req, res) => {
 router.get('/notification_setting/:userId', async (req, res) => {
     var userId = req.params.userId;
     if (userId && (typeof userId != undefined && userId != null)) {
-        const notificationResp = await userHelper.getUsernotificationSettingData(new ObjectId(req.params.userId));
+        const notificationResp = await userHelper.getUsernotificationSettingData(req.params.userId);
         res.json(notificationResp);
     } else {
         res.status(config.BAD_REQUEST).json({

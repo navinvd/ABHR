@@ -26,7 +26,6 @@ var async = require("async");
 let carHelper = {};
 let mail_helper = require('./mail');
 
-
 carHelper.getAvailableCar = async function (fromDate, days, start = 0, length = 10) {
 
     var toDate = moment(fromDate).add(days, 'days').format("YYYY-MM-DD");
