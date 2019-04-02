@@ -17,9 +17,10 @@ smsHelper.sendOTP = async (data) => {
         const send_to = data.country_code + '' + data.mobile_number;
         const from = 'ABHR';
         const to = send_to;
-        const otp = "Otp for verify your mobile number is "+ Math.floor(100000 + Math.random() * 900000) + " don't share this otp with others.";
+        const otp_sms = "Otp for verify your mobile number is " + (Math.floor(100000 + Math.random() * 900000)) + " do not share this otp with others.";
+        const otp = (Math.floor(100000 + Math.random() * 900000));
 
-        const resp = await nexmo.message.sendSms(from, to, otp);
+        const resp = await nexmo.message.sendSms(from, to, otp_sms);
 
         var user_id = { _id: new ObjectId(data.user_id) }
         // var new_data = { $set: { otp: otp, is_phone_verified: false } };
