@@ -515,12 +515,17 @@ router.post('/sendEmail', async (req, res) => {
     var errors = req.validationErrors();
     if (!errors) {
         var user_id = req.body.user_id;
+        var superAdminData = await User.find({ 'type': 'admin', isDeleted: false }).lean().exec();
         var options = {
             to: req.body.email,
             subject: 'ABHR - User email verification'
         }
         var data = {
-            otp: Math.floor(100000 + Math.random() * 900000)
+            otp: Math.floor(100000 + Math.random() * 900000),
+            support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+            support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+            carImagePath : config.CAR_IMAGES,
+            icons : config.ICONS
         }
         let mail_resp = await mail_helper.sendEmail("email_verification", options, data, user_id);
         if (mail_resp.status === 'success') {

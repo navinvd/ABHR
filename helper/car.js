@@ -2827,14 +2827,22 @@ carHelper.resend_invoice = async (booking_number, email) => {
 
             var invoiceData = await invoiceHelper.Userinvoice(data[0]._id); // booking_id
 
+            var superAdminData = await User.find({ "type": "admin", isDeleted: false });
+
             // console.log('Rd Invoice DATA =>', JSON.stringify(invoiceData));
             
 
             var invoiceData = JSON.parse(JSON.stringify(invoiceData));
 
-            invoiceData.data['car_model_release_year'] = data[0].car_details.car_model_release_year;
+            invoiceData.data['age_of_car'] = data[0].car_details.age_of_car;
             invoiceData.data['car_class'] = data[0].car_details.car_class;
             invoiceData.data['from_date'] = moment(data[0].from_time).format('YYYY-MM-DD');
+
+
+            invoiceData.data['support_phone_number'] = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
+            invoiceData.data['support_email'] = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
+            invoiceData.data['carImagePath'] = config.CAR_IMAGES; 
+            invoiceData.data['icons'] = config.ICONS; 
 
             console.log("DM invoiceData=>",JSON.stringify(invoiceData.data))
 

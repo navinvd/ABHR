@@ -1406,11 +1406,17 @@ router.post('/book', async (req, res) => {
                 data1.car_model = carResp.data.carDetail.car_model;
                 data1.car_model_number = carResp.data.carDetail.car_model_number;
                 data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+                data1.age_of_car = carResp.data.carDetail.age_of_car;
                 data1.image_name = carResp.data.carDetail.image_name;
                 data1.user_name = userDeviceToken[0].first_name;
                 // data1.user_name = 'dipesh';
                 data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
                 data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+                data1.support_phone_number = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
+                data1.support_email = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
+                data1.carImagePath = config.CAR_IMAGES; 
+                data1.icons = config.ICONS; 
 
 
 
@@ -1966,8 +1972,20 @@ router.post('/cancel-booking-v2', async (req, res) => {
             }
 
 
-            var data1 = { booking_number: req.body.booking_number, user_name: userDeviceToken[0].first_name }
-            var data2 = { booking_number: req.body.booking_number, user_name: companyData[0].name }
+            var data1 = { 
+                booking_number: req.body.booking_number, 
+                user_name: userDeviceToken[0].first_name, 
+                support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                icons : config.ICONS
+            }
+            var data2 = { 
+                booking_number: req.body.booking_number, 
+                user_name: companyData[0].name,
+                support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                icons : config.ICONS
+            }
 
 
             console.log('Booking Response DATA=>', data1);
@@ -3257,8 +3275,12 @@ router.post('/report', async (req, res) => {
             var data_user = {
                 name: userData.first_name,
                 // message: `You report for ${carData.data.carDetail.car_brand} ${carData.data.carDetail.car_modal} has been submitted successfully.`,
-                message: 'You report for ' + '\"' + carData.data.carDetail.car_brand + ' ' + carData.data.carDetail.car_model + ', ' + carData.data.carDetail.car_model_release_year + '\"' + ' has been submitted successfully.',
-                report_message: req.body.report_message
+                message: 'You report for ' + '\"' + carData.data.carDetail.car_brand + ' ' + carData.data.carDetail.car_model + ', ' + carData.data.carDetail.age_of_car + '\"' + ' has been submitted successfully.',
+                report_message: req.body.report_message,
+                support_phone_number : superAdminData && superAdminData !== null ? '+' + superAdminData.support_country_code + ' ' + superAdminData.support_phone_number : '',
+                support_email : superAdminData && superAdminData !== null ? superAdminData.support_email : '',
+                carImagePath : config.CAR_IMAGES,
+                icons : config.ICONS
             };
 
             /** send email to user **/
@@ -3313,6 +3335,12 @@ router.post('/report', async (req, res) => {
 
                 data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
                 data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+
+                data1.support_phone_number = superAdminData && superAdminData !== null ? '+' + superAdminData.support_country_code + ' ' + superAdminData.support_phone_number : '';
+                data1.support_email = superAdminData && superAdminData !== null ? superAdminData.support_email : '';
+                data1.carImagePath = config.CAR_IMAGES; 
+                data1.icons = config.ICONS; 
 
 
                 let mail_resp1 = await mail_helper.sendEmail_carBook("car_report_super_admin", options_super_admin, data1);
@@ -6338,6 +6366,7 @@ router.post('/extend-booking', async (req, res) => {
         else {
 
             var bookingDetails = await CarBooking.find({ "booking_number": req.body.booking_number });
+            var superAdminData = await Users.find({ 'type': 'admin', isDeleted: false }).lean().exec();
             var total_extend_days = req.body.days;
             if (bookingDetails && bookingDetails.length > 0) {
                 console.log('bookingDetails=>', bookingDetails);
@@ -6427,8 +6456,13 @@ router.post('/extend-booking', async (req, res) => {
                 data1.extended_from_date = moment(data1.to_time, "YYYY-MM-DD").subtract(data1.extended_days,"days").format("YYYY-MMM-DD");
                 data1.extended_to_date = moment(data1.to_time).format("MMM-DD-YYYY");
 
+                data1.support_phone_number = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
+                data1.support_email = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
+                data1.carImagePath = config.CAR_IMAGES; 
+                data1.icons = config.ICONS; 
 
-                console.log('DATA 1=>',data1);
+
+                // console.log('DATA 1=>',data1);
 
                 
             

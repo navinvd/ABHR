@@ -169,7 +169,8 @@ invoiceHelper.Userinvoice = async (booking_id) => {
                 "milage": 1,
                 "booking_number": 1,
                 "total_booking_amount": 1,
-                "release_year":"$car_model.release_year"
+                "release_year":"$car_model.release_year",
+                "age_of_car":"$car_details.age_of_car"
                 }   
             },
             {
@@ -202,7 +203,8 @@ invoiceHelper.Userinvoice = async (booking_id) => {
                     "else":{$add :["$booking_amount","$extend_vat_amount","$extend_booking_amount"]}
                   }
                 },
-                "release_year":"$car_model.release_year"
+                "release_year":"$car_model.release_year",
+                "age_of_car":"$car_details.age_of_car"
                 }   
             }
         ];
