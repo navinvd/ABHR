@@ -4,6 +4,7 @@ var config = require('./../../config');
 var User = require('./../../models/users');
 var Place = require('./../../models/places');
 var CarBooking = require('./../../models/car_booking');
+var Users = require('./../../models/users');
 var path = require('path');
 var async = require("async");
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -34,7 +35,7 @@ var generator = require('generate-password');
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/add', (req, res, next) => {
+router.post('/add', async (req, res, next) => {
     var schema = {
         'first_name': {
             notEmpty: true,
@@ -67,6 +68,8 @@ router.post('/add', (req, res, next) => {
             password: generatepassword
         };
 
+        // var superAdminData = await Users.find({ 'type': 'admin', isDeleted: false }).lean().exec();
+
         if(req.body.phone_number && req.body.phone_number !== null && typeof req.body.phone_number !== 'undefined'){
             userData = Object.assign(userData, {"phone_number_verified" : 2});
         }
@@ -89,17 +92,17 @@ router.post('/add', (req, res, next) => {
                     }
                 });
             },
-            function (err, callback) {
+            function (error, callback) {
                 if(req.body.phone_number){
                     var phone_number = 0;
                     User.find({ "phone_number": req.body.phone_number, "isDeleted": false}, function (err, data) {
                         if (data && data.length > 0) {
                             phone_number = 1;
-                            callback({message:"phone_number is already exist", phone_number :phone_number, email: err.email});
+                            callback({message:"phone_number is already exist", phone_number :phone_number, email: error.email});
                         }
                         else {
                             // callback(null);
-                            callback(null,{"phone_number":phone_number});
+                            callback(null,{"phone_number":phone_number, email: error.email});
                         }
                         if (err) {
                             console.log('Error====>', err);
@@ -110,10 +113,13 @@ router.post('/add', (req, res, next) => {
                     callback(null);
                 }   
             },
-            function (err, callback) {
-                if (err.email === 0 && err.phone_number === 0) {
+            function (error1, callback) {
+                console.log('error1=====>', error1);
+                if (error1.email === 0 && error1.phone_number === 0) {
+                    console.log('userData========>', userData);
                     var userModel = new User(userData);
                     userModel.save(function (err, data) {
+                        console.log('err========>', err, 'data====>', data);
                         if (err) {
                             callback(err);
                         } else {
@@ -129,8 +135,13 @@ router.post('/add', (req, res, next) => {
                                 first_name: userData.first_name,
                                 last_name: userData.last_name,
                                 email: userData.email,
-                                password: generatepassword
+                                password: generatepassword,
+                                // support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                                // support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                                // carImagePath : config.CAR_IMAGES,
+                                // icons : config.ICONS
                             }
+                            console.log('data================>', data);
                             mailHelper.send('/agents/add_agent', option, data, function (err, res) {
                                 if (err) {
                                     callback(err);
@@ -143,9 +154,10 @@ router.post('/add', (req, res, next) => {
                     });
                 }
                 else{
-                    callback(err);
-                    }
+                    callback(error1);
+                }
             }], function (err, result) {
+                console.log('err===>', err, "result====>", result);
                 if (err) {
                     return next(err);
                 } else {

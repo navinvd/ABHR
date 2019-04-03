@@ -1294,7 +1294,7 @@ router.post('/book', async (req, res) => {
                 if (userDeviceToken[0].deviceType === 'ios') {
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, msg);
                     /* save notification to db start */
-                    if (deviceToken !== null) {
+                    // if (deviceToken !== null) {
                         var data = {
                             "userId": userDeviceToken[0]._id,
                             "deviceToken": deviceToken,
@@ -1304,13 +1304,13 @@ router.post('/book', async (req, res) => {
                             "booking_number": car_booking_number
                         }
                         var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                    }
+                    // }
                     /* save notification to db over */
 
                 } else if (userDeviceToken[0].deviceType === 'android') {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, msg);
                     /* save notification to db start */
-                    if (deviceToken !== null) {
+                    // if (deviceToken !== null) {
                         var data = {
                             "userId": userDeviceToken[0]._id,
                             "deviceToken": deviceToken,
@@ -1320,7 +1320,7 @@ router.post('/book', async (req, res) => {
                             "booking_number": car_booking_number
                         }
                         var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                    }
+                    // }
                     /* save notification to db over */
                 }
 
@@ -1330,7 +1330,7 @@ router.post('/book', async (req, res) => {
                 // after car booking need to send push notification to all agent
                 /* push notification process to all agent start */
 
-                var agentList = await Users.find({ 'type': 'agent' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
+                var agentList = await Users.find({ 'type': 'agent', 'isDeleted': 'false' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
 
                 var agentDeviceTokenArray = [];
 
@@ -1338,8 +1338,8 @@ router.post('/book', async (req, res) => {
                 var msg = "New car has been book assign to you to deliver it";
                 var flag = "deliver";
                 agentList.map((agent, index) => {
-                    if (agent.deviceToken !== undefined) {
-                        if (agent.deviceToken !== null) {
+                    if (agent.deviceToken !== undefined && agent.deviceToken !== null) {
+                        // if (agent.deviceToken !== null) {
                             if (agent.deviceToken.length > 10) { // temp condition
                                 agentDeviceTokenArray.push(agent.deviceToken);
 
@@ -1352,7 +1352,17 @@ router.post('/book', async (req, res) => {
                                     "booking_number": car_booking_number
                                 })
                             }
-                        }
+                        // }
+                    }
+                    else{
+                        agent_data_array.push({
+                            "userId": agent._id,
+                            "deviceToken": null,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": car_booking_number
+                        })
                     }
                 });
 
@@ -1620,7 +1630,7 @@ router.post('/change-booking-v2', async (req, res) => {
                 var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
 
                 /* save notification to db start */
-                if (deviceToken !== null) {
+                // if (deviceToken !== null) {
                     var data = {
                         "userId": userDeviceToken[0]._id,
                         "deviceToken": deviceToken,
@@ -1630,13 +1640,13 @@ router.post('/change-booking-v2', async (req, res) => {
                         "booking_number": req.body.booking_number
                     }
                     var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                }
+                // }
                 /* save notification to db over */
 
             } else if (userDeviceToken[0].deviceType === 'android') {
                 var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
                 /* save notification to db start */
-                if (deviceToken !== null) {
+                // if (deviceToken !== null) {
                     var data = {
                         "userId": userDeviceToken[0]._id,
                         "deviceToken": deviceToken,
@@ -1646,7 +1656,7 @@ router.post('/change-booking-v2', async (req, res) => {
                         "booking_number": req.body.booking_number
                     }
                     var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                }
+                // }
                 /* save notification to db over */
             }
 
@@ -1667,7 +1677,7 @@ router.post('/change-booking-v2', async (req, res) => {
                         var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                         /* save notification to db start */
-                        if (deviceToken !== null) {
+                        // if (deviceToken !== null) {
                             var data = {
                                 "userId": agentData[0]._id,
                                 "deviceToken": deviceToken,
@@ -1677,7 +1687,7 @@ router.post('/change-booking-v2', async (req, res) => {
                                 "booking_number": req.body.booking_number
                             }
                             var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                        }
+                        // }
                         /* save notification to db over */
                     }
                 }
@@ -1888,7 +1898,7 @@ router.post('/cancel-booking-v2', async (req, res) => {
                 var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
 
                 /* save notification to db start */
-                if (deviceToken !== null) {
+                // if (deviceToken !== null) {
                     var data = {
                         "userId": userDeviceToken[0]._id,
                         "deviceToken": deviceToken,
@@ -1898,13 +1908,13 @@ router.post('/cancel-booking-v2', async (req, res) => {
                         "booking_number": req.body.booking_number
                     }
                     var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                }
+                // }
                 /* save notification to db over */
 
             } else if (userDeviceToken[0].deviceType === 'android') {
                 var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
                 /* save notification to db start */
-                if (deviceToken !== null) {
+                // if (deviceToken !== null) {
                     var data = {
                         "userId": userDeviceToken[0]._id,
                         "deviceToken": deviceToken,
@@ -1914,7 +1924,7 @@ router.post('/cancel-booking-v2', async (req, res) => {
                         "booking_number": req.body.booking_number
                     }
                     var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                }
+                // }
                 /* save notification to db over */
             }
 
@@ -1933,7 +1943,7 @@ router.post('/cancel-booking-v2', async (req, res) => {
                         var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                         /* save notification to db start */
-                        if (deviceToken !== null) {
+                        // if (deviceToken !== null) {
                             var data = {
                                 "userId": agentData[0]._id,
                                 "deviceToken": deviceToken,
@@ -1943,7 +1953,7 @@ router.post('/cancel-booking-v2', async (req, res) => {
                                 "booking_number": req.body.booking_number
                             }
                             var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                        }
+                        // }
                         /* save notification to db over */
                     }
                 }
@@ -4167,8 +4177,8 @@ router.post('/return-request', async (req, res) => {
             var flag = "return";
 
             agentList.map((agent, index) => {
-                if (agent.deviceToken !== undefined) {
-                    if (agent.deviceToken !== null) {
+                if (agent.deviceToken !== undefined && agent.deviceToken !== null) {
+                    // if (agent.deviceToken !== null) {
                         if (agent.deviceToken.length > 10) { // temp condition
                             agentDeviceTokenArray.push(agent.deviceToken);
 
@@ -4182,7 +4192,17 @@ router.post('/return-request', async (req, res) => {
                             })
 
                         }
-                    }
+                    // }
+                }
+                else{
+                    agent_data_array.push({
+                        "userId": agent._id,
+                        "deviceToken": null,
+                        "deviceType": 'android',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": booking_number
+                    })
                 }
             });
 
@@ -6499,7 +6519,7 @@ router.post('/extend-booking', async (req, res) => {
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
 
                     /* save notification to db start */
-                    if (deviceToken !== null) {
+                    // if (deviceToken !== null) {
                         var data = {
                             "userId": userDeviceToken[0]._id,
                             "deviceToken": deviceToken,
@@ -6509,13 +6529,13 @@ router.post('/extend-booking', async (req, res) => {
                             "booking_number": req.body.booking_number
                         }
                         var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                    }
+                    // }
                     /* save notification to db over */
 
                 } else if (userDeviceToken[0].deviceType === 'android') {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
                     /* save notification to db start */
-                    if (deviceToken !== null) {
+                    // if (deviceToken !== null) {
                         var data = {
                             "userId": userDeviceToken[0]._id,
                             "deviceToken": deviceToken,
@@ -6525,7 +6545,7 @@ router.post('/extend-booking', async (req, res) => {
                             "booking_number": req.body.booking_number
                         }
                         var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                    }
+                    // }
                     /* save notification to db over */
                 }
 
@@ -6545,7 +6565,7 @@ router.post('/extend-booking', async (req, res) => {
                             var sendNotification = await pushNotificationHelper.sendToAndroidAgent(deviceToken, req.body.booking_number, msg, flag);
 
                             /* save notification to db start */
-                            if (deviceToken !== null) {
+                            // if (deviceToken !== null) {
                                 var data = {
                                     "userId": agentData[0]._id,
                                     "deviceToken": deviceToken,
@@ -6555,7 +6575,7 @@ router.post('/extend-booking', async (req, res) => {
                                     "booking_number": req.body.booking_number
                                 }
                                 var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                            }
+                            // }
                             /* save notification to db over */
                         }
                     }
