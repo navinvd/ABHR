@@ -475,11 +475,13 @@ carHelper.getcarDetails = async (car_id) => {
             // console.log(carDetail[0].carBookingDetails);
             if (carDetail[0].carBookingDetails && carDetail[0].carBookingDetails.length > 0) {
                 var BookingDetail = carDetail[0].carBookingDetails;
+                const DisabledDates = [];
                 BookingDetail.forEach((Booking) => {
                     let fromDate = moment(Booking.from_time).utc().startOf('days');
                     let toDate = moment(Booking.to_time).utc().startOf('days');
 
                     var cnt = 0;
+                    
                     while (!(moment(fromDate).isSame(toDate))) {
                         var fromMonth = 1 + moment(fromDate).month();
                         if (carDetail[0].availableData && carDetail[0].availableData.length > 0) {
@@ -491,6 +493,9 @@ carHelper.getcarDetails = async (car_id) => {
                                         calenderDates.forEach((Dates, j) => {
                                             var tempDate = moment(Dates).utc().startOf('days');
                                             if (moment(tempDate).isSame(fromDate)) {
+                                                if(DisabledDates.indexOf(fromDate) === -1){
+                                                    DisabledDates.push(fromDate);
+                                                }
                                                 delete carDetail[0].availableData[i].availability[j];
                                             }
                                             console.log('Dates=====>', Dates);
@@ -501,28 +506,30 @@ carHelper.getcarDetails = async (car_id) => {
                         }
                         fromDate = moment(fromDate).add(1, 'days');
                     }
+                    
                     console.log('fromDate====>', fromDate);
-                    if (moment(fromDate).isSame(toDate)) {
-                        var fromMonth = 1 + moment(fromDate).month();
-                        if (carDetail[0].availableData && carDetail[0].availableData.length > 0) {
-                            var availableData = carDetail[0].availableData;
-                            availableData.forEach((calender, i) => {
-                                if (calender.month === fromMonth) {
-                                    if (calender.availability && calender.availability.length > 0) {
-                                        var calenderDates = calender.availability;
-                                        calenderDates.forEach((Dates, j) => {
-                                            var tempDate = moment(Dates).utc().startOf('days');
-                                            if (moment(tempDate).isSame(fromDate)) {
-                                                delete carDetail[0].availableData[i].availability[j];
-                                            }
-                                            console.log('Dates=====>', Dates);
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                    }
+                    // if (moment(fromDate).isSame(toDate)) {
+                    //     var fromMonth = 1 + moment(fromDate).month();
+                    //     if (carDetail[0].availableData && carDetail[0].availableData.length > 0) {
+                    //         var availableData = carDetail[0].availableData;
+                    //         availableData.forEach((calender, i) => {
+                    //             if (calender.month === fromMonth) {
+                    //                 if (calender.availability && calender.availability.length > 0) {
+                    //                     var calenderDates = calender.availability;
+                    //                     calenderDates.forEach((Dates, j) => {
+                    //                         var tempDate = moment(Dates).utc().startOf('days');
+                    //                         if (moment(tempDate).isSame(fromDate)) {
+                    //                             delete carDetail[0].availableData[i].availability[j];
+                    //                         }
+                    //                         console.log('Dates=====>', Dates);
+                    //                     });
+                    //                 }
+                    //             }
+                    //         });
+                    //     }
+                    // }
                 });
+                carDetail[0].disabledDates = DisabledDates;
             }
             return { status: 'success', message: "Car data found", data: carDetail }
         } else {

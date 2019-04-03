@@ -14,6 +14,69 @@ var _ = require('underscore');
 var mailHelper = require('./../../helper/mail');
 var generator = require('generate-password');
 
+
+router.get('/checkdatediff', async (req, res, next)=> {
+    const currentDate = moment().utc();
+    const yesterdayDate = moment().utc().subtract(1, 'day');
+    const chekctime = moment(yesterdayDate).format("YYYY-MM-DD");
+    console.log('utc time=====>', chekctime);
+    var updateData = {
+        "cancel_date": currentDate,
+        "cancel_reason": 'Auto Cancelled',
+        "trip_status": "cancelled"
+    }
+    try{
+        var defaultQuery = [
+            {
+                $match: {
+                    "isDeleted": false,
+                    "agent_assign_for_handover" : false,
+                    "trip_status" : "upcoming",
+                    "createdAt": { $lte : new Date(chekctime)}
+                }
+            },
+            {
+                $project: {
+                    "createdAt": 1,
+                    "isDeleted":1,
+                    "trip_status":1,
+                    "createdAt": 1,
+                }
+            }
+        ];
+
+        var update_data2 = {
+            $set: {
+                cancel_date: currentDate,
+                cancel_reason: data.cancel_reason,
+                trip_status: data.trip_status,
+                transaction_status: "cancelled",
+                cancellation_rate: final_rate_percentage,
+                cancellation_charge: cancel_charge,
+                amount_return_to_user: amount_return_to_user
+            }
+        };
+        console.log('defaultQuery==============>', JSON.stringify(defaultQuery));
+        CarBooking.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                console.log('err===>', err);
+                return next(err);
+            } else {
+                console.log('result===>', data);
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: data
+                });
+            }
+        })
+    } catch (err){
+        res.status(config.BAD_REQUEST).json({
+            status: "failed",
+            error: err
+        });
+    }   
+});
+
 /**
  * @api {post} /admin/agents/add create new agent
  * @apiName Create Agent
@@ -73,6 +136,7 @@ router.post('/add', (req, res, next) => {
         try{
         async.waterfall([
             function (callback) {
+                console.log('1. first callback');
                 var email = 0;
                 User.find({ "email": req.body.email, "isDeleted": false}, function (err, data) {
                     if (data && data.length > 0) {
@@ -89,17 +153,18 @@ router.post('/add', (req, res, next) => {
                     }
                 });
             },
-            function (err, callback) {
+            function (error1, callback) {
+                console.log('\n\n\n\2. second callback', error1, '\n\n\n\ callback',callback);
+                var phone_number = 0;
                 if(req.body.phone_number){
-                    var phone_number = 0;
                     User.find({ "phone_number": req.body.phone_number, "isDeleted": false}, function (err, data) {
                         if (data && data.length > 0) {
                             phone_number = 1;
-                            callback({message:"phone_number is already exist", phone_number :phone_number, email: err.email});
+                            callback({message:"phone_number is already exist", phone_number :phone_number, email: error1.email});
                         }
                         else {
                             // callback(null);
-                            callback(null,{"phone_number":phone_number});
+                            callback(null, {"phone_number":phone_number, email: error1.email});
                         }
                         if (err) {
                             console.log('Error====>', err);
@@ -107,10 +172,11 @@ router.post('/add', (req, res, next) => {
                         }
                     });
                 }else{
-                    callback(null);
+                    callback(null, {"phone_number":phone_number, email: error1.email});
                 }   
             },
             function (err, callback) {
+                console.log('\n\n\n\3. third callback', err , '\n\n\n\ callback',callback);
                 if (err.email === 0 && err.phone_number === 0) {
                     var userModel = new User(userData);
                     userModel.save(function (err, data) {
@@ -141,10 +207,9 @@ router.post('/add', (req, res, next) => {
                             })
                         }
                     });
-                }
-                else{
+                } else{
                     callback(err);
-                    }
+                }
             }], function (err, result) {
                 if (err) {
                     return next(err);
@@ -226,9 +291,9 @@ router.put('/update', (req, res, next) => {
                     }
                 });
             },
-            function (err, callback) {
+            function (error1, callback) {
+                var phone_number = 0;
                 if(req.body.phone_number){
-                    var phone_number = 0;
                     User.find({ "phone_number": req.body.phone_number, "isDeleted": false, "_id": { $ne: new ObjectId(req.body.user_id)}}, function (err, data) {
                         if (data && data.length > 0) {
                             phone_number = 1;
@@ -236,7 +301,7 @@ router.put('/update', (req, res, next) => {
                         }
                         else {
                             // callback(null);
-                            callback(null,{"phone_number":phone_number});
+                            callback(null,{"phone_number":phone_number, email: error1.email});
                         }
                         if (err) {
                             console.log('Error====>', err);
@@ -244,23 +309,27 @@ router.put('/update', (req, res, next) => {
                         }
                     });
                 }else{
-                    callback(null);
+                    callback(null, {"phone_number":phone_number, email: error1.email});
                 }
             },
             function (userdata, callback) {
                 console.log('userdata===>',userdata, "userData===>", userData);
-                User.update({ "_id": new ObjectId(req.body.user_id)}, { $set: userData }, function (err, response) {
-                    if (err) {
-                        callback(err);
-                    } else {
-                        var result = {
-                            message: "Agent updated successfully..",
-                            data: response
-                        };
-                        console.log('in updated')
-                        callback(null, result);
-                    }
-                });
+                if (userdata.email === 0 && userdata.phone_number === 0) {
+                    User.update({ "_id": new ObjectId(req.body.user_id)}, { $set: userData }, function (err, response) {
+                        if (err) {
+                            callback(err);
+                        } else {
+                            var result = {
+                                message: "Agent updated successfully..",
+                                data: response
+                            };
+                            console.log('in updated')
+                            callback(null, result);
+                        }
+                    });
+                }else{
+                    callback(err);
+                }
             }], function (err, result) {
                 if (err) {
                     console.log("Here", err);
