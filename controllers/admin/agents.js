@@ -179,10 +179,13 @@ router.post('/add', (req, res, next) => {
                 console.log('\n\n\n\3. third callback', err , '\n\n\n\ callback',callback);
                 if (err.email === 0 && err.phone_number === 0) {
                     var userModel = new User(userData);
-                    userModel.save(function (err, data) {
+                    userModel.save(async function (err, data) {
                         if (err) {
                             callback(err);
                         } else {
+
+                            var superAdminData = await User.find({ 'type': 'admin', isDeleted: false }).lean().exec();
+                            console.log('superAdminData----->', superAdminData);
                             var result = {
                                 message: "Agent added successfully..",
                                 data: userData
@@ -195,8 +198,13 @@ router.post('/add', (req, res, next) => {
                                 first_name: userData.first_name,
                                 last_name: userData.last_name,
                                 email: userData.email,
-                                password: generatepassword
+                                password: generatepassword,
+                                support_country_code: superAdminData[0].support_country_code,
+                                support_email: superAdminData[0].support_email,
+                                support_phone_number: superAdminData[0].support_phone_number
                             }
+
+                            
                             mailHelper.send('/agents/add_agent', option, data, function (err, res) {
                                 if (err) {
                                     callback(err);
