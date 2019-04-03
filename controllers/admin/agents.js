@@ -156,30 +156,18 @@ router.post('/add', async (req, res, next) => {
                     }
                 });
             },
-<<<<<<< HEAD
-            function (error, callback) {
-=======
             function (error1, callback) {
                 console.log('\n\n\n\2. second callback', error1, '\n\n\n\ callback',callback);
                 var phone_number = 0;
->>>>>>> 19f105462beb315db08d10cbe31a3a32312759e0
                 if(req.body.phone_number){
                     User.find({ "phone_number": req.body.phone_number, "isDeleted": false}, function (err, data) {
                         if (data && data.length > 0) {
                             phone_number = 1;
-<<<<<<< HEAD
-                            callback({message:"phone_number is already exist", phone_number :phone_number, email: error.email});
-                        }
-                        else {
-                            // callback(null);
-                            callback(null,{"phone_number":phone_number, email: error.email});
-=======
                             callback({message:"phone_number is already exist", phone_number :phone_number, email: error1.email});
                         }
                         else {
                             // callback(null);
                             callback(null, {"phone_number":phone_number, email: error1.email});
->>>>>>> 19f105462beb315db08d10cbe31a3a32312759e0
                         }
                         if (err) {
                             console.log('Error====>', err);
@@ -190,21 +178,13 @@ router.post('/add', async (req, res, next) => {
                     callback(null, {"phone_number":phone_number, email: error1.email});
                 }   
             },
-<<<<<<< HEAD
             function (error1, callback) {
                 console.log('error1=====>', error1);
                 if (error1.email === 0 && error1.phone_number === 0) {
                     console.log('userData========>', userData);
                     var userModel = new User(userData);
-                    userModel.save(function (err, data) {
-                        console.log('err========>', err, 'data====>', data);
-=======
-            function (err, callback) {
-                console.log('\n\n\n\3. third callback', err , '\n\n\n\ callback',callback);
-                if (err.email === 0 && err.phone_number === 0) {
-                    var userModel = new User(userData);
                     userModel.save(async function (err, data) {
->>>>>>> 19f105462beb315db08d10cbe31a3a32312759e0
+                        console.log('err========>', err, 'data====>', data);
                         if (err) {
                             callback(err);
                         } else {
@@ -224,21 +204,12 @@ router.post('/add', async (req, res, next) => {
                                 last_name: userData.last_name,
                                 email: userData.email,
                                 password: generatepassword,
-<<<<<<< HEAD
-                                // support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
-                                // support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
-                                // carImagePath : config.CAR_IMAGES,
-                                // icons : config.ICONS
-                            }
-                            console.log('data================>', data);
-=======
                                 support_country_code: superAdminData[0].support_country_code,
                                 support_email: superAdminData[0].support_email,
                                 support_phone_number: superAdminData[0].support_phone_number
                             }
 
                             
->>>>>>> 19f105462beb315db08d10cbe31a3a32312759e0
                             mailHelper.send('/agents/add_agent', option, data, function (err, res) {
                                 if (err) {
                                     callback(err);
@@ -249,14 +220,9 @@ router.post('/add', async (req, res, next) => {
                             })
                         }
                     });
-<<<<<<< HEAD
                 }
                 else{
                     callback(error1);
-=======
-                } else{
-                    callback(err);
->>>>>>> 19f105462beb315db08d10cbe31a3a32312759e0
                 }
             }], function (err, result) {
                 console.log('err===>', err, "result====>", result);
