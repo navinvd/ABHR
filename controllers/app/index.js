@@ -101,7 +101,7 @@ router.post('/registration', async (req, res, next) => {
                 message: "Email is already exist!!"
             });
         } else {
-            var companycheck = await Company.findOne({ email: req.body.email });
+            var companycheck = await Company.findOne({ email: req.body.email, isDeleted: false});
             if (companycheck) {
                 res.status(config.OK_STATUS).json({
                     status: 'failed',
@@ -398,58 +398,74 @@ router.post('/social_login', async (req, res, next) => {
             };
             res.status(config.OK_STATUS).json(result);
         } else {
-            var Data = {
-                first_name: req.body.first_name,
-                last_name: req.body.last_name,
-                socialmediaID: req.body.socialmediaID,
-                socialmediaType: req.body.socialmediaType,
-                email: req.body.email,
-                deviceType: req.body.device_type,
-                deviceToken: req.body.deviceToken,
-                type: req.body.user_type
-            };
-            var userModel = new User(Data);
-            userModel.save(function (err, data) {
-                if (err) {
-                    var result = {
+            var usercheck = await User.findOne({'email': req.body.email, 'isDeleted': false});
+            if (usercheck) {
+                res.status(config.OK_STATUS).json({
+                    status: 'failed',
+                    message: "Email is already exist!!"
+                });
+            } else {
+                var companycheck = await Company.findOne({ email: req.body.email, 'isDeleted': false});
+                if (companycheck) {
+                    res.status(config.OK_STATUS).json({
                         status: 'failed',
-                        message: err
-                    };
+                        message: "Email is already exist!!"
+                    });
                 } else {
-                    var notifcationData = {
-                        "userId": data._id
-                    }
-                    var notificationModel = new Notification(notifcationData);
-                    notificationModel.save(function (err, notificationData){
-                        console.log('err====>', err, 'data====>', notificationData);
-                    });
-                    var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
-                        expiresIn: 60 * 60 * 24 // expires in 24 hours
-                    });
-                    var option = {
-                        to: data.email,
-                        subject: 'ABHR - Registration Notification'
-                    }
-                    var emailData = {
-                        first_name: data.first_name,
-                        last_name: data.last_name
-                    }
-                    mailHelper.send('/welcome_email', option, emailData, function (err, res) {
-                        if (err) {
-                            console.log('Mail Err:');
-                        } else {
-                            console.log('Mail Success:');
-                        }
-                    })
-                    var result = {
-                        status: 'success',
-                        message: "Login Successfully",
-                        data: { user: data, first_time_register: true },
-                        token: token
+                        var Data = {
+                        first_name: req.body.first_name,
+                        last_name: req.body.last_name,
+                        socialmediaID: req.body.socialmediaID,
+                        socialmediaType: req.body.socialmediaType,
+                        email: req.body.email,
+                        deviceType: req.body.device_type,
+                        deviceToken: req.body.deviceToken,
+                        type: req.body.user_type
                     };
-                    res.status(config.OK_STATUS).json(result);
+                    var userModel = new User(Data);
+                    userModel.save(function (err, data) {
+                        if (err) {
+                            var result = {
+                                status: 'failed',
+                                message: err
+                            };
+                        } else {
+                            var notifcationData = {
+                                "userId": data._id
+                            }
+                            var notificationModel = new Notification(notifcationData);
+                            notificationModel.save(function (err, notificationData){
+                                console.log('err====>', err, 'data====>', notificationData);
+                            });
+                            var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
+                                expiresIn: 60 * 60 * 24 // expires in 24 hours
+                            });
+                            var option = {
+                                to: data.email,
+                                subject: 'ABHR - Registration Notification'
+                            }
+                            var emailData = {
+                                first_name: data.first_name,
+                                last_name: data.last_name
+                            }
+                            mailHelper.send('/welcome_email', option, emailData, function (err, res) {
+                                if (err) {
+                                    console.log('Mail Err:');
+                                } else {
+                                    console.log('Mail Success:');
+                                }
+                            })
+                            var result = {
+                                status: 'success',
+                                message: "Login Successfully",
+                                data: { user: data, first_time_register: true },
+                                token: token
+                            };
+                            res.status(config.OK_STATUS).json(result);
+                        }
+                    });
                 }
-            });
+            }
         }
     } else {
         res.status(config.BAD_REQUEST).json({
