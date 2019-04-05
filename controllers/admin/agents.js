@@ -4,6 +4,7 @@ var config = require('./../../config');
 var User = require('./../../models/users');
 var Place = require('./../../models/places');
 var CarBooking = require('./../../models/car_booking');
+var Users = require('./../../models/users');
 var path = require('path');
 var async = require("async");
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -97,7 +98,7 @@ router.get('/checkdatediff', async (req, res, next)=> {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-router.post('/add', (req, res, next) => {
+router.post('/add', async (req, res, next) => {
     var schema = {
         'first_name': {
             notEmpty: true,
@@ -129,6 +130,8 @@ router.post('/add', (req, res, next) => {
             deviceType: 'android',
             password: generatepassword
         };
+
+        // var superAdminData = await Users.find({ 'type': 'admin', isDeleted: false }).lean().exec();
 
         if(req.body.phone_number && req.body.phone_number !== null && typeof req.body.phone_number !== 'undefined'){
             userData = Object.assign(userData, {"phone_number_verified" : 2});
@@ -175,11 +178,13 @@ router.post('/add', (req, res, next) => {
                     callback(null, {"phone_number":phone_number, email: error1.email});
                 }   
             },
-            function (err, callback) {
-                console.log('\n\n\n\3. third callback', err , '\n\n\n\ callback',callback);
-                if (err.email === 0 && err.phone_number === 0) {
+            function (error1, callback) {
+                console.log('error1=====>', error1);
+                if (error1.email === 0 && error1.phone_number === 0) {
+                    console.log('userData========>', userData);
                     var userModel = new User(userData);
                     userModel.save(async function (err, data) {
+                        console.log('err========>', err, 'data====>', data);
                         if (err) {
                             callback(err);
                         } else {
@@ -215,10 +220,12 @@ router.post('/add', (req, res, next) => {
                             })
                         }
                     });
-                } else{
-                    callback(err);
+                }
+                else{
+                    callback(error1);
                 }
             }], function (err, result) {
+                console.log('err===>', err, "result====>", result);
                 if (err) {
                     return next(err);
                 } else {

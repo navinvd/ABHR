@@ -83,7 +83,7 @@ userHelper.changeProfile = async (user_id, data) => {
             var new_data = { $set: data };
             var datta = await User.update(user_id, new_data);
             if (datta.n > 0) {
-                return { status: 'success', message: "profile has been change successfully" }
+                return { status: 'success', message: "profile name has been change successfully" }
             }
             else {
                 return { status: 'failed', message: "Error occured while change profile" }

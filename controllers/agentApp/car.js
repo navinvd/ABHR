@@ -1286,7 +1286,7 @@ router.post('/returning_v3', async (req, res) => {
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
 
                     /* save notification to db start */
-                    if (deviceToken !== null) {
+                    // if (deviceToken !== null) {
                         var data = {
                             "userId": userDeviceToken[0]._id,
                             "deviceToken": deviceToken,
@@ -1296,7 +1296,7 @@ router.post('/returning_v3', async (req, res) => {
                             "booking_number": req.body.booking_number
                         }
                         var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                    }
+                    // }
                     /* save notification to db over */
 
 
@@ -1304,7 +1304,7 @@ router.post('/returning_v3', async (req, res) => {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
 
                      /* save notification to db start */
-                     if (deviceToken !== null) {
+                    //  if (deviceToken !== null) {
                         var data = {
                             "userId": userDeviceToken[0]._id,
                             "deviceToken": deviceToken,
@@ -1314,7 +1314,7 @@ router.post('/returning_v3', async (req, res) => {
                             "booking_number": req.body.booking_number
                         }
                         var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                    }
+                    // }
                     /* save notification to db over */
 
                 }
@@ -2611,7 +2611,7 @@ router.post('/delivering_v3', async (req, res) => {
                         var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, parseInt(req.body.booking_number), notificationType, msg);
 
                         /* save notification to db start */
-                        if (deviceToken !== null) {
+                        // if (deviceToken !== null) {
                             var data = {
                                 "userId": userData[0]._id,
                                 "deviceToken": deviceToken,
@@ -2621,7 +2621,7 @@ router.post('/delivering_v3', async (req, res) => {
                                 "booking_number": parseInt(req.body.booking_number)
                             }
                             var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                        }
+                        // }
                         /* save notification to db over */
 
 
@@ -2629,7 +2629,7 @@ router.post('/delivering_v3', async (req, res) => {
                         var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), msg);
 
                         /* save notification to db start */
-                        if (deviceToken !== null) {
+                        // if (deviceToken !== null) {
                             var data = {
                                 "userId": userData[0]._id,
                                 "deviceToken": deviceToken,
@@ -2639,7 +2639,7 @@ router.post('/delivering_v3', async (req, res) => {
                                 "booking_number": parseInt(req.body.booking_number)
                             }
                             var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                        }
+                        // }
                         /* save notification to db over */
 
                     }

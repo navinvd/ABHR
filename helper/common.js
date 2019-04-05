@@ -183,7 +183,7 @@ commonHelper.sendNoti = async function (userId,booking_number,msg){
     if (userDeviceToken[0].deviceType === 'ios') {
         var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, booking_number, notificationType, msg);
         /* save notification to db start */
-        if(deviceToken !== null){
+        // if(deviceToken !== null){
             var data = {
                 "userId": userDeviceToken[0]._id,
                 "deviceToken": deviceToken,
@@ -193,7 +193,7 @@ commonHelper.sendNoti = async function (userId,booking_number,msg){
                 "booking_number": booking_number
             }
             var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-        }
+        // }
         /* save notification to db over */
 
         return sendNotification;
@@ -202,7 +202,7 @@ commonHelper.sendNoti = async function (userId,booking_number,msg){
         var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, booking_number, msg);
 
          /* save notification to db start */
-         if(deviceToken !== null){
+        //  if(deviceToken !== null){
              var data = {
                  "userId": userDeviceToken[0]._id,
                  "deviceToken": deviceToken,
@@ -212,7 +212,7 @@ commonHelper.sendNoti = async function (userId,booking_number,msg){
                  "booking_number": booking_number
                 }
                 var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-        }
+        // }
         /* save notification to db over */
 
         return sendNotification;
