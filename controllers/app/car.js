@@ -1380,6 +1380,7 @@ router.post('/book', async (req, res) => {
                 // user
                 var options_user = {
                     to: userDeviceToken[0].email,
+                    // to: "anks.eagle@gmail.com" ,
                     subject: 'ABHR - New car has been booked'
                 }
                 // company admin
