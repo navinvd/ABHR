@@ -1178,324 +1178,328 @@ router.post('/book', async (req, res) => {
         var carData = await CarBooking.find(
             {
 
-                // $match : {
-                $and: [
-                    { "carId": new ObjectId(req.body.car_id) },
-                    { "from_time": { $lte: toDate } },
-                    { "to_time": { $gte: fromDate } },
-                    // { "trip_status": { $ne: 'cancelled' } },
-                    { "trip_status": { $nin: ['cancelled', 'finished'] } },
-                ]
+                // change condition afetr issue last query
+                // { "from_time": { $lt: toDate } },
+                // { "to_time": { $gt: fromDate } },
+
+            // $match : {
+            $and: [
+                { "carId": new ObjectId(req.body.car_id) },
+                { "from_time": { $lt: toDate } },
+                { "to_time": { $gt: fromDate } },
+                // { "trip_status": { $ne: 'cancelled' } },
+                { "trip_status": { $nin: ['cancelled', 'finished'] } },
+            ]
             }
             // }
 
         )
 
-        console.log('CAR DATA ->', carData);
-        console.log('CAR DATA Len->', carData.length);
+console.log('CAR DATA ->', carData);
+console.log('CAR DATA Len->', carData.length);
 
-        if (carData && carData.length > 0) {
-            // already book
-            res.status(config.OK_STATUS).json({ status: "failed", message: "Opps this car has been already booked" });
-        } else {
+if (carData && carData.length > 0) {
+    // already book
+    res.status(config.OK_STATUS).json({ status: "failed", message: "Opps this car has been already booked" });
+} else {
 
-            var data = {
-                "userId": req.body.user_id,
-                "carId": req.body.car_id,
-                "carCompanyId": req.body.carCompanyId, // add later on
-                "vat": req.body.vat, // add later on
-                "from_time": req.body.fromDate,
-                "to_time": toDate, // auto calculation
-                "days": req.body.days,
-                "booking_rent": req.body.rent_per_day,
-                "delivery_address": req.body.delivery_address, // add field in db as well,
-                "delivery_time": req.body.delivery_time, // add field in db as well',
-                "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
-                "coupon_percentage": req.body.coupon_percentage ? req.body.coupon_percentage : null,
-                "total_booking_amount": req.body.total_booking_amount, // add this field to db
-                "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
-                "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
-                "trip_status": "upcoming",
-                "transaction_status": "inprogress",
-                "deposite_amount": req.body.deposite_amount
-            }
-
-
-            const bookingResp = await carHelper.carBook(data);
-
-            if (bookingResp.status === 'success') {
-
-                const deposit = await Car.findOne({ "_id": new ObjectId(req.body.car_id) });
-                var car_booking_number = bookingResp.data.booking_data['booking_number'];
+    var data = {
+        "userId": req.body.user_id,
+        "carId": req.body.car_id,
+        "carCompanyId": req.body.carCompanyId, // add later on
+        "vat": req.body.vat, // add later on
+        "from_time": req.body.fromDate,
+        "to_time": toDate, // auto calculation
+        "days": req.body.days,
+        "booking_rent": req.body.rent_per_day,
+        "delivery_address": req.body.delivery_address, // add field in db as well,
+        "delivery_time": req.body.delivery_time, // add field in db as well',
+        "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
+        "coupon_percentage": req.body.coupon_percentage ? req.body.coupon_percentage : null,
+        "total_booking_amount": req.body.total_booking_amount, // add this field to db
+        "latitude": req.body.latitude ? req.body.latitude : null, // add this field to db
+        "longitude": req.body.longitude ? req.body.longitude : null, // add this field to db
+        "trip_status": "upcoming",
+        "transaction_status": "inprogress",
+        "deposite_amount": req.body.deposite_amount
+    }
 
 
-                const transactionData = {
-                    "userId": req.body.user_id,
-                    "carId": req.body.car_id,
-                    "from_time": req.body.fromDate,
-                    "to_time": toDate,
-                    "Transaction_amount": req.body.total_booking_amount, //
-                    "deposite_amount": deposit.deposit,
-                    "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
-                    "VAT": req.body.vat ? req.body.vat : null,
-                    "status": "inprogress",
-                    "booking_number": car_booking_number
+    const bookingResp = await carHelper.carBook(data);
+
+    if (bookingResp.status === 'success') {
+
+        const deposit = await Car.findOne({ "_id": new ObjectId(req.body.car_id) });
+        var car_booking_number = bookingResp.data.booking_data['booking_number'];
+
+
+        const transactionData = {
+            "userId": req.body.user_id,
+            "carId": req.body.car_id,
+            "from_time": req.body.fromDate,
+            "to_time": toDate,
+            "Transaction_amount": req.body.total_booking_amount, //
+            "deposite_amount": deposit.deposit,
+            "coupon_code": req.body.coupon_code ? req.body.coupon_code : null,
+            "VAT": req.body.vat ? req.body.vat : null,
+            "status": "inprogress",
+            "booking_number": car_booking_number
+        }
+
+        let transaction = new Transaction(transactionData);
+        await transaction.save();
+
+        console.log('DATTA==>', data);
+
+        console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
+
+
+        /*store coupon entry in user_coupon collection*/
+
+        if (bookingResp.data.booking_data.coupon_code !== null || bookingResp.data.booking_data.coupon_code !== undefined) {
+            // make entry
+            var findCoupon = await Coupon.find({ 'coupon_code': bookingResp.data.booking_data.coupon_code });
+            if (findCoupon && findCoupon.length > 0) {
+                let data = {
+                    "couponId": findCoupon[0]._id,
+                    "userId": bookingResp.data.booking_data.userId
                 }
-
-                let transaction = new Transaction(transactionData);
-                await transaction.save();
-
-                console.log('DATTA==>', data);
-
-                console.log('Booking Id =>', bookingResp.data.booking_data['booking_number']);
-
-
-                /*store coupon entry in user_coupon collection*/
-
-                if (bookingResp.data.booking_data.coupon_code !== null || bookingResp.data.booking_data.coupon_code !== undefined) {
-                    // make entry
-                    var findCoupon = await Coupon.find({ 'coupon_code': bookingResp.data.booking_data.coupon_code });
-                    if (findCoupon && findCoupon.length > 0) {
-                        let data = {
-                            "couponId": findCoupon[0]._id,
-                            "userId": bookingResp.data.booking_data.userId
-                        }
-                        let add_user_coupon = new UserCoupon(data);
-                        let apply = await add_user_coupon.save();
-                    }
-                }
-
-                /* coupon over */
-
-                res.status(config.OK_STATUS).json(bookingResp)
-
-
-                // after car booking need to send push notification ther user on IOS APP & Android app 
-                /** push notification process to user app start */
-
-                var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
-                var companyData = await CarCompany.find({ '_id': new ObjectId(req.body.carCompanyId) }).lean().exec();
-                var superAdminData = await Users.find({ 'type': 'admin', isDeleted: false }).lean().exec();
-
-                // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
-
-                var deviceToken = null;
-                console.log('User token =>', userDeviceToken);
-                if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
-                    if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
-                        // agentDeviceTokenArray.push(agent.deviceToken);
-                        deviceToken = userDeviceToken[0].deviceToken;
-                    }
-                }
-
-                var notificationType = 1; // means notification for booking 
-                console.log('Dev Token=>', deviceToken);
-                var msg = "Your car has been booked successfully";
-                if (userDeviceToken[0].deviceType === 'ios') {
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, msg);
-                    /* save notification to db start */
-                    // if (deviceToken !== null) {
-                        var data = {
-                            "userId": userDeviceToken[0]._id,
-                            "deviceToken": deviceToken,
-                            "deviceType": 'ios',
-                            "notificationText": msg,
-                            "notificationType": 1,
-                            "booking_number": car_booking_number
-                        }
-                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                    // }
-                    /* save notification to db over */
-
-                } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, msg);
-                    /* save notification to db start */
-                    // if (deviceToken !== null) {
-                        var data = {
-                            "userId": userDeviceToken[0]._id,
-                            "deviceToken": deviceToken,
-                            "deviceType": 'android',
-                            "notificationText": msg,
-                            "notificationType": 1,
-                            "booking_number": car_booking_number
-                        }
-                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
-                    // }
-                    /* save notification to db over */
-                }
-
-
-                /** Push notofication for user app over */
-
-                // after car booking need to send push notification to all agent
-                /* push notification process to all agent start */
-
-                var agentList = await Users.find({ 'type': 'agent', 'isDeleted': 'false' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
-
-                var agentDeviceTokenArray = [];
-
-                var agent_data_array = [];
-                var msg = "New car has been book assign to you to deliver it";
-                var flag = "deliver";
-                agentList.map((agent, index) => {
-                    if (agent.deviceToken !== undefined && agent.deviceToken !== null) {
-                        // if (agent.deviceToken !== null) {
-                            if (agent.deviceToken.length > 10) { // temp condition
-                                agentDeviceTokenArray.push(agent.deviceToken);
-
-                                agent_data_array.push({
-                                    "userId": agent._id,
-                                    "deviceToken": agent.deviceToken,
-                                    "deviceType": 'android',
-                                    "notificationText": msg,
-                                    "notificationType": 1,
-                                    "booking_number": car_booking_number
-                                })
-                            }
-                        // }
-                    }
-                    else{
-                        agent_data_array.push({
-                            "userId": agent._id,
-                            "deviceToken": null,
-                            "deviceType": 'android',
-                            "notificationText": msg,
-                            "notificationType": 1,
-                            "booking_number": car_booking_number
-                        })
-                    }
-                });
-
-                var notificationFor = "new-booking";
-                // var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg);
-                var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg, flag);
-
-                // save multile notification for (agent)
-                var saveNotiResp = await pushNotificationHelper.save_multiple_notification_to_db(agent_data_array);
-
-                /** Notification over for agent */
-
-
-                /* send email to user after car has been booked start*/
-                // user
-                var options_user = {
-                    to: userDeviceToken[0].email,
-                    // to: "anks.eagle@gmail.com" ,
-                    subject: 'ABHR - New car has been booked'
-                }
-                // company admin
-                var options_company_admin = {
-                    to: companyData[0].email,
-                    subject: 'ABHR - New car has been booked'
-                }
-                // super admin
-                if (superAdminData && superAdminData.length > 0) {
-                    var options_super_admin = {
-                        to: superAdminData[0].email,
-                        subject: 'ABHR - New car has been booked'
-                    }
-                }
-
-                // var data1 = bookingResp.data.booking_data;
-                const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
-
-                // console.log("CAR RESPO =>",carResp);
-
-                var data1 = JSON.parse(JSON.stringify(bookingResp.data.booking_data));
-
-                data1.rent_price = carResp.data.carDetail.rent_price;
-
-                data1.no_of_person = carResp.data.carDetail.no_of_person;
-                data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
-
-                data1.milage = carResp.data.carDetail.milage;
-                data1.car_class = carResp.data.carDetail.car_class;
-
-                data1.driving_eligibility_criteria = carResp.data.carDetail.driving_eligibility_criteria;
-
-                data1.car_brand = carResp.data.carDetail.car_brand;
-                data1.car_model = carResp.data.carDetail.car_model;
-                data1.car_model_number = carResp.data.carDetail.car_model_number;
-                data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
-                data1.age_of_car = carResp.data.carDetail.age_of_car;
-                data1.image_name = carResp.data.carDetail.image_name;
-                data1.user_name = userDeviceToken[0].first_name;
-                // data1.user_name = 'dipesh';
-                data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
-                data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
-
-                data1.support_phone_number = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
-                data1.support_email = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
-                data1.carImagePath = config.CAR_IMAGES; 
-                data1.icons = config.ICONS; 
-
-
-
-                // console.log('Booking Response Final DATA=>',data1);
-
-                // let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
-                let mail_resp1 = await mail_helper.sendEmail_carBook("car_booking", options_user, data1);
-                console.log("Mail sending response 1", mail_resp1);
-
-                var data2 = data1;
-                data2.user_name = companyData[0].name;
-                let mail_resp2 = await mail_helper.sendEmail_carBook("car_booking", options_company_admin, data2);
-                console.log("Mail sending response 2", mail_resp2);
-
-                if (superAdminData && superAdminData.length > 0) {
-                    var data3 = data1;
-                    data3.user_name = superAdminData[0].first_name;
-                    let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking", options_super_admin, data3);
-                    console.log("Mail sending response 3", mail_resp3);
-                }
-
-
-
-                /** Sending email is over */
-
-
-                /** Send SMS after car has been booked Start*/
-                const nexmo = new Nexmo({
-                    apiKey: config.NEXMO_API_KEY,
-                    apiSecret: config.NEXMO_API_SECRET
-                })
-
-                // const send_to = '919712825007'; // userDeviceToken[0].country_code
-                const send_to = userDeviceToken[0].country_code + '' + userDeviceToken[0].phone_number;
-                const from = 'ABHR';
-                const to = send_to;
-                const sms_text = 'Your car has been booked successfully with booking number ' + car_booking_number;
-
-                const resp = await nexmo.message.sendSms(from, to, sms_text);
-                console.log("SMS Response =>", resp)
-
-                /** Send sms over */
-
-
-
-
-
-
-
-
-
-
-
-                // res.status(config.OK_STATUS).json(bookingResp) // set this line after coupon entry
-            }
-            else {
-                res.status(config.BAD_REQUEST).json(bookingResp);
+                let add_user_coupon = new UserCoupon(data);
+                let apply = await add_user_coupon.save();
             }
         }
 
+        /* coupon over */
+
+        res.status(config.OK_STATUS).json(bookingResp)
+
+
+        // after car booking need to send push notification ther user on IOS APP & Android app 
+        /** push notification process to user app start */
+
+        var userDeviceToken = await Users.find({ '_id': new ObjectId(data.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
+        var companyData = await CarCompany.find({ '_id': new ObjectId(req.body.carCompanyId) }).lean().exec();
+        var superAdminData = await Users.find({ 'type': 'admin', isDeleted: false }).lean().exec();
+
+        // console.log('USER DEVICE TOKEN DATA==>', userDeviceToken);
+
+        var deviceToken = null;
+        console.log('User token =>', userDeviceToken);
+        if (userDeviceToken[0].deviceToken !== undefined && userDeviceToken[0].deviceToken !== null) {
+            if (userDeviceToken[0].deviceToken.length > 10) { // temp condition
+                // agentDeviceTokenArray.push(agent.deviceToken);
+                deviceToken = userDeviceToken[0].deviceToken;
+            }
+        }
+
+        var notificationType = 1; // means notification for booking 
+        console.log('Dev Token=>', deviceToken);
+        var msg = "Your car has been booked successfully";
+        if (userDeviceToken[0].deviceType === 'ios') {
+            var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, msg);
+            /* save notification to db start */
+            // if (deviceToken !== null) {
+            var data = {
+                "userId": userDeviceToken[0]._id,
+                "deviceToken": deviceToken,
+                "deviceType": 'ios',
+                "notificationText": msg,
+                "notificationType": 1,
+                "booking_number": car_booking_number
+            }
+            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+            // }
+            /* save notification to db over */
+
+        } else if (userDeviceToken[0].deviceType === 'android') {
+            var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, car_booking_number, msg);
+            /* save notification to db start */
+            // if (deviceToken !== null) {
+            var data = {
+                "userId": userDeviceToken[0]._id,
+                "deviceToken": deviceToken,
+                "deviceType": 'android',
+                "notificationText": msg,
+                "notificationType": 1,
+                "booking_number": car_booking_number
+            }
+            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+            // }
+            /* save notification to db over */
+        }
+
+
+        /** Push notofication for user app over */
+
+        // after car booking need to send push notification to all agent
+        /* push notification process to all agent start */
+
+        var agentList = await Users.find({ 'type': 'agent', 'isDeleted': 'false' }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
+
+        var agentDeviceTokenArray = [];
+
+        var agent_data_array = [];
+        var msg = "New car has been book assign to you to deliver it";
+        var flag = "deliver";
+        agentList.map((agent, index) => {
+            if (agent.deviceToken !== undefined && agent.deviceToken !== null) {
+                // if (agent.deviceToken !== null) {
+                if (agent.deviceToken.length > 10) { // temp condition
+                    agentDeviceTokenArray.push(agent.deviceToken);
+
+                    agent_data_array.push({
+                        "userId": agent._id,
+                        "deviceToken": agent.deviceToken,
+                        "deviceType": 'android',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": car_booking_number
+                    })
+                }
+                // }
+            }
+            else {
+                agent_data_array.push({
+                    "userId": agent._id,
+                    "deviceToken": null,
+                    "deviceType": 'android',
+                    "notificationText": msg,
+                    "notificationType": 1,
+                    "booking_number": car_booking_number
+                })
+            }
+        });
+
+        var notificationFor = "new-booking";
+        // var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg);
+        var sendNotification = await pushNotificationHelper.sendToAndroid(agentDeviceTokenArray, car_booking_number, notificationFor, msg, flag);
+
+        // save multile notification for (agent)
+        var saveNotiResp = await pushNotificationHelper.save_multiple_notification_to_db(agent_data_array);
+
+        /** Notification over for agent */
+
+
+        /* send email to user after car has been booked start*/
+        // user
+        var options_user = {
+            to: userDeviceToken[0].email,
+            // to: "anks.eagle@gmail.com" ,
+            subject: 'ABHR - New car has been booked'
+        }
+        // company admin
+        var options_company_admin = {
+            to: companyData[0].email,
+            subject: 'ABHR - New car has been booked'
+        }
+        // super admin
+        if (superAdminData && superAdminData.length > 0) {
+            var options_super_admin = {
+                to: superAdminData[0].email,
+                subject: 'ABHR - New car has been booked'
+            }
+        }
+
+        // var data1 = bookingResp.data.booking_data;
+        const carResp = await carHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
+
+        // console.log("CAR RESPO =>",carResp);
+
+        var data1 = JSON.parse(JSON.stringify(bookingResp.data.booking_data));
+
+        data1.rent_price = carResp.data.carDetail.rent_price;
+
+        data1.no_of_person = carResp.data.carDetail.no_of_person;
+        data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
+
+        data1.milage = carResp.data.carDetail.milage;
+        data1.car_class = carResp.data.carDetail.car_class;
+
+        data1.driving_eligibility_criteria = carResp.data.carDetail.driving_eligibility_criteria;
+
+        data1.car_brand = carResp.data.carDetail.car_brand;
+        data1.car_model = carResp.data.carDetail.car_model;
+        data1.car_model_number = carResp.data.carDetail.car_model_number;
+        data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+        data1.age_of_car = carResp.data.carDetail.age_of_car;
+        data1.image_name = carResp.data.carDetail.image_name;
+        data1.user_name = userDeviceToken[0].first_name;
+        // data1.user_name = 'dipesh';
+        data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+        data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+        data1.support_phone_number = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
+        data1.support_email = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
+        data1.carImagePath = config.CAR_IMAGES;
+        data1.icons = config.ICONS;
+
+
+
+        // console.log('Booking Response Final DATA=>',data1);
+
+        // let mail_resp = await mail_helper.sendEmail_carBook("car_booking", options, data1);
+        let mail_resp1 = await mail_helper.sendEmail_carBook("car_booking", options_user, data1);
+        console.log("Mail sending response 1", mail_resp1);
+
+        var data2 = data1;
+        data2.user_name = companyData[0].name;
+        let mail_resp2 = await mail_helper.sendEmail_carBook("car_booking", options_company_admin, data2);
+        console.log("Mail sending response 2", mail_resp2);
+
+        if (superAdminData && superAdminData.length > 0) {
+            var data3 = data1;
+            data3.user_name = superAdminData[0].first_name;
+            let mail_resp3 = await mail_helper.sendEmail_carBook("car_booking", options_super_admin, data3);
+            console.log("Mail sending response 3", mail_resp3);
+        }
+
+
+
+        /** Sending email is over */
+
+
+        /** Send SMS after car has been booked Start*/
+        const nexmo = new Nexmo({
+            apiKey: config.NEXMO_API_KEY,
+            apiSecret: config.NEXMO_API_SECRET
+        })
+
+        // const send_to = '919712825007'; // userDeviceToken[0].country_code
+        const send_to = userDeviceToken[0].country_code + '' + userDeviceToken[0].phone_number;
+        const from = 'ABHR';
+        const to = send_to;
+        const sms_text = 'Your car has been booked successfully with booking number ' + car_booking_number;
+
+        const resp = await nexmo.message.sendSms(from, to, sms_text);
+        console.log("SMS Response =>", resp)
+
+        /** Send sms over */
+
+
+
+
+
+
+
+
+
+
+
+        // res.status(config.OK_STATUS).json(bookingResp) // set this line after coupon entry
+    }
+    else {
+        res.status(config.BAD_REQUEST).json(bookingResp);
+    }
+}
+
 
     } else {
-        res.status(config.BAD_REQUEST).json({
-            status: 'failed',
-            message: "Validation Error",
-            errors
-        });
-    }
+    res.status(config.BAD_REQUEST).json({
+        status: 'failed',
+        message: "Validation Error",
+        errors
+    });
+}
 });
 
 
@@ -1632,15 +1636,15 @@ router.post('/change-booking-v2', async (req, res) => {
 
                 /* save notification to db start */
                 // if (deviceToken !== null) {
-                    var data = {
-                        "userId": userDeviceToken[0]._id,
-                        "deviceToken": deviceToken,
-                        "deviceType": 'ios',
-                        "notificationText": msg,
-                        "notificationType": 1,
-                        "booking_number": req.body.booking_number
-                    }
-                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                var data = {
+                    "userId": userDeviceToken[0]._id,
+                    "deviceToken": deviceToken,
+                    "deviceType": 'ios',
+                    "notificationText": msg,
+                    "notificationType": 1,
+                    "booking_number": req.body.booking_number
+                }
+                var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                 // }
                 /* save notification to db over */
 
@@ -1648,15 +1652,15 @@ router.post('/change-booking-v2', async (req, res) => {
                 var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
                 /* save notification to db start */
                 // if (deviceToken !== null) {
-                    var data = {
-                        "userId": userDeviceToken[0]._id,
-                        "deviceToken": deviceToken,
-                        "deviceType": 'android',
-                        "notificationText": msg,
-                        "notificationType": 1,
-                        "booking_number": req.body.booking_number
-                    }
-                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                var data = {
+                    "userId": userDeviceToken[0]._id,
+                    "deviceToken": deviceToken,
+                    "deviceType": 'android',
+                    "notificationText": msg,
+                    "notificationType": 1,
+                    "booking_number": req.body.booking_number
+                }
+                var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                 // }
                 /* save notification to db over */
             }
@@ -1667,7 +1671,7 @@ router.post('/change-booking-v2', async (req, res) => {
                 var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                 var deviceToken = null;
                 // var msg = "Car booking has been changed"
-                var msg = userDeviceToken[0].first_name+"'\s"+" booking has been updated";
+                var msg = userDeviceToken[0].first_name + "'\s" + " booking has been updated";
                 var flag = "other";
                 // Push notification //
                 if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
@@ -1679,15 +1683,15 @@ router.post('/change-booking-v2', async (req, res) => {
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
-                            var data = {
-                                "userId": agentData[0]._id,
-                                "deviceToken": deviceToken,
-                                "deviceType": 'android',
-                                "notificationText": msg,
-                                "notificationType": 1,
-                                "booking_number": req.body.booking_number
-                            }
-                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                        var data = {
+                            "userId": agentData[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": req.body.booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                         // }
                         /* save notification to db over */
                     }
@@ -1725,11 +1729,11 @@ router.post('/change-booking-v2', async (req, res) => {
             // data1.user_name = 'dipesh';
             data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
             data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
-            
+
             data1.support_phone_number = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
             data1.support_email = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
-            data1.carImagePath = config.CAR_IMAGES; 
-            data1.icons = config.ICONS; 
+            data1.carImagePath = config.CAR_IMAGES;
+            data1.icons = config.ICONS;
 
 
             // console.log("Change DATA =>",data1);
@@ -1900,15 +1904,15 @@ router.post('/cancel-booking-v2', async (req, res) => {
 
                 /* save notification to db start */
                 // if (deviceToken !== null) {
-                    var data = {
-                        "userId": userDeviceToken[0]._id,
-                        "deviceToken": deviceToken,
-                        "deviceType": 'ios',
-                        "notificationText": msg,
-                        "notificationType": 1,
-                        "booking_number": req.body.booking_number
-                    }
-                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                var data = {
+                    "userId": userDeviceToken[0]._id,
+                    "deviceToken": deviceToken,
+                    "deviceType": 'ios',
+                    "notificationText": msg,
+                    "notificationType": 1,
+                    "booking_number": req.body.booking_number
+                }
+                var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                 // }
                 /* save notification to db over */
 
@@ -1916,15 +1920,15 @@ router.post('/cancel-booking-v2', async (req, res) => {
                 var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
                 /* save notification to db start */
                 // if (deviceToken !== null) {
-                    var data = {
-                        "userId": userDeviceToken[0]._id,
-                        "deviceToken": deviceToken,
-                        "deviceType": 'android',
-                        "notificationText": msg,
-                        "notificationType": 1,
-                        "booking_number": req.body.booking_number
-                    }
-                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                var data = {
+                    "userId": userDeviceToken[0]._id,
+                    "deviceToken": deviceToken,
+                    "deviceType": 'android',
+                    "notificationText": msg,
+                    "notificationType": 1,
+                    "booking_number": req.body.booking_number
+                }
+                var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                 // }
                 /* save notification to db over */
             }
@@ -1945,15 +1949,15 @@ router.post('/cancel-booking-v2', async (req, res) => {
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
-                            var data = {
-                                "userId": agentData[0]._id,
-                                "deviceToken": deviceToken,
-                                "deviceType": 'android',
-                                "notificationText": msg,
-                                "notificationType": 1,
-                                "booking_number": req.body.booking_number
-                            }
-                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                        var data = {
+                            "userId": agentData[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": req.body.booking_number
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                         // }
                         /* save notification to db over */
                     }
@@ -1983,19 +1987,19 @@ router.post('/cancel-booking-v2', async (req, res) => {
             }
 
 
-            var data1 = { 
-                booking_number: req.body.booking_number, 
-                user_name: userDeviceToken[0].first_name, 
-                support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
-                support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
-                icons : config.ICONS
+            var data1 = {
+                booking_number: req.body.booking_number,
+                user_name: userDeviceToken[0].first_name,
+                support_phone_number: superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                support_email: superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                icons: config.ICONS
             }
-            var data2 = { 
-                booking_number: req.body.booking_number, 
+            var data2 = {
+                booking_number: req.body.booking_number,
                 user_name: companyData[0].name,
-                support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
-                support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
-                icons : config.ICONS
+                support_phone_number: superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                support_email: superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                icons: config.ICONS
             }
 
 
@@ -3288,10 +3292,10 @@ router.post('/report', async (req, res) => {
                 // message: `You report for ${carData.data.carDetail.car_brand} ${carData.data.carDetail.car_modal} has been submitted successfully.`,
                 message: 'You report for ' + '\"' + carData.data.carDetail.car_brand + ' ' + carData.data.carDetail.car_model + ', ' + carData.data.carDetail.age_of_car + '\"' + ' has been submitted successfully.',
                 report_message: req.body.report_message,
-                support_phone_number : superAdminData && superAdminData !== null ? '+' + superAdminData.support_country_code + ' ' + superAdminData.support_phone_number : '',
-                support_email : superAdminData && superAdminData !== null ? superAdminData.support_email : '',
-                carImagePath : config.CAR_IMAGES,
-                icons : config.ICONS
+                support_phone_number: superAdminData && superAdminData !== null ? '+' + superAdminData.support_country_code + ' ' + superAdminData.support_phone_number : '',
+                support_email: superAdminData && superAdminData !== null ? superAdminData.support_email : '',
+                carImagePath: config.CAR_IMAGES,
+                icons: config.ICONS
             };
 
             /** send email to user **/
@@ -3350,8 +3354,8 @@ router.post('/report', async (req, res) => {
 
                 data1.support_phone_number = superAdminData && superAdminData !== null ? '+' + superAdminData.support_country_code + ' ' + superAdminData.support_phone_number : '';
                 data1.support_email = superAdminData && superAdminData !== null ? superAdminData.support_email : '';
-                data1.carImagePath = config.CAR_IMAGES; 
-                data1.icons = config.ICONS; 
+                data1.carImagePath = config.CAR_IMAGES;
+                data1.icons = config.ICONS;
 
 
                 let mail_resp1 = await mail_helper.sendEmail_carBook("car_report_super_admin", options_super_admin, data1);
@@ -3425,15 +3429,15 @@ router.post('/report-status', async (req, res) => {
         var report = await CarReport.find(condition).lean().exec();
 
         if (report && report.length > 0) {
-            if(report[0].status === 'pending'){
-                res.status(config.BAD_REQUEST).json({ status: "failed", message: "You already reported this issues, we will get back to you soon!"});
+            if (report[0].status === 'pending') {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "You already reported this issues, we will get back to you soon!" });
             }
-            else if(report[0].status === 'resolved'){
-                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Reported issues resolved, please check your email"});
+            else if (report[0].status === 'resolved') {
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Reported issues resolved, please check your email" });
             }
         }
-        else{
-            res.status(config.OK_STATUS).json({status : "success" , "message" : "You have not reported any car." } )
+        else {
+            res.status(config.OK_STATUS).json({ status: "success", "message": "You have not reported any car." })
         }
     }
     else {
@@ -4165,7 +4169,7 @@ router.post('/return-request', async (req, res) => {
             res.status(config.OK_STATUS).json({ status: 'success', message: "Your request for return car has been placed successfully" });
 
 
-            var bookData = await CarBooking.findOne({"booking_number" : req.body.booking_number}).lean().exec()
+            var bookData = await CarBooking.findOne({ "booking_number": req.body.booking_number }).lean().exec()
             var userDeviceToken = await Users.find({ '_id': new ObjectId(bookData.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, country_code: 1, deviceType: 1, email: 1, first_name: 1 }).lean().exec();
 
             var agentList = await Users.find({ 'type': 'agent', 'isDeleted': false }, { _id: 1, deviceToken: 1, phone_number: 1 }).lean().exec();
@@ -4180,22 +4184,22 @@ router.post('/return-request', async (req, res) => {
             agentList.map((agent, index) => {
                 if (agent.deviceToken !== undefined && agent.deviceToken !== null) {
                     // if (agent.deviceToken !== null) {
-                        if (agent.deviceToken.length > 10) { // temp condition
-                            agentDeviceTokenArray.push(agent.deviceToken);
+                    if (agent.deviceToken.length > 10) { // temp condition
+                        agentDeviceTokenArray.push(agent.deviceToken);
 
-                            agent_data_array.push({
-                                "userId": agent._id,
-                                "deviceToken": agent.deviceToken,
-                                "deviceType": 'android',
-                                "notificationText": msg,
-                                "notificationType": 1,
-                                "booking_number": booking_number
-                            })
+                        agent_data_array.push({
+                            "userId": agent._id,
+                            "deviceToken": agent.deviceToken,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": booking_number
+                        })
 
-                        }
+                    }
                     // }
                 }
-                else{
+                else {
                     agent_data_array.push({
                         "userId": agent._id,
                         "deviceToken": null,
@@ -6424,16 +6428,16 @@ router.post('/extend-booking', async (req, res) => {
 
                 // Primary amount calculation
                 var total_rat = data1.booking_rent * data1.days;
-                if(data1.coupon_percentage !== null){
-                    total_rat = (total_rat - (total_rat * data1.coupon_percentage) /100)
+                if (data1.coupon_percentage !== null) {
+                    total_rat = (total_rat - (total_rat * data1.coupon_percentage) / 100)
                 }
                 var primary_vat_amount = (total_rat * data1.vat) / 100;
                 var total_primary_amount = total_rat + primary_vat_amount;
 
-            
+
                 // Extend amount calculation
-                var extended_amount =  data1.booking_rent * data1.extended_days;
-                var extended_vat_amount =  ( extended_amount * data1.vat ) / 100;
+                var extended_amount = data1.booking_rent * data1.extended_days;
+                var extended_vat_amount = (extended_amount * data1.vat) / 100;
                 var total_extended_amount = extended_amount + extended_vat_amount;
 
                 // Grand Total
@@ -6468,25 +6472,25 @@ router.post('/extend-booking', async (req, res) => {
                 data1.user_name = userData.first_name + ' ' + userData.last_name;
                 data1.user_phone_number = '+' + userData.country_code + ' ' + userData.phone_number;
                 data1.user_email = userData.email;
-                
-                
+
+
 
                 data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
                 data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
 
-                data1.extended_from_date = moment(data1.to_time, "YYYY-MM-DD").subtract(data1.extended_days,"days").format("YYYY-MMM-DD");
+                data1.extended_from_date = moment(data1.to_time, "YYYY-MM-DD").subtract(data1.extended_days, "days").format("YYYY-MMM-DD");
                 data1.extended_to_date = moment(data1.to_time).format("MMM-DD-YYYY");
 
                 data1.support_phone_number = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
                 data1.support_email = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
-                data1.carImagePath = config.CAR_IMAGES; 
-                data1.icons = config.ICONS; 
+                data1.carImagePath = config.CAR_IMAGES;
+                data1.icons = config.ICONS;
 
 
                 // console.log('DATA 1=>',data1);
 
-                
-            
+
+
                 /* send email to user after car has been booked start*/
 
                 var options = {
@@ -6502,7 +6506,7 @@ router.post('/extend-booking', async (req, res) => {
                 /* Send notification Start*/
 
                 var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1, carCompanyId: 1, car_handover_by_agent_id: 1 }).lean().exec();
-                
+
                 var userDeviceToken = await Users.find({ '_id': new ObjectId(user_id.userId) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, country_code: 1, first_name: 1 }).lean().exec();
                 var deviceToken = null;
                 console.log('User token =>', userDeviceToken);
@@ -6521,15 +6525,15 @@ router.post('/extend-booking', async (req, res) => {
 
                     /* save notification to db start */
                     // if (deviceToken !== null) {
-                        var data = {
-                            "userId": userDeviceToken[0]._id,
-                            "deviceToken": deviceToken,
-                            "deviceType": 'ios',
-                            "notificationText": msg,
-                            "notificationType": 1,
-                            "booking_number": req.body.booking_number
-                        }
-                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    var data = {
+                        "userId": userDeviceToken[0]._id,
+                        "deviceToken": deviceToken,
+                        "deviceType": 'ios',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": req.body.booking_number
+                    }
+                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                     // }
                     /* save notification to db over */
 
@@ -6537,15 +6541,15 @@ router.post('/extend-booking', async (req, res) => {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
                     /* save notification to db start */
                     // if (deviceToken !== null) {
-                        var data = {
-                            "userId": userDeviceToken[0]._id,
-                            "deviceToken": deviceToken,
-                            "deviceType": 'android',
-                            "notificationText": msg,
-                            "notificationType": 1,
-                            "booking_number": req.body.booking_number
-                        }
-                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    var data = {
+                        "userId": userDeviceToken[0]._id,
+                        "deviceToken": deviceToken,
+                        "deviceType": 'android',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": req.body.booking_number
+                    }
+                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                     // }
                     /* save notification to db over */
                 }
@@ -6555,7 +6559,7 @@ router.post('/extend-booking', async (req, res) => {
                 if (user_id.car_handover_by_agent_id && user_id.car_handover_by_agent_id != null) {
                     var agentData = await Users.find({ '_id': new ObjectId(user_id.car_handover_by_agent_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
                     var deviceToken = null;
-                    var msg = userDeviceToken[0].first_name+"'\s" + " booking has been extended"
+                    var msg = userDeviceToken[0].first_name + "'\s" + " booking has been extended"
                     var flag = "other";
                     // Push notification //
                     if (agentData[0].deviceToken !== undefined && agentData[0].deviceToken !== null) {
@@ -6567,22 +6571,22 @@ router.post('/extend-booking', async (req, res) => {
 
                             /* save notification to db start */
                             // if (deviceToken !== null) {
-                                var data = {
-                                    "userId": agentData[0]._id,
-                                    "deviceToken": deviceToken,
-                                    "deviceType": 'android',
-                                    "notificationText": msg,
-                                    "notificationType": 1,
-                                    "booking_number": req.body.booking_number
-                                }
-                                var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                            var data = {
+                                "userId": agentData[0]._id,
+                                "deviceToken": deviceToken,
+                                "deviceType": 'android',
+                                "notificationText": msg,
+                                "notificationType": 1,
+                                "booking_number": req.body.booking_number
+                            }
+                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                             // }
                             /* save notification to db over */
                         }
                     }
                 }
 
-                 /* Send notification Over */
+                /* Send notification Over */
 
 
 

@@ -974,7 +974,7 @@ router.post('/assign_or_not-v2', async (req, res) => {
 
                             //add this later
                             // var msg = "Your car is getting ready we will notify you once our agent is on their way to returning car from you";
-                            var msg = "Agent is on the way to collect the car";
+                            var msg = "Agent has accepted your return request";
                             commonHelper.sendNoti(req.body.user_id, req.body.booking_number, msg);
 
                             // alredy assign for handover so just update his entry
