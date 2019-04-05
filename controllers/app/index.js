@@ -94,6 +94,7 @@ router.post('/registration', async (req, res, next) => {
             app_user_status: "only registered"
         };
         var usercheck = await User.findOne({ email: req.body.email, isDeleted: false });
+        var superAdminData = await User.find({ 'type': 'admin', isDeleted: false }).lean().exec();
         console.log('usercheck====>', usercheck);
         if (usercheck) {
             res.status(config.OK_STATUS).json({
@@ -101,7 +102,7 @@ router.post('/registration', async (req, res, next) => {
                 message: "Email is already exist!!"
             });
         } else {
-            var companycheck = await Company.findOne({ email: req.body.email, isDeleted: false});
+            var companycheck = await Company.findOne({ email: req.body.email, isDeleted: false });
             if (companycheck) {
                 res.status(config.OK_STATUS).json({
                     status: 'failed',
@@ -122,7 +123,7 @@ router.post('/registration', async (req, res, next) => {
                             "userId": userData._id
                         }
                         var notificationModel = new Notification(notifcationData);
-                        notificationModel.save(function (err, notificationData){
+                        notificationModel.save(function (err, notificationData) {
                             console.log('err====>', err, 'data====>', notificationData);
                         });
                         var token = jwt.sign({ id: userData._id, type: userData.type }, config.ACCESS_TOKEN_SECRET_KEY, {
@@ -142,7 +143,11 @@ router.post('/registration', async (req, res, next) => {
                         }
                         var data = {
                             first_name: userData.first_name,
-                            last_name: userData.last_name
+                            last_name: userData.last_name,
+                            support_phone_number: superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                            support_email: superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                            carImagePath: config.CAR_IMAGES,
+                            icons: config.ICONS
                         }
                         mailHelper.send('/welcome_email', option, data, function (err, res) {
                             if (err) {
@@ -283,7 +288,7 @@ router.post('/getAgentInfo', (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        User.findOne({ _id : { $eq: req.body.user_id}, isDeleted: false }, function (err, data) {
+        User.findOne({ _id: { $eq: req.body.user_id }, isDeleted: false }, function (err, data) {
             if (err) {
                 res.status(config.BAD_REQUEST).json({
                     status: 'failed',
@@ -370,6 +375,7 @@ router.post('/social_login', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         var user = await User.findOne({ 'socialmediaID': req.body.socialmediaID, 'socialmediaType': req.body.socialmediaType, isDeleted: false, type: req.body.user_type, email: req.body.email }).exec();
+        var superAdminData = await User.find({ 'type': 'admin', isDeleted: false }).lean().exec();
         console.log('user=====>', user);
         if (user) {
             var updateArray = {
@@ -398,21 +404,21 @@ router.post('/social_login', async (req, res, next) => {
             };
             res.status(config.OK_STATUS).json(result);
         } else {
-            var usercheck = await User.findOne({'email': req.body.email, 'isDeleted': false});
+            var usercheck = await User.findOne({ 'email': req.body.email, 'isDeleted': false });
             if (usercheck) {
                 res.status(config.OK_STATUS).json({
                     status: 'failed',
                     message: "Email is already exist!!"
                 });
             } else {
-                var companycheck = await Company.findOne({ email: req.body.email, 'isDeleted': false});
+                var companycheck = await Company.findOne({ email: req.body.email, 'isDeleted': false });
                 if (companycheck) {
                     res.status(config.OK_STATUS).json({
                         status: 'failed',
                         message: "Email is already exist!!"
                     });
                 } else {
-                        var Data = {
+                    var Data = {
                         first_name: req.body.first_name,
                         last_name: req.body.last_name,
                         socialmediaID: req.body.socialmediaID,
@@ -434,7 +440,7 @@ router.post('/social_login', async (req, res, next) => {
                                 "userId": data._id
                             }
                             var notificationModel = new Notification(notifcationData);
-                            notificationModel.save(function (err, notificationData){
+                            notificationModel.save(function (err, notificationData) {
                                 console.log('err====>', err, 'data====>', notificationData);
                             });
                             var token = jwt.sign({ id: data._id, type: data.type }, config.ACCESS_TOKEN_SECRET_KEY, {
@@ -446,7 +452,11 @@ router.post('/social_login', async (req, res, next) => {
                             }
                             var emailData = {
                                 first_name: data.first_name,
-                                last_name: data.last_name
+                                last_name: data.last_name,
+                                support_phone_number: superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                                support_email: superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                                carImagePath: config.CAR_IMAGES,
+                                icons: config.ICONS
                             }
                             mailHelper.send('/welcome_email', option, emailData, function (err, res) {
                                 if (err) {
@@ -647,7 +657,7 @@ router.post('/forget_password', async (req, res, next) => {
                 subject: 'ABHR - Request for reset password'
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
-            var data = { link: config.FRONT_END_URL + 'reset-password?detials=' + buffer , name: user.first_name};
+            var data = { link: config.FRONT_END_URL + 'reset-password?detials=' + buffer, name: user.first_name };
             mailHelper.send('forget_password', option, data, function (err, res) {
                 if (err) {
                     console.log("Mail Error:", err);
@@ -812,16 +822,16 @@ router.post('/aboutus', async (req, res) => {
 
 router.get('/support', async (req, res) => {
     try {
-        var supportResp = await User.findOne({"type" : "admin", "isDeleted" : false},{_id : 0, support_phone_number : 1, support_email : 1, support_site_url : 1});
-        if(supportResp != null){
-            res.status(config.OK_STATUS).json({status:'success', message:'Support data has been found', data : { support :supportResp }})
+        var supportResp = await User.findOne({ "type": "admin", "isDeleted": false }, { _id: 0, support_phone_number: 1, support_email: 1, support_site_url: 1 });
+        if (supportResp != null) {
+            res.status(config.OK_STATUS).json({ status: 'success', message: 'Support data has been found', data: { support: supportResp } })
         }
-        else{
-            res.status(config.OK_STATUS).json({ status: 'failed', message: "No support data available"})
+        else {
+            res.status(config.OK_STATUS).json({ status: 'failed', message: "No support data available" })
         }
     }
     catch (err) {
-        res.status(config.OK_STATUS).json({ status: 'failed', message: "Error accured while fetching support data"})
+        res.status(config.OK_STATUS).json({ status: 'failed', message: "Error accured while fetching support data" })
     }
 });
 

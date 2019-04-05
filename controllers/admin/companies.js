@@ -60,61 +60,62 @@ router.post('/add', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var check_email = await Company.findOne({"email": req.body.email, "isDeleted": false});
-        if(check_email !== null){
-            var check_name = await Company.findOne({"name": req.body.name, "isDeleted": false});
-            if(check_name  !==null){
+        var check_email = await Company.findOne({ "email": req.body.email, "isDeleted": false });
+        var superAdminData = await User.find({ 'type': 'admin', isDeleted: false }).lean().exec();
+        if (check_email !== null) {
+            var check_name = await Company.findOne({ "name": req.body.name, "isDeleted": false });
+            if (check_name !== null) {
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
                     message: "Compnay name and email already exist"
                 });
-            }else{
+            } else {
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
                     message: "You are already Company Admin"
                 });
             }
         }
-        else{
-            var check_name = await Company.findOne({"name": req.body.name, "isDeleted": false});
-            if(check_name  !==null){
+        else {
+            var check_name = await Company.findOne({ "name": req.body.name, "isDeleted": false });
+            if (check_name !== null) {
                 console.log('in if check name====');
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
                     message: "Compnay name already exist"
                 });
-            }else{
-                var check_user_email = await User.findOne({"email": req.body.email, "isDeleted": false});
-                if(check_user_email){
+            } else {
+                var check_user_email = await User.findOne({ "email": req.body.email, "isDeleted": false });
+                if (check_user_email) {
                     var message = '';
-                    if(check_user_email.type === 'agent'){
+                    if (check_user_email.type === 'agent') {
                         message = 'You are already a Agent.';
-                    }else if(check_user_email.type === 'user'){
+                    } else if (check_user_email.type === 'user') {
                         message = 'You are already a User.';
-                    }else if(check_user_email.type === 'admin'){
+                    } else if (check_user_email.type === 'admin') {
                         message = 'You are already a Super Admin.';
                     }
                     res.status(config.BAD_REQUEST).json({
                         status: 'faild',
                         message: message
                     });
-                }else{
-                    if(req.body.phone_number){
-                        var check_phone = await Company.findOne({"phone_number": req.body.phone_number, "isDeleted": false});
-                        if(check_phone !== null){
+                } else {
+                    if (req.body.phone_number) {
+                        var check_phone = await Company.findOne({ "phone_number": req.body.phone_number, "isDeleted": false });
+                        if (check_phone !== null) {
                             res.status(config.BAD_REQUEST).json({
                                 status: 'faild',
                                 message: "phone number is already exist."
                             });
-                        }else{
-                            var check_user_phone = await User.findOne({"phone_number": req.body.phone_number, "isDeleted": false});
-                            if(check_user_phone){
+                        } else {
+                            var check_user_phone = await User.findOne({ "phone_number": req.body.phone_number, "isDeleted": false });
+                            if (check_user_phone) {
                                 var message = '';
-                                if(check_user_email.type === 'agent'){
+                                if (check_user_email.type === 'agent') {
                                     message = 'Agent have already this phone number.';
-                                }else if(check_user_email.type === 'user'){
+                                } else if (check_user_email.type === 'user') {
                                     message = 'User have already this phone number.';
-                                }else if(check_user_email.type === 'admin'){
+                                } else if (check_user_email.type === 'admin') {
                                     message = 'Super Admin have already this phone number.';
                                 }
                                 res.status(config.BAD_REQUEST).json({
@@ -168,7 +169,11 @@ router.post('/add', async (req, res, next) => {
                                                 name: req.body.name,
                                                 email: req.body.email,
                                                 password: generatepassword,
-                                                link: loginURL
+                                                link: loginURL,
+                                                support_phone_number: superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                                                support_email: superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                                                carImagePath: config.CAR_IMAGES,
+                                                icons: config.ICONS
                                             }
                                             mailHelper.send('/car_company/add_company', option, emaildata, function (err, res) {
                                                 if (err) {
@@ -202,7 +207,7 @@ router.post('/add', async (req, res, next) => {
             //         message: "Email already exist"
             //     });
             // }else{
-               
+
             // }
         }
     } else {
@@ -244,59 +249,59 @@ router.put('/update', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        var check_email = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "email": req.body.email, "isDeleted": false});
+        var check_email = await Company.findOne({ "_id": { $ne: new ObjectId(req.body.company_id) }, "email": req.body.email, "isDeleted": false });
         console.log(check_email);
-        if(check_email){
-            var check_name = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
-            if(check_name){
+        if (check_email) {
+            var check_name = await Company.findOne({ "_id": { $ne: new ObjectId(req.body.company_id) }, "name": req.body.name, "isDeleted": false });
+            if (check_name) {
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
                     message: "Compnay name and email already exist"
                 });
-            }else{
+            } else {
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
                     message: "You are already Company Admin"
                 });
             }
-        } else{
-            var check_name = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
-            if(check_name  !==null){
+        } else {
+            var check_name = await Company.findOne({ "_id": { $ne: new ObjectId(req.body.company_id) }, "name": req.body.name, "isDeleted": false });
+            if (check_name !== null) {
                 console.log('in if check name====');
                 res.status(config.BAD_REQUEST).json({
                     status: 'faild',
                     message: "Compnay name already exist"
                 });
-            }else{
-                var check_user_email = await User.findOne({"email": req.body.email, "isDeleted": false});
-                if(check_user_email){
+            } else {
+                var check_user_email = await User.findOne({ "email": req.body.email, "isDeleted": false });
+                if (check_user_email) {
                     var message = '';
-                    if(check_user_email.type === 'agent'){
+                    if (check_user_email.type === 'agent') {
                         message = 'You are already a Agent.';
-                    }else if(check_user_email.type === 'user'){
+                    } else if (check_user_email.type === 'user') {
                         message = 'You are already a User.';
                     }
                     res.status(config.BAD_REQUEST).json({
                         status: 'faild',
                         message: message
                     });
-                }else{
-                    if(req.body.phone_number){
-                        var check_phone = await Company.findOne({"_id": { $ne: new ObjectId(req.body.company_id)}, "name": req.body.name, "isDeleted": false});
-                        if(check_phone !== null){
+                } else {
+                    if (req.body.phone_number) {
+                        var check_phone = await Company.findOne({ "_id": { $ne: new ObjectId(req.body.company_id) }, "name": req.body.name, "isDeleted": false });
+                        if (check_phone !== null) {
                             res.status(config.BAD_REQUEST).json({
                                 status: 'faild',
                                 message: "phone number is already exist."
                             });
-                        }else{
-                            var check_user_phone = await User.findOne({"phone_number": req.body.phone_number, "isDeleted": false});
-                            if(check_user_phone){
+                        } else {
+                            var check_user_phone = await User.findOne({ "phone_number": req.body.phone_number, "isDeleted": false });
+                            if (check_user_phone) {
                                 var message = '';
-                                if(check_user_email.type === 'agent'){
+                                if (check_user_email.type === 'agent') {
                                     message = 'Agent have already this phone number.';
-                                }else if(check_user_email.type === 'user'){
+                                } else if (check_user_email.type === 'user') {
                                     message = 'User have already this phone number.';
-                                }else if(check_user_email.type === 'admin'){
+                                } else if (check_user_email.type === 'admin') {
                                     message = 'Super Admin have already this phone number.';
                                 }
                                 res.status(config.BAD_REQUEST).json({
@@ -306,7 +311,7 @@ router.put('/update', async (req, res, next) => {
                             }
                         }
                     }
-                    await Company.update({_id: {$eq: req.body.company_id}}, {$set: req.body}, function (err, response) {
+                    await Company.update({ _id: { $eq: req.body.company_id } }, { $set: req.body }, function (err, response) {
                         if (err) {
                             res.status(config.BAD_REQUEST).json({
                                 status: 'faild',
@@ -480,17 +485,17 @@ router.post('/list', (req, res, next) => {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if(req.body.columns[colIndex].isNumber || req.body.columns[colIndex].isBoolean){
-                if(order == "asc"){
+            if (req.body.columns[colIndex].isNumber || req.body.columns[colIndex].isBoolean) {
+                if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: 1 }
                     });
-                }else{
+                } else {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: -1 }
                     });
                 }
-            }else{
+            } else {
                 colname = '$' + colname;
                 if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
@@ -512,14 +517,14 @@ router.post('/list', (req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
+                        {
+                            $sort: {
+                                "sort_index": -1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
                 }
             }
         }
@@ -671,7 +676,7 @@ router.post('/car/rental_list', (req, res, next) => {
                     "booking_rent": 1,
                     "booking_number": 1,
                     "from_time": 1,
-                    "to_time": { $subtract: [ "$to_time", 1*24*60*60000 ] },
+                    "to_time": { $subtract: ["$to_time", 1 * 24 * 60 * 60000] },
                     "model_name": "$car_model.model_name",
                     "brand_name": "$car_brand.brand_name"
                 }
@@ -721,17 +726,17 @@ router.post('/car/rental_list', (req, res, next) => {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if(req.body.columns[colIndex].isNumber){
-                if(order == "asc"){
+            if (req.body.columns[colIndex].isNumber) {
+                if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: 1 }
                     });
-                }else{
+                } else {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: -1 }
                     });
                 }
-            }else{
+            } else {
                 colname = '$' + colname;
                 if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
@@ -753,14 +758,14 @@ router.post('/car/rental_list', (req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
+                        {
+                            $sort: {
+                                "sort_index": -1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
                 }
             }
         }
@@ -918,8 +923,8 @@ router.post('/car_list', async (req, res, next) => {
             },
             {
                 $match: {
-                    "carBookingDetails.trip_status": { $ne : "finished"},
-                    "carBookingDetails.trip_status": { $ne : "cancelled"},
+                    "carBookingDetails.trip_status": { $ne: "finished" },
+                    "carBookingDetails.trip_status": { $ne: "cancelled" },
                     "isDeleted": false,
                     "car_rental_company_id": new ObjectId(req.body.company_id)
                 }
@@ -930,100 +935,100 @@ router.post('/car_list', async (req, res, next) => {
                 }
             },
             {
-                "$group":{
-                    "_id":"$_id",
-                    "model_name": {"$first":"$modelDetails.model_name"},
-                    "brand_name": {"$first":"$brandDetails.brand_name"},
-                    "rent_price": {"$first":"$rent_price"},
-                    "availableData": {"$first":"$is_available"},
-                    "createdAt": {"$first":"$createdAt"},
-                    "carBookingDetails":{$push: "$carBookingDetails"},
-                    "age_of_car": {"$first":"$age_of_car"}
+                "$group": {
+                    "_id": "$_id",
+                    "model_name": { "$first": "$modelDetails.model_name" },
+                    "brand_name": { "$first": "$brandDetails.brand_name" },
+                    "rent_price": { "$first": "$rent_price" },
+                    "availableData": { "$first": "$is_available" },
+                    "createdAt": { "$first": "$createdAt" },
+                    "carBookingDetails": { $push: "$carBookingDetails" },
+                    "age_of_car": { "$first": "$age_of_car" }
                 }
             },
             {
-                "$project":{
-                    "_id":1,
+                "$project": {
+                    "_id": 1,
                     "model_name": 1,
                     "brand_name": 1,
                     "rent_price": 1,
-                    "availableData":1,
-                    "createdAt":1,
-                    "carBookingDetails":1,
+                    "availableData": 1,
+                    "createdAt": 1,
+                    "carBookingDetails": 1,
                     "age_of_car": 1
                 }
             }];
 
-            if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
-                if (req.body.search.value != undefined && req.body.search.value !== '') {
-                    var regex = new RegExp(req.body.search.value);
-                    var match = { $or: [] };
-                    req.body['columns'].forEach(function (obj) {
-                        if (obj.name) {
-                            var json = {};
-                            if (obj.isNumber) {
-                                console.log(typeof parseInt(req.body.search.value));
-                                json[obj.name] = parseInt(req.body.search.value)
-                            } else if (obj.isBoolean) {
-                                var check = req.body.search.value.toLowerCase();
-                                if (check === "yes" || check === "ye" || check === "y") {
-                                    json[obj.name] = true;
-                                } else {
-                                    json[obj.name] = false;
-                                }
-                            }else {
-                                json[obj.name] = {
-                                    "$regex": regex,
-                                    "$options": "i"
-                                }
+        if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
+            if (req.body.search.value != undefined && req.body.search.value !== '') {
+                var regex = new RegExp(req.body.search.value);
+                var match = { $or: [] };
+                req.body['columns'].forEach(function (obj) {
+                    if (obj.name) {
+                        var json = {};
+                        if (obj.isNumber) {
+                            console.log(typeof parseInt(req.body.search.value));
+                            json[obj.name] = parseInt(req.body.search.value)
+                        } else if (obj.isBoolean) {
+                            var check = req.body.search.value.toLowerCase();
+                            if (check === "yes" || check === "ye" || check === "y") {
+                                json[obj.name] = true;
+                            } else {
+                                json[obj.name] = false;
                             }
-                            match['$or'].push(json)
+                        } else {
+                            json[obj.name] = {
+                                "$regex": regex,
+                                "$options": "i"
+                            }
                         }
+                        match['$or'].push(json)
+                    }
+                });
+            }
+            console.log('re.body.search==>', req.body.search.value);
+            var searchQuery = {
+                $match: match
+            }
+            defaultQuery.push(searchQuery);
+            console.log("==>", JSON.stringify(defaultQuery));
+        }
+        if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
+            var colIndex = req.body.order[0].column;
+            var colname = req.body.columns[colIndex].name;
+            var order = req.body.order[0].dir;
+            if (req.body.columns[colIndex].isNumber) {
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: 1 }
+                    });
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $sort: { [colname]: -1 }
                     });
                 }
-                console.log('re.body.search==>', req.body.search.value);
-                var searchQuery = {
-                    $match: match
-                }
-                defaultQuery.push(searchQuery);
-                console.log("==>", JSON.stringify(defaultQuery));
-            }
-            if (typeof req.body.order !== 'undefined' && req.body.order.length > 0) {
-                var colIndex = req.body.order[0].column;
-                var colname = req.body.columns[colIndex].name;
-                var order = req.body.order[0].dir;
-                if(req.body.columns[colIndex].isNumber){
-                    if(order == "asc"){
-                        defaultQuery = defaultQuery.concat({
-                            $sort: { [colname]: 1 }
-                        });
-                    }else{
-                        defaultQuery = defaultQuery.concat({
-                            $sort: { [colname]: -1 }
-                        });
-                    }
-                }else{
-                    colname = '$' + colname;
-                    if (order == "asc") {
-                        defaultQuery = defaultQuery.concat({
-                            $project: {
-                                "records": "$$ROOT",
-                                "sort_index": { "$toLower": [colname] }
-                            }
+            } else {
+                colname = '$' + colname;
+                if (order == "asc") {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
+                        {
+                            $sort: { "sort_index": 1 }
                         },
-                            {
-                                $sort: { "sort_index": 1 }
-                            },
-                            {
-                                $replaceRoot: { newRoot: "$records" }
-                            })
-                    } else {
-                        defaultQuery = defaultQuery.concat({
-                            $project: {
-                                "records": "$$ROOT",
-                                "sort_index": { "$toLower": [colname] }
-                            }
-                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
+                } else {
+                    defaultQuery = defaultQuery.concat({
+                        $project: {
+                            "records": "$$ROOT",
+                            "sort_index": { "$toLower": [colname] }
+                        }
+                    },
                         {
                             $sort: {
                                 "sort_index": -1
@@ -1032,28 +1037,28 @@ router.post('/car_list', async (req, res, next) => {
                         {
                             $replaceRoot: { newRoot: "$records" }
                         })
-                    }
                 }
             }
+        }
 
-            defaultQuery = defaultQuery.concat({
-                $group: {
-                    "_id": "",
-                    "recordsTotal": {
-                        "$sum": 1
-                    },
-                    "data": {
-                        "$push": "$$ROOT"
-                    }
+        defaultQuery = defaultQuery.concat({
+            $group: {
+                "_id": "",
+                "recordsTotal": {
+                    "$sum": 1
+                },
+                "data": {
+                    "$push": "$$ROOT"
                 }
-            },
+            }
+        },
             {
                 $project: {
                     "recordsTotal": 1,
                     "data": { "$slice": ["$data", parseInt(req.body.start), parseInt(req.body.length)] }
                 }
             });
-        
+
         Car.aggregate(defaultQuery, function (err, data) {
             console.log('err====>', err, 'data=====>', data)
             if (err) {
@@ -1064,21 +1069,21 @@ router.post('/car_list', async (req, res, next) => {
                 // console.log('todayDate===>', todayDate);
                 // console.log('todayMonth======>',todayMonth);
                 var finalArray = [];
-                if(data && data.length > 0 && data[0].data && data[0].data.length > 0) {
+                if (data && data.length > 0 && data[0].data && data[0].data.length > 0) {
                     data[0].data.filter((c) => {
                         // console.log('c================>', c);
-                        if(c.carBookingDetails && c.carBookingDetails.length > 0){
+                        if (c.carBookingDetails && c.carBookingDetails.length > 0) {
                             var flag = false;
-                            c.carBookingDetails.map((booking) =>{
+                            c.carBookingDetails.map((booking) => {
                                 let toDate = moment(booking.to_time).utc().startOf('days');
                                 let fromDate = moment(booking.from_time).utc().startOf('days');
                                 if (moment(todayDate).isBetween(fromDate, toDate, null, '[]')) {
                                     flag = true;
                                 }
                             });
-                            if(flag === true){
+                            if (flag === true) {
                                 c['is_available'] = false;
-                            }else{
+                            } else {
                                 var flag1 = false;
                                 if (c.availableData && c.availableData.length > 0) {
                                     c.availableData.map((data) => {
@@ -1094,7 +1099,7 @@ router.post('/car_list', async (req, res, next) => {
                                 }
                                 c['is_available'] = flag1;
                             }
-                        }else{
+                        } else {
                             var flag2 = false;
                             if (c.availableData && c.availableData.length > 0) {
                                 c.availableData.map((data) => {
@@ -1111,11 +1116,11 @@ router.post('/car_list', async (req, res, next) => {
                             c['flag'] = flag2;
                             c['is_available'] = flag2;
                         }
-                        
+
                         delete c['availableData'];
                         delete c['carBookingDetails'];
                         finalArray.push(c);
-                    }); 
+                    });
                     data[0].data = finalArray;
                 }
                 res.status(config.OK_STATUS).json({
@@ -1241,7 +1246,7 @@ router.post('/car/add', (req, res, next) => {
             notEmpty: true,
             errorMessage: "Avaibility is required"
         },
-        'age_of_car':{
+        'age_of_car': {
             notEmpty: true,
             errorMessage: "age of car is required"
         }
@@ -1279,9 +1284,9 @@ router.post('/car/add', (req, res, next) => {
                         Jimp.read(filepath, async (err, lenna) => {
                             if (!err) {
                                 lenna
-                                .quality(30) // set JPEG quality
-                                .write(filepath); // save
-                                }
+                                    .quality(30) // set JPEG quality
+                                    .write(filepath); // save
+                            }
                         });
                     }
                 });
@@ -1402,9 +1407,9 @@ router.post('/car/edit', async (req, res, next) => {
                                 Jimp.read(filepath, async (err, lenna) => {
                                     if (!err) {
                                         lenna
-                                        .quality(30) // set JPEG quality
-                                        .write(filepath); // save
-                                        }
+                                            .quality(30) // set JPEG quality
+                                            .write(filepath); // save
+                                    }
                                 });
                             }
                         });
@@ -1567,11 +1572,11 @@ router.post('/checkemail', async (req, res, next) => {
                 var userdata = await User.findOne({ "email": req.body.email, "isDeleted": false });
                 if (userdata !== null && userdata !== '') {
                     var message = '';
-                    if(userdata.type === 'agent'){
+                    if (userdata.type === 'agent') {
                         message = 'You are already a Agent.';
-                    }else if(userdata.type === 'user'){
+                    } else if (userdata.type === 'user') {
                         message = 'You are already a User.';
-                    }else if(userdata.type === 'admin'){
+                    } else if (userdata.type === 'admin') {
                         message = 'You are already a Super Admin.';
                     }
                     res.status(config.OK_STATUS).json({
@@ -1642,11 +1647,11 @@ router.post('/checkphone', async (req, res, next) => {
                 var userdata = await User.findOne({ "phone_number": req.body.phone_number, "isDeleted": false });
                 if (userdata !== null && userdata !== '') {
                     var message = '';
-                    if(userdata.type === 'agent'){
+                    if (userdata.type === 'agent') {
                         message = 'You have already this phone number for Agent.';
-                    }else if(userdata.type === 'user'){
+                    } else if (userdata.type === 'user') {
                         message = 'You have already this phone number for User.';
-                    }else if(userdata.type === 'admin'){
+                    } else if (userdata.type === 'admin') {
                         message = 'You have already this phone number for Super Admin.';
                     }
                     res.status(config.OK_STATUS).json({
