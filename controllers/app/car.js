@@ -6495,6 +6495,7 @@ router.post('/extend-booking', async (req, res) => {
 
                 var options = {
                     to: userData.email,
+                    // to: "anks.eagle@gmail.com",
                     subject: 'ABHR - Booking has been extended'
                 }
 

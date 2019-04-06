@@ -16,7 +16,7 @@
       cellspacing="0" cellpadding="0" border="0">
       <thead>
         <tr>
-          <td style="padding:0;margin:0;vertical-align:middle;">
+          <td style="padding:0;margin:0;vertical-align:middle;width: 100%;background: #000000;">
             <table style="width: 100%;padding: 0;margin: 0 auto;border-spacing: 0;vertical-align: middle;background: #000;text-align: center;"
               cellspacing="0" cellpadding="0" border="0">
               <thead>
@@ -33,7 +33,7 @@
           </td>
         </tr>
         <tr>
-          <td style="background: #4990e2 ; height:auto; width:100%; display:block;padding:0;margin:0;vertical-align:middle;">
+          <td style="background: #efeff5 ; height:auto; width:100%; display:block;padding:0;margin:0;vertical-align:middle;">
             <center>
               <table style="width:100%; padding:0;" cellspacing="0" cellpadding="0">
                 <tr>
@@ -65,7 +65,7 @@
           </td>
         </tr>
         <tr>
-          <td style="padding:0;margin:0;vertical-align:middle;">
+          <td style="padding:0 0 30px 0;margin:0;vertical-align:middle;">
             <table style="width:100%; padding:0px 30px 0px 30px; margin:0 auto;  background:#fff;vertical-align:middle;" cellspacing="0"
               cellpadding="0">
               <tbody>
@@ -147,20 +147,20 @@
           </td>
         </tr>
         <tr>
-          <td style="padding:0;margin:0;vertical-align:middle;">
-            <table style="width:100%; padding:0px 30px 30px 30px; margin:0 auto;  background:#fff;vertical-align:middle;" cellspacing="0"
+          <td style="width:100%;padding:0 0 0 0;margin:0;vertical-align:middle;border-top: 1px solid #eee;border-bottom: 1px solid #eee;">
+            <table style="width:100%; padding:0px 30px 0px 30px; margin:0 auto;  background:#fff;vertical-align:middle;" cellspacing="0"
               cellpadding="0">
               <tbody>
                 <tr>
-                  <td style="padding: 15px 0;margin: 0;vertical-align: middle;border-top: 2px solid #cfcfcf;border-bottom: 2px solid #cfcfcf;">
+                  <td style="padding: 15px 15px;margin: 0;vertical-align: middle;border-top: 0px solid #cfcfcf;border-bottom: 0px solid #cfcfcf;text-align: left: ;">
                     <p style="font-family: 'Montserrat';font-size: 14px;color: #4A4A4A;line-height: 19px;font-weight: 600;margin: 0;padding: 0 0 0px 0;vertical-align: middle;margin:0;">
                       <%= fromDate %>
                     </p>
                   </td>
-                  <td style="padding: 15px 0;margin: 0;vertical-align: middle;border-top: 2px solid #cfcfcf;border-bottom: 2px solid #cfcfcf;text-align: center;">
+                  <td style="padding: 15px 15px;margin: 0;vertical-align: middle;border-top:0px solid #cfcfcf;border-bottom: 0px solid #cfcfcf;text-align: center;">
                     <img style="padding:0;margin:0;vertical-align: middle;" src="<%= icons %>Call-1.png" alt="" />
                   </td>
-                  <td style="padding: 15px 0;margin: 0;vertical-align: middle;border-top: 2px solid #cfcfcf;border-bottom: 2px solid #cfcfcf;    text-align: right;">
+                  <td style="padding: 15px 15px;margin: 0;vertical-align: middle;border-top: 0px solid #cfcfcf;border-bottom: 0px solid #cfcfcf;    text-align: right;">
                     <p style="font-family: 'Montserrat';font-size: 14px;color: #4A4A4A;line-height: 19px;font-weight: 600;margin: 0;padding: 0 0 0px 0;vertical-align: middle;margin:0;">
                       <%= toDate %>
                     </p>
@@ -172,7 +172,7 @@
         </tr>
 
         <tr>
-          <td style="background: #4990e2 ; height:auto; width:100%; display:block;padding:0;margin:0;vertical-align:middle;">
+          <td style="background: #efeff5 ; height:auto; width:100%; display:block;padding:0;margin:0;vertical-align:middle;">
              <center>
                 <table style="width:100%; padding:0;margin:0;" cellspacing="0" cellpadding="0">
                    <tr>
@@ -211,7 +211,7 @@
           </td>
        </tr>
        <tr>
-          <td style="background: #4990e2 ; height:auto; width:100%; display:block;padding:0;margin:0;vertical-align:middle;">
+          <td style="background: #efeff5 ; height:auto; width:100%; display:block;padding:0;margin:0;vertical-align:middle;">
              <center>
                 <table style="width:100%; padding:0;margin:0;" cellspacing="0" cellpadding="0">
                    <tr>
@@ -227,11 +227,11 @@
           <td style="height:auto; width:100%; display:block;padding:0;margin:0;vertical-align:middle;">
              <table style="width:100%;padding: 0 25px;margin:0;" cellspacing="0" cellpadding="0">
                 <tr>
-                   <td>
+                   <td style="width:100%; padding:0;margin:0;vertical-align:middle;">
                       <table style="width:100%;padding: 20px 0px 30px 0px;margin:0;" cellspacing="0" cellpadding="0">
                          <tr>
                             <td>
-                               <h3 style="font-family: 'Montserrat';font-size: 15px;color: #000;font-weight: 600;margin-bottom: 10px;">Primary Charges</h3>
+                               <h3 style="font-family: 'Montserrat';font-size: 15px;color: #000;font-weight: 600;margin-bottom: 10px;">Primary Charges <span style="padding: 0;margin: 0;opacity:0;">Additional Charges (<%= extended_from_date %> - <%= extended_to_date %>)</span></h3>
                             </td>
                          </tr>
                          <tr>
@@ -370,7 +370,7 @@
         <tr>
           <td style="padding:0;margin:0;vertical-align:middle;">
             <center>
-              <table style="width: 100%;padding: 30px 25px;margin: 0;background: #000;text-align: center;" cellspacing="0" cellpadding="0">
+              <table style="width: 100%;padding: 30px 20px;margin: 0;background: #000;text-align: center;" cellspacing="0" cellpadding="0">
                 <tbody>
                   <tr>
                     <td style="padding: 0 0 20px 0;margin: 0;vertical-align: middle;">
@@ -387,7 +387,7 @@
                   </tr>
                   <tr>
                     <td style="padding: 0;margin: 0;vertical-align: middle;">
-                      <p style="text-align: center;font-family: 'Montserrat';font-size: 12.5px;color: #fff;line-height: 19px;font-weight: 300;padding: 0;vertical-align: middle;margin: 0;">You are receiving this email as <%= support_email %> is registered on ABHR.if you wish to unsubscribe,
+                      <p style="text-align: center;font-family: 'Montserrat';font-size: 12px;color: #fff;line-height: 19px;font-weight: 300;padding: 0;vertical-align: middle;margin: 0;">You are receiving this email as <%= support_email %> is registered on ABHR.if you wish to unsubscribe,
                         Click here.</p>
                     </td>
                   </tr>

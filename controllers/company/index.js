@@ -127,6 +127,7 @@ router.post('/forget_password', async (req, res, next) => {
     var errors = req.validationErrors();
     if (!errors) {
         var company = await Company.findOne({ email: req.body.email, isDeleted: false }).exec();
+        var superAdminData = await User.find({ 'type': 'admin', isDeleted: false }).lean().exec();
         if (company) {
             var emailData = {
                 expire_time: moment().add(1, 'h').toDate().getTime(),
@@ -137,7 +138,14 @@ router.post('/forget_password', async (req, res, next) => {
                 subject: 'ABHR - Request for reset password'
             }
             var buffer = Buffer(JSON.stringify(emailData), 'binary').toString('base64');
-            var data = { link: config.FRONT_END_URL + '/reset-password?detials=' + buffer , name: company.name };
+            var data = { 
+                            link: config.FRONT_END_URL + '/reset-password?detials=' + buffer , 
+                            name: company.name,
+                            support_phone_number: superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+                            support_email: superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+                            carImagePath: config.CAR_IMAGES,
+                            icons: config.ICONS
+                    };
             console.log(data);
             mailHelper.send('forget_password', option, data, function (err, res) {
                 if (err) {
