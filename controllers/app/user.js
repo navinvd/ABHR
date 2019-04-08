@@ -10,6 +10,7 @@ var auth = require('./../../middlewares/auth');
 var path = require('path');
 var User = require('./../../models/users');
 var Notifications = require('./../../models/notifications');
+var CarBooking = require('./../../models/car_booking');
 var async = require("async");
 const moment = require('moment');
 
@@ -83,13 +84,74 @@ router.post('/notifications-v2', async (req, res) => {
     if (!errors) {
         try {
             // const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id) , "isDeleted" : false }).lean().exec();
-            const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id), "isDeleted": false }).sort({ "_id": -1 }).lean().exec();
-            if (notificationResp && notificationResp.length > 0) {
-                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found", data: { notifications: notificationResp } });
+            // const notificationResp = await Notifications.find({ "userId": ObjectId(req.body.user_id), "isDeleted": false }).sort({ "_id": -1 }).lean().exec();
+           
+            // add after
+            var defaultQuery = [
+                {
+                    $match : {
+                        "isDeleted": false,
+                        "userId": ObjectId(req.body.user_id)
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'car_booking',
+                        foreignField: 'booking_number',
+                        localField: 'booking_number',
+                        as: "carBookingDeatils",
+                    }
+                },
+                {
+                    $unwind: {
+                        "path": "$carBookingDeatils",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        "notificationType" : 1,
+                        "isDeleted" : 1,
+                        "userId" : 1,
+                        "deviceToken" : 1,
+                        "deviceType" : 1,
+                        "notificationText" : 1,
+                        "booking_number" : 1,
+                        "createdAt" : 1,
+                        "modifiedAt" : 1,
+                        "isRead" : 1,
+                        "trip_status" : '$carBookingDeatils.trip_status'
+                    }
+                },
+                {
+                    $sort : {
+                        _id : -1
+                    }
+                }
+               
+            ];
+
+
+            //before
+            // if (notificationResp && notificationResp.length > 0) {
+            //     // add car booking status in reposne now
+            //     res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found", data: { notifications: notificationResp } });
+            // }
+            // else {
+            //     res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been found" });
+            // }
+
+            //after
+            let noti = await Notifications.aggregate(defaultQuery);
+
+            if(noti && noti.length > 0){
+                res.status(config.OK_STATUS).json({ status: "success", message: "Notification has been found", data: { notifications: noti} });
             }
-            else {
+            else{
                 res.status(config.BAD_REQUEST).json({ status: "failed", message: "Notification has not been found" });
             }
+
         }
         catch (err) {
             res.status(config.BAD_REQUEST).json({ status: "failed", message: "Error accured while listing notifications", err });

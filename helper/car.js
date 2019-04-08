@@ -337,6 +337,7 @@ carHelper.getcarDetailbyId = async (car_id) => {
 };
 
 carHelper.getcarDetails = async (car_id) => {
+    console.log('Dm here');
     var defaultQuery = [
         {
             $match: {
@@ -471,18 +472,24 @@ carHelper.getcarDetails = async (car_id) => {
     ];
     try {
         let carDetail = await Car.aggregate(defaultQuery);
+        // console.log("Car Details =>",carDetail);
         if (carDetail && carDetail.length > 0) {
             // console.log(carDetail[0].carBookingDetails);
             if (carDetail[0].carBookingDetails && carDetail[0].carBookingDetails.length > 0) {
                 var BookingDetail = carDetail[0].carBookingDetails;
-                const DisabledDates = [];
+
+                var DisabledDates = [];
+
                 BookingDetail.forEach((Booking) => {
                     let fromDate = moment(Booking.from_time).utc().startOf('days');
                     let toDate = moment(Booking.to_time).utc().startOf('days');
-
+                    // console.log("Fromdate>>>>",fromDate)
+                    // console.log("ToDate>>>>",toDate)
+                    var dmData = []; // dm
                     var cnt = 0;
-                    
+                    var fromMnth = 1 + moment(fromDate).month(); // dm
                     while (!(moment(fromDate).isSame(toDate))) {
+                        console.log("coming here...");
                         var fromMonth = 1 + moment(fromDate).month();
                         if (carDetail[0].availableData && carDetail[0].availableData.length > 0) {
                             var availableData = carDetail[0].availableData;
@@ -493,21 +500,72 @@ carHelper.getcarDetails = async (car_id) => {
                                         calenderDates.forEach((Dates, j) => {
                                             var tempDate = moment(Dates).utc().startOf('days');
                                             if (moment(tempDate).isSame(fromDate)) {
-                                                if(DisabledDates.indexOf(fromDate) === -1){
-                                                    DisabledDates.push(fromDate);
+
+
+
+                                                // if(DisabledDates.indexOf(fromDate) === -1){
+                                                if (dmData.indexOf(fromDate) === -1) {
+
+                                                    // DisabledDates.push(fromDate);
+                                                    /*
+                                                    if(DisabledDates && DisabledDates.length > 0 ){
+                                                        DisabledDates.forEach((dsdate,i)=>{
+                                                            console.log("Ineer date=>", dsdate)
+                                                            if(dsdate.month === fromMonth){
+                                                                console.log("\n\n\n\nDM hetetjshgd", fromDate)
+                                                                // DisabledDates[i].availability.push(fromDate);                                       
+                                                            }
+                                                            else{
+                                                                var obj = {'month' : fromMonth, availability : fromDate };
+                                                                // DisabledDates.push(obj);
+                                                            }
+                                                        });
+                                                    }else{
+                                                        var obj = {'month' : fromMonth, availability : fromDate };
+                                                        // DisabledDates.push(obj);
+                                                    }
+                                                    */
+
+                                                    dmData.push(fromDate);
+
                                                 }
                                                 delete carDetail[0].availableData[i].availability[j];
                                             }
-                                            console.log('Dates=====>', Dates);
+
+                                            // console.log('Dates=====>', Dates);
                                         });
+
                                     }
                                 }
+                                // else{
+                                //     DisabledDates.forEach((dsdate,i)=>{
+                                //         if(dsdate.month === fromMonth){
+                                //             // DisabledDates[i].availability.push(fromDate);                                       
+                                //         }
+                                //         else{
+                                //             var obj = {'month' : fromMonth, availability : fromDate };
+                                //             // DisabledDates.push(obj);
+                                //         }
+                                //     });
+                                // }
+
+                                else {
+                                    if (dmData.indexOf(fromDate) === -1) {
+                                        // DisabledDates.push(fromDate);
+                                        dmData.push(fromDate);
+                                    }
+                                }
+
                             });
                         }
                         fromDate = moment(fromDate).add(1, 'days');
                     }
-                    
-                    console.log('fromDate====>', fromDate);
+
+
+                    // dm here
+                    DisabledDates.push({ 'month': fromMnth, availability: dmData });
+
+                    // console.log('fromDate====>', fromDate);
                     // if (moment(fromDate).isSame(toDate)) {
                     //     var fromMonth = 1 + moment(fromDate).month();
                     //     if (carDetail[0].availableData && carDetail[0].availableData.length > 0) {
@@ -529,13 +587,82 @@ carHelper.getcarDetails = async (car_id) => {
                     //     }
                     // }
                 });
-                carDetail[0].disabledDates = DisabledDates;
+
+
+                //Dm here
+
+                // var test = [];
+                // DisabledDates.map((d,i)=>{
+
+                //     // console.log("\n\n=>",DisabledDates[i]);
+                //     // if(DisabledDates[i].month === DisabledDates[i+1].month ){
+                //     //     console.log("Yes same here");                        
+                //     // }
+                //     test.push(d);
+                //     if(test && test.length > 0){
+
+                //         test.map((t,i)=>{
+
+                //             if(t.month === DisabledDates[i+1].month){
+                //                 console.log('Dm is calling')
+                //             }
+                //         })
+                //     }
+
+
+
+
+                // })
+
+                // carDetail[0].disabledDates = DisabledDates; // before
+
             }
+
+
+            /*
+            var RD = [];
+            DisabledDates.forEach((d, i) => {
+                // console.log("\n\n\n\n IN RD =>",d)
+                if (RD && RD.length > 0) {
+                    var flag = 0;
+                    var dmArray = [];
+                    RD.forEach((obj) => {
+                        console.log("\nObj Month=>", obj)
+                        if (obj.month === d.month) {
+                            flag = 1;
+                            dmArray = obj.availability;
+                            // obj.availability.forEach((o)=>{
+                            //     // console.log("\n\nobject O =>",o);
+                            //     // console.log("\n\nobject RD =>",RD);
+                            //     if(d.availability.indexOf(o) === -1){
+                            //         obj.availability.push(o);
+                            //     }
+                            // });    
+                        } else {
+                            RD.push({ 'month': d.month, availability: d.availability });
+                        }
+                    });
+
+                } else {
+                    RD.push({ 'month': d.month, availability: d.availability });
+                }
+
+                // console.log("\n\nPlus plus=>",RD)
+
+
+
+            });
+            */
+
+            // carDetail[0].disabledDates = RD;
+            carDetail[0].disabledDates = DisabledDates;
+
             return { status: 'success', message: "Car data found", data: carDetail }
         } else {
             return { status: 'failed', message: "No car available" };
         }
     } catch (err) {
+        console.log("Query error=>", err);
         return { status: 'failed', message: "Error occured while fetching car list", err };
     }
 };
@@ -2722,20 +2849,20 @@ carHelper.car_report = async (report_data) => {
             let car_report_data = new CarReport(report_data);
 
             let data = await car_report_data.save();
-           
-            return { status: "success", message: "Thank you for reporting a car, our team will get back to you soon!"};
+
+            return { status: "success", message: "Thank you for reporting a car, our team will get back to you soon!" };
         }
-        else{
-            if(report[0].status === 'pending'){
+        else {
+            if (report[0].status === 'pending') {
                 // return { status: "failed", message: "Your reported car is pending"};
-                return { status: "failed", message: "You already reported this issues, we will get back to you soon!"};
+                return { status: "failed", message: "You already reported this issues, we will get back to you soon!" };
             }
-            else if(report[0].status === 'resolved'){
+            else if (report[0].status === 'resolved') {
                 // return { status: "failed", message: "Your reported car is resolved"};
-                return { status: "failed", message: "Reported issues resolved, please check your email"};
+                return { status: "failed", message: "Reported issues resolved, please check your email" };
             }
-            else{
-                return { status: "failed", message: "No status"};
+            else {
+                return { status: "failed", message: "No status" };
             }
         }
     }
@@ -2830,7 +2957,7 @@ carHelper.resend_invoice = async (booking_number, email) => {
             var superAdminData = await User.find({ "type": "admin", isDeleted: false });
 
             // console.log('Rd Invoice DATA =>', JSON.stringify(invoiceData));
-            
+
 
             var invoiceData = JSON.parse(JSON.stringify(invoiceData));
 
@@ -2841,10 +2968,10 @@ carHelper.resend_invoice = async (booking_number, email) => {
 
             invoiceData.data['support_phone_number'] = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
             invoiceData.data['support_email'] = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
-            invoiceData.data['carImagePath'] = config.CAR_IMAGES; 
-            invoiceData.data['icons'] = config.ICONS; 
+            invoiceData.data['carImagePath'] = config.CAR_IMAGES;
+            invoiceData.data['icons'] = config.ICONS;
 
-            console.log("DM invoiceData=>",JSON.stringify(invoiceData.data))
+            console.log("DM invoiceData=>", JSON.stringify(invoiceData.data))
 
             // send email to customer's email
             var options = {
