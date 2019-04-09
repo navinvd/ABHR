@@ -3283,7 +3283,6 @@ router.post('/report', async (req, res) => {
             // user
             var options_user = {
                 to: userData.email,
-                // to: "dm@narola.email",
                 subject: 'ABHR - Car Report Notification'
             }
 
@@ -3312,7 +3311,7 @@ router.post('/report', async (req, res) => {
                 // super admin
                 var options_super_admin = {
                     to: superAdminData.email,
-                    // to: "dm@narola.email",
+                    // to: "anks.eagle@gmail.com",
                     subject: 'ABHR - Car Report Notification'
                 }
 
