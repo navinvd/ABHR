@@ -5,12 +5,16 @@ var config = require('./../../config');
 
 const Car = require('./../../models/cars');
 const CarBooking = require('./../../models/car_booking');
+const CarCompany = require('./../../models/car_company');
+const CompanyTermsAndCondition = require('./../../models/company_terms_and_condition');
 const Users = require('./../../models/users');
 const CarAssign = require('./../../models/car_assign_agent');
 const CarModel = require('./../../models/car_model');
 const CarHandOver = require('./../../models/car_hand_over');
 const CarHelper = require('./../../helper/car');
 const smsHelper = require('./../../helper/sms');
+const mail_helper = require('./../../helper/mail');
+
 const pushNotificationHelper = require('./../../helper/push_notification');
 const commonHelper = require('./../../helper/common');
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -607,8 +611,92 @@ router.post('/receive', async (req, res) => {
             const booking_number = req.body.booking_number;
             const userId = req.body.user_id;
             // var msg = "Your car has been return successfully"; 
-            var msg = "Our agent has recieved the car, Thank you for booking with us"; 
+            var msg = "Our agent has recieved the car, Thank you for booking with us";
             commonHelper.sendNoti(userId, parseInt(booking_number), msg);
+
+
+            // now
+
+            // var carData = await carHelper.getcarDetailbyId(ObjectId(req.body.car_id));
+            const carResp = await CarHelper.getcarDetailbyId(new ObjectId(req.body.car_id)); // resuable api
+            var bookingData = await CarBooking.findOne({ "booking_number": req.body.booking_number });
+            // console.log("Car DATA=>", carData);
+            var companyData = await CarCompany.findOne({ '_id': new ObjectId(req.body.car_rental_company_id) }).lean().exec();
+            var userData = await Users.findOne({ "_id": ObjectId(req.body.user_id) });
+            var superAdminData = await Users.find({ "type": "admin", isDeleted: false });
+            var company_term_condition = await CompanyTermsAndCondition.findOne({ 'CompanyId': new ObjectId(req.body.car_rental_company_id) }).lean().exec();
+            // send email as well now
+
+            // user
+            var options_user = {
+                to: userData.email,
+                // to: 'dipeshmali44@gmail.com',
+                subject: 'ABHR - Car has been returned'
+            }
+            // company admin
+            var options_company_admin = {
+                to: companyData.email,
+                // to: 'dm@narola.email',
+                subject: 'ABHR - Car has been returned'
+            }
+
+            var data1 = JSON.parse(JSON.stringify(bookingData));
+
+            data1.rent_price = carResp.data.carDetail.rent_price;
+
+            data1.no_of_person = carResp.data.carDetail.no_of_person;
+            data1.transmission = carResp.data.carDetail.transmission === 'manual' ? 'M' : 'A';
+
+            data1.milage = carResp.data.carDetail.milage;
+            data1.car_class = carResp.data.carDetail.car_class;
+
+            data1.driving_eligibility_criteria = carResp.data.carDetail.driving_eligibility_criteria;
+
+            data1.car_brand = carResp.data.carDetail.car_brand;
+            data1.car_model = carResp.data.carDetail.car_model;
+            data1.car_model_number = carResp.data.carDetail.car_model_number;
+            data1.car_model_release_year = carResp.data.carDetail.car_model_release_year;
+            data1.age_of_car = carResp.data.carDetail.age_of_car;
+            data1.image_name = carResp.data.carDetail.image_name;
+            data1.user_name = userData.first_name;
+            data1.company_term_condition = company_term_condition.terms_and_conditions;
+            
+            // data1.user_name = 'dipesh';
+            data1.fromDate = moment(data1.from_time).format("MMM-DD-YYYY");
+            data1.toDate = moment(data1.to_time).format("MMM-DD-YYYY");
+
+            data1.daily_rate = bookingData.booking_rent
+            data1.total = bookingData.booking_rent * bookingData.days
+            data1.vat = bookingData.vat
+            data1.final_total = ((bookingData.booking_rent * bookingData.days) + ((bookingData.booking_rent * bookingData.days * bookingData.vat) / 100))
+
+            data1.support_phone_number = superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '';
+            data1.support_email = superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '';
+            data1.carImagePath = config.CAR_IMAGES;
+            data1.icons = config.ICONS;
+
+
+
+            let mail_resp1 = await mail_helper.sendEmail_carBook("car_return", options_user, data1);
+            console.log("Mail sending response 1", mail_resp1);
+
+            var data2 = data1;
+            data2.user_name = companyData.name;
+            let mail_resp2 = await mail_helper.sendEmail_carBook("car_return", options_company_admin, data2);
+            console.log("Mail sending response 2", mail_resp2);
+
+            // super admin
+            if (superAdminData && superAdminData.length > 0) {
+                var options_super_admin = {
+                    to: superAdminData[0].email,
+                    // to: 'dipeshmali44@gmail.com',
+                    subject: 'ABHR - Car has been returned'
+                }
+                var data3 = data1;
+                data3.user_name = superAdminData[0].first_name;
+                let mail_resp3 = await mail_helper.sendEmail_carBook("car_return", options_super_admin, data3);
+                console.log("Mail sending response 3", mail_resp3);
+            }
 
         }
         else {
@@ -1291,15 +1379,15 @@ router.post('/returning_v3', async (req, res) => {
 
                     /* save notification to db start */
                     // if (deviceToken !== null) {
-                        var data = {
-                            "userId": userDeviceToken[0]._id,
-                            "deviceToken": deviceToken,
-                            "deviceType": 'ios',
-                            "notificationText": msg,
-                            "notificationType": 1,
-                            "booking_number": req.body.booking_number
-                        }
-                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    var data = {
+                        "userId": userDeviceToken[0]._id,
+                        "deviceToken": deviceToken,
+                        "deviceType": 'ios',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": req.body.booking_number
+                    }
+                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                     // }
                     /* save notification to db over */
 
@@ -1307,17 +1395,17 @@ router.post('/returning_v3', async (req, res) => {
                 } else if (userDeviceToken[0].deviceType === 'android') {
                     var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
 
-                     /* save notification to db start */
+                    /* save notification to db start */
                     //  if (deviceToken !== null) {
-                        var data = {
-                            "userId": userDeviceToken[0]._id,
-                            "deviceToken": deviceToken,
-                            "deviceType": 'android',
-                            "notificationText": msg,
-                            "notificationType": 1,
-                            "booking_number": req.body.booking_number
-                        }
-                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                    var data = {
+                        "userId": userDeviceToken[0]._id,
+                        "deviceToken": deviceToken,
+                        "deviceType": 'android',
+                        "notificationText": msg,
+                        "notificationType": 1,
+                        "booking_number": req.body.booking_number
+                    }
+                    var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                     // }
                     /* save notification to db over */
 
@@ -2616,15 +2704,15 @@ router.post('/delivering_v3', async (req, res) => {
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
-                            var data = {
-                                "userId": userData[0]._id,
-                                "deviceToken": deviceToken,
-                                "deviceType": 'ios',
-                                "notificationText": msg,
-                                "notificationType": 1,
-                                "booking_number": parseInt(req.body.booking_number)
-                            }
-                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                        var data = {
+                            "userId": userData[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'ios',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": parseInt(req.body.booking_number)
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                         // }
                         /* save notification to db over */
 
@@ -2634,15 +2722,15 @@ router.post('/delivering_v3', async (req, res) => {
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
-                            var data = {
-                                "userId": userData[0]._id,
-                                "deviceToken": deviceToken,
-                                "deviceType": 'android',
-                                "notificationText": msg,
-                                "notificationType": 1,
-                                "booking_number": parseInt(req.body.booking_number)
-                            }
-                            var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
+                        var data = {
+                            "userId": userData[0]._id,
+                            "deviceToken": deviceToken,
+                            "deviceType": 'android',
+                            "notificationText": msg,
+                            "notificationType": 1,
+                            "booking_number": parseInt(req.body.booking_number)
+                        }
+                        var saveNotiResp = await pushNotificationHelper.save_notification_to_db(data);
                         // }
                         /* save notification to db over */
 

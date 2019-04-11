@@ -38,7 +38,7 @@
                                 <tr>
                                     <td style="text-align: center;padding: 20px 0;background: #EFEFF5;margin: 0;vertical-align: middle;">
                                         <a href="" style="display: block;padding: 0;margin: 0;vertical-align: middle;font-family: Montserrat;font-size: 18px;color: rgba(0,0,0,0.90);line-height: 18px;text-decoration: none;text-transform: uppercase;font-weight: 700;">
-                                            <img style="padding:0;margin:0;vertical-align: middle;margin-right: 18px;" src="<%= icons %>congo.png" alt="" /> Report
+                                            <img style="padding:0;margin:0;vertical-align: middle;margin-right: 18px;" src="<%= icons %>congo.png" alt="" /> SUCCESSFULLY RETURNED!
                                         </a>
                                     </td>
                                 </tr>
@@ -53,8 +53,8 @@
                             <tbody>
                                 <tr>
                                     <td style="padding:0;margin:0;vertical-align:middle;text-align: left;">
-                                        <p style="padding:0;margin:0;font-family: 'Montserrat';font-size: 18px;color: #4A4A4A;line-height: 19px;font-weight: 600;margin: 0;padding: 0 0 20px 0;vertical-align: middle;margin:0;text-align: left;">Hi <%= super_admin_name %>!</p> 
-                                        <p style="padding:0;margin:0;font-family: 'Montserrat';font-size: 16px;color: #4A4A4A;line-height: 19px;font-weight: 400;margin: 0;padding: 0 0 20px 0;vertical-align: middle;margin:0;text-align: left;"><%= user_name %> just reported about "<%= car_brand %> <%= car_model %>,<%= age_of_car %>".</p>
+                                        <p style="padding:0;margin:0;font-family: 'Montserrat';font-size: 18px;color: #4A4A4A;line-height: 19px;font-weight: 600;margin: 0;padding: 0 0 20px 0;vertical-align: middle;margin:0;text-align: left;">Hi <%= user_name %>!</p> 
+                                        <p style="padding:0;margin:0;font-family: 'Montserrat';font-size: 16px;color: #4A4A4A;line-height: 19px;font-weight: 400;margin: 0;padding: 0 0 20px 0;vertical-align: middle;margin:0;text-align: left;">Vehicle has been returned successfully.</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -150,13 +150,14 @@
                     </td>
                 </tr>
 
+
                 <tr>
                     <td style="background: #EFEFF5 ; height:auto; width:100%; display:block;padding:0;margin:0;vertical-align:middle;">
                         <center>
                             <table style="width:100%; padding:0;margin:0;" cellspacing="0" cellpadding="0">
                                 <tr>
                                     <td style="width: 100%;text-align: left;padding: 20px 25px;background: #EFEFF5;margin: 0;vertical-align: middle;">
-                                        <p style="font-family: 'Montserrat';font-size: 16px;color: #000;font-weight: 600;line-height: 19px;padding: 0;vertical-align: middle;margin: 0;">Rent To</p>
+                                        <p style="font-family: 'Montserrat';font-size: 16px;color: #000;font-weight: 600;line-height: 19px;padding: 0;vertical-align: middle;margin: 0;">Terms and insurance</p>
                                     </td>
                                 </tr>
                             </table>
@@ -167,33 +168,14 @@
                 <tr>
                     <td>
                         <table style="width:100%;padding: 20px 25px 30px 25px;margin:0;" cellspacing="0" cellpadding="0">
-
                             <tr>
                                 <td>
-                                    <p style="margin: 0;font-family: 'Montserrat';font-size: 14px;font-weight: 500;color: #4A4A4A;letter-spacing: 0.3px;padding: 2px 0;"><%= user_name %></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p style="margin: 0;font-family: 'Montserrat';font-size: 14px;font-weight: 500;color: #4A4A4A;letter-spacing: 0.3px;padding:12px 0;"><%= delivery_address %></p>
-                                        <!-- <br/> C-5, Dubai, UAE.</p> -->
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p style="margin: 0;font-family: 'Montserrat';font-size: 14px;font-weight: 500;color: #4A4A4A;letter-spacing: 0.3px;padding: 2px 0;"><%= user_phone_number %></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p style="margin: 0;font-family: 'Montserrat';font-size: 14px;font-weight: 500;color: #4A4A4A;letter-spacing: 0.3px;padding: 12px 0 0 0 ;"><%= user_email %></p>
+                                    <p style="margin: 0;font-family: 'Montserrat';font-size: 14px;font-weight: 500;color: #4A4A4A;letter-spacing: 0.3px;padding: 2px 0;"><%= company_term_condition %></p>
                                 </td>
                             </tr>
                         </table>
                     </td>
-
                 </tr>
-
 
 
                 <tr>
@@ -260,6 +242,10 @@
                         </table>
                     </td>
                 </tr>
+
+
+
+
                 <tr>
                     <td style="background: #4990e2 ; height:auto; width:100%; display:block;padding:0;;margin:0;vertical-align:middle;">
                         <center>
@@ -294,7 +280,7 @@
                                     </tr>
                                     <tr>
                                         <td style="padding: 0;margin: 0;vertical-align: middle;">
-                                            <p style="text-align: center;font-family: 'Montserrat';font-size: 12.5px;color: #fff;line-height: 19px;font-weight: 300;padding: 0;vertical-align: middle;margin: 0;">You are receiving this email as <%= support_email %> is registered on ABHR.if
+                                            <p style="text-align: center;font-family: 'Montserrat';font-size: 11px;color: #fff;line-height: 19px;font-weight: 300;padding: 0;vertical-align: middle;margin: 0;">You are receiving this email as <%= support_email %> is registered on ABHR.if
                                                 you wish to unsubscribe, Click here.</p>
                                         </td>
                                     </tr>
