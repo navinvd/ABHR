@@ -630,7 +630,6 @@ router.post('/receive', async (req, res) => {
             // user
             var options_user = {
                 to: userData.email,
-                // to: 'dipeshmali44@gmail.com',
                 subject: 'ABHR - Car has been returned'
             }
             // company admin
@@ -689,7 +688,7 @@ router.post('/receive', async (req, res) => {
             if (superAdminData && superAdminData.length > 0) {
                 var options_super_admin = {
                     to: superAdminData[0].email,
-                    // to: 'dipeshmali44@gmail.com',
+                    // to: 'dm@narola.email',
                     subject: 'ABHR - Car has been returned'
                 }
                 var data3 = data1;
