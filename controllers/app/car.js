@@ -1295,6 +1295,7 @@ if (carData && carData.length > 0) {
         var notificationType = 1; // means notification for booking 
         console.log('Dev Token=>', deviceToken);
         var msg = "Your car has been booked successfully";
+        // var msg = "Congratulations your car rental booking has been confirmed, our agent is on the way to pick your car up for you";
         if (userDeviceToken[0].deviceType === 'ios') {
             var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, car_booking_number, notificationType, msg);
             /* save notification to db start */

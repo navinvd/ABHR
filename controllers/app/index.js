@@ -138,7 +138,7 @@ router.post('/registration', async (req, res, next) => {
                         const u = userData;
 
                         var option = {
-                            to: userData.email,
+                            to: userData.email,                            
                             subject: 'ABHR - Registration Notification'
                         }
                         var data = {

@@ -606,7 +606,8 @@ router.post('/receive', async (req, res) => {
             // send notification to user that your car is deliverd or handover to u
             const booking_number = req.body.booking_number;
             const userId = req.body.user_id;
-            var msg = "Your car has been return successfully"; 
+            // var msg = "Your car has been return successfully"; 
+            var msg = "Our agent has recieved the car, Thank you for booking with us"; 
             commonHelper.sendNoti(userId, parseInt(booking_number), msg);
 
         }
@@ -897,7 +898,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
 
                             // add this later on
                             // var msg = "Your car is getting ready we will notify you once our agent is on their way to deliver you car";
-                            var msg = "Congratulations your booking has been confirmed";
+                            // var msg = "Congratulations your booking has been confirmed";
+                            var msg = "Congratulations your car rental booking has been confirmed, our agent is on the way to pick your car up for you";
                             commonHelper.sendNoti(req.body.user_id, req.body.booking_number, msg);
 
                             // update car_booking table
@@ -974,7 +976,8 @@ router.post('/assign_or_not-v2', async (req, res) => {
 
                             //add this later
                             // var msg = "Your car is getting ready we will notify you once our agent is on their way to returning car from you";
-                            var msg = "Agent has accepted your return request";
+                            // var msg = "Agent has accepted your return request";
+                            var msg = "Our agent has accepted your return request, we will notify you when he's on his way so you can track him";
                             commonHelper.sendNoti(req.body.user_id, req.body.booking_number, msg);
 
                             // alredy assign for handover so just update his entry
@@ -1280,7 +1283,8 @@ router.post('/returning_v3', async (req, res) => {
                 }
 
                 var notificationType = 1; // means notification for booking 
-                var msg = "Your agent is on returning track";
+                // var msg = "Your agent is on returning track";
+                var msg = "Our agent is on the way to you to collect the car, click here to track him live";
                 console.log('Dev Token=>', deviceToken);
                 if (userDeviceToken[0].deviceType === 'ios') {
                     var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
