@@ -474,7 +474,7 @@ carHelper.getcarDetails = async (car_id) => {
         let carDetail = await Car.aggregate(defaultQuery);
         // console.log("Car Details =>",carDetail);
         if (carDetail && carDetail.length > 0) {
-            // console.log(carDetail[0].carBookingDetails);
+            console.log(carDetail[0].carBookingDetails);
             if (carDetail[0].carBookingDetails && carDetail[0].carBookingDetails.length > 0) {
                 var BookingDetail = carDetail[0].carBookingDetails;
 
@@ -504,6 +504,7 @@ carHelper.getcarDetails = async (car_id) => {
                                                     dmData.push(fromDate);
                                                 }
                                                 delete carDetail[0].availableData[i].availability[j];
+                                                // carDetail[0].availableData[i].availability[j] = null;
                                             }
 
                                             // console.log('Dates=====>', Dates);
@@ -511,7 +512,7 @@ carHelper.getcarDetails = async (car_id) => {
 
                                     }
                                 }
-                                
+
                                 else {
                                     if (dmData.indexOf(fromDate) === -1) {
                                         // DisabledDates.push(fromDate);
@@ -528,23 +529,23 @@ carHelper.getcarDetails = async (car_id) => {
                     // dm here
                     // DisabledDates.push({ 'month': fromMnth, availability: dmData }); // before
                     var flag = 0;
-                    if(DisabledDates && DisabledDates.length === 0 ){
+                    if (DisabledDates && DisabledDates.length === 0) {
                         DisabledDates.push({ 'month': fromMnth, availability: dmData });
                     }
-                    else{    
-                        DisabledDates.forEach((item,i)=>{
-                            if(item.month === fromMnth){
+                    else {
+                        DisabledDates.forEach((item, i) => {
+                            if (item.month === fromMnth) {
                                 flag = 1;
                                 // console.log('come inside loop')
-                                dmData.forEach((d,i)=>{
+                                dmData.forEach((d, i) => {
                                     item.availability.push(d);
                                 })
                             }
-                            else{
+                            else {
                                 flag = 0;
                             }
                         })
-                        if(flag === 0){
+                        if (flag === 0) {
                             DisabledDates.push({ 'month': fromMnth, availability: dmData });
                         }
                     }
