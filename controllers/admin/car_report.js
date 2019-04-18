@@ -100,22 +100,22 @@ router.post('/category_list', async (req, res, next) => {
             }
             if (typeof req.body.search !== 'undefined' && req.body.search !== null && Object.keys(req.body.search).length > 0) {
                 if (req.body.search.value) {
-                        var regex = new RegExp(req.body.search.value);
-                        var match = { $or: [] };
-                        req.body['columns'].forEach(function (obj) {
-                            if (obj.name) {
-                                var json = {};
-                                if (obj.isNumber) {
-                                    json[obj.name] = parseInt(req.body.search.value)
-                                } else {
-                                    json[obj.name] = {
-                                        "$regex": regex,
-                                        "$options": "i"
-                                    }
+                    var regex = new RegExp(req.body.search.value);
+                    var match = { $or: [] };
+                    req.body['columns'].forEach(function (obj) {
+                        if (obj.name) {
+                            var json = {};
+                            if (obj.isNumber) {
+                                json[obj.name] = parseInt(req.body.search.value)
+                            } else {
+                                json[obj.name] = {
+                                    "$regex": regex,
+                                    "$options": "i"
                                 }
-                                match['$or'].push(json)
                             }
-                        });
+                            match['$or'].push(json)
+                        }
+                    });
                     var searchQuery = {
                         $match: match
                     }
@@ -203,12 +203,12 @@ router.post('/add/category', async (req, res) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-            const categoryResp = await ReportHelper.addCategory({"category_name": req.body.category_name});
-            if (categoryResp.status === 'success') {
-                res.status(config.OK_STATUS).json(categoryResp);
-            } else {
-                res.status(config.BAD_REQUEST).json(categoryResp);
-            }
+        const categoryResp = await ReportHelper.addCategory({ "category_name": req.body.category_name });
+        if (categoryResp.status === 'success') {
+            res.status(config.OK_STATUS).json(categoryResp);
+        } else {
+            res.status(config.BAD_REQUEST).json(categoryResp);
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
@@ -332,40 +332,40 @@ router.post('/list', async (req, res, next) => {
     if (!errors) {
         var defaultQuery = [
             {
-                "$sort":{
+                "$sort": {
                     "createdAt": -1
                 }
             },
             {
-              "$match": {
-                "isDeleted": false,
-              }
+                "$match": {
+                    "isDeleted": false,
+                }
             },
             {
-              "$lookup": {
-                "from": "report_category",
-                "localField": "report_type",
-                "foreignField": "_id",
-                "as": "categoryDetails",
-              }
+                "$lookup": {
+                    "from": "report_category",
+                    "localField": "report_type",
+                    "foreignField": "_id",
+                    "as": "categoryDetails",
+                }
             },
             {
-              "$unwind": {
-                "path": "$categoryDetails",
-                "preserveNullAndEmptyArrays": true
-              }
+                "$unwind": {
+                    "path": "$categoryDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
             },
             {
-              "$project": {
-                "_id": 1,
-                "booking_number": 1,
-                "category_type": "$categoryDetails.category_name",
-                "report_message": 1,
-                "status":1,
-                "createdAt":1
-              }
+                "$project": {
+                    "_id": 1,
+                    "booking_number": 1,
+                    "category_type": "$categoryDetails.category_name",
+                    "report_message": 1,
+                    "status": 1,
+                    "createdAt": 1
+                }
             }
-          ];
+        ];
 
         if (typeof req.body.search !== "undefined" && req.body.search !== null && Object.keys(req.body.search).length > 0 && req.body.search.value !== '') {
             if (req.body.search.value != undefined && req.body.search.value !== '') {
@@ -398,17 +398,17 @@ router.post('/list', async (req, res, next) => {
             var colIndex = req.body.order[0].column;
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
-            if(req.body.columns[colIndex].isNumber){
-                if(order == "asc"){
+            if (req.body.columns[colIndex].isNumber) {
+                if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: 1 }
                     });
-                }else{
+                } else {
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: -1 }
                     });
                 }
-            }else{
+            } else {
                 colname = '$' + colname;
                 if (order == "asc") {
                     defaultQuery = defaultQuery.concat({
@@ -430,14 +430,14 @@ router.post('/list', async (req, res, next) => {
                             "sort_index": { "$toLower": [colname] }
                         }
                     },
-                    {
-                        $sort: {
-                            "sort_index": -1
-                        }
-                    },
-                    {
-                        $replaceRoot: { newRoot: "$records" }
-                    })
+                        {
+                            $sort: {
+                                "sort_index": -1
+                            }
+                        },
+                        {
+                            $replaceRoot: { newRoot: "$records" }
+                        })
                 }
             }
         }
@@ -497,12 +497,16 @@ router.post('/change_status', async (req, res, next) => {
         'status': {
             notEmpty: true,
             errorMessage: "status is required"
+        },
+        'resolved_message': {
+            notEmpty: true,
+            errorMessage: "status is required"
         }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        try{
+        try {
             var cond = {
                 "_id": new ObjectId(req.body.report_id),
                 "isDeleted": false
@@ -514,7 +518,7 @@ router.post('/change_status', async (req, res, next) => {
                 }
             };
             check = await Report.update(cond, updateData);
-            if(check.n === 1 && check.nModified === 1){
+            if (check.n === 1 && check.nModified === 1) {
                 var defaultQuery = [
                     {
                         "$match": {
@@ -522,54 +526,54 @@ router.post('/change_status', async (req, res, next) => {
                             "isDeleted": false
                         }
                     },
-                    { 
-                        '$lookup':{ 
+                    {
+                        '$lookup': {
                             from: 'users',
                             localField: 'user_id',
                             foreignField: '_id',
-                            as: 'userDetails' 
-                        } 
+                            as: 'userDetails'
+                        }
                     },
                     {
-                      "$unwind": {
-                        "path": "$userDetails",
-                        "preserveNullAndEmptyArrays": true
-                      }
+                        "$unwind": {
+                            "path": "$userDetails",
+                            "preserveNullAndEmptyArrays": true
+                        }
                     },
-                    { 
-                        '$lookup':{ 
+                    {
+                        '$lookup': {
                             from: 'cars',
                             localField: 'car_id',
                             foreignField: '_id',
-                            as: 'car_details' 
-                        } 
+                            as: 'car_details'
+                        }
                     },
-                    { 
-                        '$unwind': { 
-                            path: '$car_details' 
-                        } 
+                    {
+                        '$unwind': {
+                            path: '$car_details'
+                        }
                     },
-                    { 
-                        '$lookup':{ 
+                    {
+                        '$lookup': {
                             from: 'car_model',
                             localField: 'car_details.car_model_id',
                             foreignField: '_id',
-                            as: 'car_model' 
-                        } 
+                            as: 'car_model'
+                        }
                     },
-                    { 
-                        '$unwind': '$car_model' 
+                    {
+                        '$unwind': '$car_model'
                     },
-                    { 
-                        '$lookup':{ 
+                    {
+                        '$lookup': {
                             from: 'car_brand',
                             localField: 'car_details.car_brand_id',
                             foreignField: '_id',
-                            as: 'car_brand' 
-                        } 
+                            as: 'car_brand'
+                        }
                     },
-                    { 
-                        '$unwind': '$car_brand' 
+                    {
+                        '$unwind': '$car_brand'
                     },
                     {
                         $project: {
@@ -578,8 +582,8 @@ router.post('/change_status', async (req, res, next) => {
                             user_email: "$userDetails.email",
                             car_brand: "$car_brand.brand_name",
                             car_modal: "$car_model.model_name",
-                            release_year : "$car_model.release_year",
-                            createdAt:1
+                            release_year: "$car_model.release_year",
+                            createdAt: 1
                         }
                     }
                 ];
@@ -590,14 +594,18 @@ router.post('/change_status', async (req, res, next) => {
                     to: checkUser[0].user_email,
                     subject: 'ABHR - Car Report Notification'
                 }
-                if(req.body.status === 'pending'){
-                    var data = { name: checkUser[0].user_name , 
+                if (req.body.status === 'pending') {
+                    var data = {
+                        name: checkUser[0].user_name,
                         message: `You report for “${checkUser[0].car_brand} ${checkUser[0].car_modal}” has been resubmitted successfully.`,
-                        report_message : ''};
-                }else{
-                    var data = { name: checkUser[0].user_name , 
+                        report_message: ''
+                    };
+                } else {
+                    var data = {
+                        name: checkUser[0].user_name,
                         message: `Your report for “${checkUser[0].car_brand} ${checkUser[0].car_modal}” has been resolved successfully.`,
-                        report_message : req.body.resolved_message? req.body.resolved_message : ''};
+                        report_message: req.body.resolved_message ? req.body.resolved_message : ''
+                    };
                 }
                 await mailHelper.send('car_report', option, data, function (err, res) {
                     if (err) {
@@ -608,15 +616,15 @@ router.post('/change_status', async (req, res, next) => {
                 })
                 res.status(config.OK_STATUS).json({
                     message: "Status Changed Successfully",
-                    status : "success"
+                    status: "success"
                 });
-            }else{
+            } else {
                 res.status(config.OK_STATUS).json({
                     message: "Status not Changed Successfully",
-                    status : "failed"
+                    status: "failed"
                 });
             }
-        } catch(e){
+        } catch (e) {
             res.status(config.BAD_REQUEST).json({
                 message: "Something Went Wrong",
                 error: e
@@ -656,7 +664,7 @@ router.post('/details', async (req, res, next) => {
     req.checkBody(schema);
     var errors = req.validationErrors();
     if (!errors) {
-        try{
+        try {
             var defaultQuery = [
                 {
                     "$match": {
@@ -664,13 +672,13 @@ router.post('/details', async (req, res, next) => {
                         "isDeleted": false
                     }
                 },
-                { 
-                    '$lookup':{ 
+                {
+                    '$lookup': {
                         from: 'users',
                         localField: 'user_id',
                         foreignField: '_id',
-                        as: 'userDetails' 
-                    } 
+                        as: 'userDetails'
+                    }
                 },
                 {
                     "$unwind": {
@@ -678,29 +686,29 @@ router.post('/details', async (req, res, next) => {
                         "preserveNullAndEmptyArrays": true
                     }
                 },
-                { 
-                    '$lookup':{ 
+                {
+                    '$lookup': {
                         from: 'car_booking',
                         localField: 'booking_number',
                         foreignField: 'booking_number',
-                        as: 'bookingDetails' 
-                    } 
+                        as: 'bookingDetails'
+                    }
                 },
                 {
-            
-            
+
+
                     "$unwind": {
                         "path": "$bookingDetails",
                         "preserveNullAndEmptyArrays": true
                     }
                 },
-                { 
-                    '$lookup':{ 
+                {
+                    '$lookup': {
                         from: 'cars',
                         localField: 'car_id',
                         foreignField: '_id',
-                        as: 'car_details' 
-                    } 
+                        as: 'car_details'
+                    }
                 },
                 {
                     "$unwind": {
@@ -708,13 +716,13 @@ router.post('/details', async (req, res, next) => {
                         "preserveNullAndEmptyArrays": true
                     }
                 },
-                { 
-                    '$lookup':{ 
+                {
+                    '$lookup': {
                         from: 'car_model',
                         localField: 'car_details.car_model_id',
                         foreignField: '_id',
-                        as: 'car_model' 
-                    } 
+                        as: 'car_model'
+                    }
                 },
                 {
                     "$unwind": {
@@ -722,13 +730,13 @@ router.post('/details', async (req, res, next) => {
                         "preserveNullAndEmptyArrays": true
                     }
                 },
-                { 
-                    '$lookup':{ 
+                {
+                    '$lookup': {
                         from: 'car_brand',
                         localField: 'car_details.car_brand_id',
                         foreignField: '_id',
-                        as: 'car_brand' 
-                    } 
+                        as: 'car_brand'
+                    }
                 },
                 {
                     "$unwind": {
@@ -737,15 +745,16 @@ router.post('/details', async (req, res, next) => {
                     }
                 },
                 {
-                    $project:{
-                        "_id":1,
-                        "user_name": {$concat: ["$userDetails.first_name"," ","$userDetails.last_name"]},
+                    $project: {
+                        "_id": 1,
+                        "user_name": { $concat: ["$userDetails.first_name", " ", "$userDetails.last_name"] },
                         "booking_number": 1,
                         "report_message": 1,
+                        "resolved_message": 1,
                         "status": 1,
                         "user_email": "$userDetails.email",
                         "user_phone_number": "$userDetails.phone_number",
-                        "car_model":"$car_model.model_name",
+                        "car_model": "$car_model.model_name",
                         // "car_model": 1,
                         "car_brand": "$car_brand.brand_name",
                         // "car_brand":1,
@@ -765,85 +774,112 @@ router.post('/details', async (req, res, next) => {
                         "age_of_car": "$car_details.age_of_car",
                         "createdAt": 1,
                         "from_time": "$bookingDetails.from_time",
-                        "to_time": { $subtract: [ "$bookingDetails.to_time", 1*24*60*60000 ] },
+                        "to_time": { $subtract: ["$bookingDetails.to_time", 1 * 24 * 60 * 60000] },
                         "vat_amount": {
                             "$cond": {
-                              "if": {"$eq":["$bookingDetails.coupon_code", null]},
-                              "then": {$divide :[
-                                            {$multiply : [
-                                                {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.days"]}, 
+                                "if": { "$eq": ["$bookingDetails.coupon_code", null] },
+                                "then": {
+                                    $divide: [
+                                        {
+                                            $multiply: [
+                                                { $multiply: ["$bookingDetails.booking_rent", "$bookingDetails.days"] },
                                                 "$bookingDetails.vat"
-                                            ]},
-                                            100
-                                        ]},
-                              "else":{
-                                  $divide :[
-                                            {$multiply : [
-                                                {$subtract: [ 
-                                                    {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.days"]},
-                                                    {$divide :[
-                                                        {$multiply : [
-                                                            {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.days"]}, 
-                                                            "$bookingDetails.coupon_percentage"
-                                                        ]},
-                                                        100
-                                                    ]}
-                                               ]}, 
+                                            ]
+                                        },
+                                        100
+                                    ]
+                                },
+                                "else": {
+                                    $divide: [
+                                        {
+                                            $multiply: [
+                                                {
+                                                    $subtract: [
+                                                        { $multiply: ["$bookingDetails.booking_rent", "$bookingDetails.days"] },
+                                                        {
+                                                            $divide: [
+                                                                {
+                                                                    $multiply: [
+                                                                        { $multiply: ["$bookingDetails.booking_rent", "$bookingDetails.days"] },
+                                                                        "$bookingDetails.coupon_percentage"
+                                                                    ]
+                                                                },
+                                                                100
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
                                                 "$bookingDetails.vat"
-                                            ]},
-                                            100
-                                        ]}
-                                    }
+                                            ]
+                                        },
+                                        100
+                                    ]
+                                }
+                            }
                         },
                         "extend_vat_amount": {
-                          "$cond": {
-                            "if": {"$eq":["$bookingDetails.coupon_code", null]},
-                            "then": {$divide :[
-                                          {$multiply : [
-                                              {$multiply : ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"]}]}, 
-                                              "$bookingDetails.vat"
-                                          ]},
-                                          100
-                                      ]},
-                            "else":{
-                                $divide :[
-                                          {$multiply : [
-                                              {$subtract: [ 
-                                                  {$multiply : ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"]}]},
-                                                  {$divide :[
-                                                      {$multiply : [
-                                                          {$multiply : ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"]}]}, 
-                                                          "$bookingDetails.coupon_percentage"
-                                                      ]},
-                                                      100
-                                                  ]}
-                                             ]}, 
-                                              "$bookingDetails.vat"
-                                          ]},
-                                          100
-                                      ]}
-                                  }
+                            "$cond": {
+                                "if": { "$eq": ["$bookingDetails.coupon_code", null] },
+                                "then": {
+                                    $divide: [
+                                        {
+                                            $multiply: [
+                                                { $multiply: ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"] }] },
+                                                "$bookingDetails.vat"
+                                            ]
+                                        },
+                                        100
+                                    ]
+                                },
+                                "else": {
+                                    $divide: [
+                                        {
+                                            $multiply: [
+                                                {
+                                                    $subtract: [
+                                                        { $multiply: ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"] }] },
+                                                        {
+                                                            $divide: [
+                                                                {
+                                                                    $multiply: [
+                                                                        { $multiply: ["$bookingDetails.booking_rent", { $add: ["$bookingDetails.extended_days", "$bookingDetails.days"] }] },
+                                                                        "$bookingDetails.coupon_percentage"
+                                                                    ]
+                                                                },
+                                                                100
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                "$bookingDetails.vat"
+                                            ]
+                                        },
+                                        100
+                                    ]
+                                }
+                            }
                         },
-                        "booking_amount": {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.days"]},
-                        "extended_days": { $ifNull: [ "$bookingDetails.extended_days", null ] },
-                        "extend_booking_amount": {$multiply : ["$bookingDetails.booking_rent", "$bookingDetails.extended_days"]},
+                        "booking_amount": { $multiply: ["$bookingDetails.booking_rent", "$bookingDetails.days"] },
+                        "extended_days": { $ifNull: ["$bookingDetails.extended_days", null] },
+                        "extend_booking_amount": { $multiply: ["$bookingDetails.booking_rent", "$bookingDetails.extended_days"] },
                         "total_booking_amount": "$bookingDetails.total_booking_amount"
                     }
                 },
                 {
-                    $project:{
-                        "_id":1,
+                    $project: {
+                        "_id": 1,
                         "user_name": 1,
                         "booking_number": 1,
                         "report_message": 1,
+                        "resolved_message": 1,
                         "status": 1,
                         "user_email": 1,
                         "user_phone_number": 1,
-                        "car_model":1,
+                        "car_model": 1,
                         // "car_model": 1,
                         "car_brand": 1,
-                        "from_time":1,
-                        "to_time":1,
+                        "from_time": 1,
+                        "to_time": 1,
                         // "car_brand":1,
                         "is_navigation": 1,
                         "is_AC": 1,
@@ -863,33 +899,33 @@ router.post('/details', async (req, res, next) => {
                         "vat_amount": 1,
                         "extend_vat_amount": 1,
                         "booking_amount": 1,
-                        "extended_days":1,
+                        "extended_days": 1,
                         "extend_booking_amount": 1,
                         "total_booking_amount": 1,
                         "AED": {
                             "$cond": {
-                              "if": {"$eq":["$extended_days", null]},
-                              "then": {$add :["$booking_amount","$vat_amount"]},
-                              "else":{$add :["$booking_amount","$extend_vat_amount","$extend_booking_amount"]}
+                                "if": { "$eq": ["$extended_days", null] },
+                                "then": { $add: ["$booking_amount", "$vat_amount"] },
+                                "else": { $add: ["$booking_amount", "$extend_vat_amount", "$extend_booking_amount"] }
                             }
                         },
                     }
                 }
             ];
             checkUser = await Report.aggregate(defaultQuery);
-            if(checkUser && typeof checkUser !== 'undefined' && checkUser.length >0){
+            if (checkUser && typeof checkUser !== 'undefined' && checkUser.length > 0) {
                 res.status(config.OK_STATUS).json({
                     message: "Report Data got Successfully",
-                    status : "success",
+                    status: "success",
                     data: checkUser[0]
                 });
-            }else{
+            } else {
                 res.status(config.OK_STATUS).json({
                     message: "No Data found",
-                    status : "success"
+                    status: "success"
                 });
             }
-        } catch(e){
+        } catch (e) {
             res.status(config.BAD_REQUEST).json({
                 message: "Something Went Wrong",
                 error: e
