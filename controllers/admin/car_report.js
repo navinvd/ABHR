@@ -498,10 +498,10 @@ router.post('/change_status', async (req, res, next) => {
             notEmpty: true,
             errorMessage: "status is required"
         },
-        'resolved_message': {
-            notEmpty: true,
-            errorMessage: "status is required"
-        }
+        // 'resolved_message': {
+        //     notEmpty: false,
+        //     errorMessage: "status is required"
+        // }
     };
     req.checkBody(schema);
     var errors = req.validationErrors();
