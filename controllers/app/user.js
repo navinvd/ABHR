@@ -1413,7 +1413,122 @@ router.post('/new-password', async (req, res) => {
     }
 });
 
+/* hemanth added code 22-04-2019*/
+router.get('/checkbooking/:id', (req, res, next) => {
+       var userId = new ObjectId(req.params.id);
+       var notitext = '';
+        CarBooking.findOne({ userId: { $eq:userId }},null,{sort: {createdAt: -1 }}, function (err, data) {
+        if (err) {
+            return next(err);
+        } else {
+//console.log(data);
+            var booking_number = data.booking_number;
+           // console.log(booking_number);
+            Notifications.findOne({ booking_number: { $eq:booking_number }},null,{sort: {createdAt: -1 }}, function (err, notiData) {
+                if (err && booking_number!='') {
+                    return next(err);
+                } else {
+                    if(notiData.notificationText == 'Your car is on the way. Tap here to track the car'){
+                        notitext = 'A Car is on the way to you';
+                    }else
+                    if(notiData.notificationText == 'Congratulations your car rental booking has been confirmed, our agent is on the way to pick your car up for you'){
+                        notitext = 'Our agent is picking your car up';
+                    }else
+                    if(notiData.notificationText == 'Your agent is on returning track'){
+                        notitext = 'Our agent is on the way to you for pick up';
+                    }else{
+                        notitext = '';
+                    }
+                    if(notitext = ''){
+                        res.status(config.BAD_REQUEST).json({
+                            status: 'failed',
+                            message: "Error",
+                            errors
+                        });
+                    }else{
+                        res.status(config.OK_STATUS).json({
+                        status: 'success',
+                        message: "Success",
+                        //bookingData: data,
+                        data: {
+                            booking_number: notiData.booking_number,
+                            notificationText: notitext
+                        }
+                    });
+                    }
+                    
+                }
+            });
+         
+        }
+    });
 
+});
+
+router.post('/contactform', async (req, res, next) => {
+    var schema = {
+        'name': {
+            notEmpty: true,
+            errorMessage: "Name is required"
+        },
+        'email': {
+            notEmpty: true,
+            errorMessage: "Email is required"
+        },
+        'phone': {
+            notEmpty: true,
+            errorMessage: "Phone is required"
+        },
+        'message': {
+            notEmpty: true,
+            errorMessage: "Message is required"
+        }
+    };
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+    if (!errors) {
+        var Data = {
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
+            message: req.body.message
+            //app_user_status: "contact form"
+        };
+       
+
+                        var option = {
+                            to: 'info@myabhr.com',
+                            subject: 'ABHR - Contact Request Form'
+                        }
+                        var data = {
+                            name: req.body.name,
+                            email: req.body.email,
+                            phone: req.body.phone,
+                            message: req.body.message
+                        }
+                        mailHelper.send('', option, data, function (err, res) {
+                            if (err) {
+                                console.log('Mail Err:');
+                            } else {
+                                console.log('Mail Success:');
+                            }
+                        })
+                        var result = {
+                            status: 'success',
+                            message: "Contactform submitted successfully.",
+                            data: { user: data },
+                            token: token
+                        };
+                        res.status(config.OK_STATUS).json(result);
+        
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "Validation Error",
+            errors
+        });
+    }
+});
 
 
 module.exports = router;
