@@ -1521,6 +1521,7 @@ router.post('/contactform', async (req, res, next) => {
                         };
                         res.status(config.OK_STATUS).json(result);*/
                     let mail_resp = await mail_helper.sendEmailContactform("email_verification", option, data);
+        console.log("mail_resp=======> ",mail_resp);
         if (mail_resp.status === 'success') {
             res.status(config.OK_STATUS).json({ status: 'success', message: "mail sent", data: data })
         }
