@@ -92,7 +92,7 @@ push_notification_helper.sendToAndroid = async (device_token, car_booking_number
 }
 
 // send notification to user when new car has been booked 
-push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, message_text) => {
+push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, message_text, status = '') => {
     console.log('Token ARRAY =>>>>', device_token);
 
     try {
@@ -102,6 +102,7 @@ push_notification_helper.sendToAndroidUser = (device_token, car_booking_number, 
             priority: 'high',
             data: {  //you can send only notification or only data(or include both)
                 booking_number: car_booking_number,
+                status: status,
                 title: 'ABHR',
                 message: message_text,
                 body: message_text
@@ -169,12 +170,12 @@ push_notification_helper.sendToAndroidAgent = (device_token, car_booking_number,
 
 
 // Send push notification to user IOS APP when new car book
-push_notification_helper.sendToIOS = async (device_token, car_booking_number, notificationType, message = '') => {
+push_notification_helper.sendToIOS = async (device_token, car_booking_number, notificationType, message = '', status = '') => {
     try {
         var note = new apn.Notification();
 
         note.alert = message;
-        note.payload = { "booking_number": car_booking_number, "notification_type": notificationType };
+        note.payload = { "booking_number": car_booking_number, "status": status, "notification_type": notificationType };
         note.topic = "com.Abhr";
         let result = await apnProvider.send(note, device_token);
 
