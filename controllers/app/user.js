@@ -1506,7 +1506,7 @@ router.post('/contactform', async (req, res, next) => {
                             phone: req.body.phone,
                             message: req.body.message
                         }
-                        mailHelper.send('/welcome_email', option, data, function (err, res) {
+                        mail_helper.send('/welcome_email', option, data, function (err, res) {
                             if (err) {
                                 console.log('Mail Err:');
                             } else {
