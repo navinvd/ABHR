@@ -151,7 +151,7 @@ mail_helper.sendEmailContactform = async (template_name, options, data) => {
         return { status: 'success', message: "Email has been sent"}  
     }
     catch (err) {
-        return { status: 'failed', message: "Error occured while sending otp to your email address" }
+        return { status: 'failed', message: email_data }
     }
 };
 
