@@ -1439,7 +1439,7 @@ router.get('/checkbooking/:id', (req, res, next) => {
                     }else{
                         notitext = '';
                     }
-                    if(notitext = ''){
+                    if(notitext == ''){
                         res.status(config.BAD_REQUEST).json({
                             status: 'failed',
                             message: "Error",
