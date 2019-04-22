@@ -151,7 +151,7 @@ mail_helper.sendEmailContactform = async (template_name, options, data) => {
         return { status: 'success', message: "Email has been sent"}  
     }
     catch (err) {
-        return { status: 'failed', message: err }
+        return { status: 'failed', message: "Error" }
     }
 };
 
