@@ -1526,7 +1526,7 @@ router.post('/contactform', async (req, res, next) => {
             res.status(config.OK_STATUS).json({ status: 'success', message: "mail sent", data: data })
         }
         else {
-            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accures while sending email" })
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: mail_resp })
         }
     } else {
         res.status(config.BAD_REQUEST).json({
