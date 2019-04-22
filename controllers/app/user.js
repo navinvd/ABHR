@@ -1520,7 +1520,7 @@ router.post('/contactform', async (req, res, next) => {
                             token: token
                         };
                         res.status(config.OK_STATUS).json(result);*/
-                    let mail_resp = await mail_helper.sendEmail("contact_form", option, data, 'hemanth@virtualdusk.com');
+                    let mail_resp = await mail_helper.sendEmailContactform("contact_form", option, data);
         if (mail_resp.status === 'success') {
             res.status(config.OK_STATUS).json({ status: 'success', message: "mail sent", data: data })
         }
