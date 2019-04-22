@@ -1497,7 +1497,7 @@ router.post('/contactform', async (req, res, next) => {
        
 
                         var option = {
-                            to: 'info@myabhr.com',
+                            to: 'hemanth@virtualdusk.com',
                             subject: 'ABHR - Contact Request Form'
                         }
                         var data = {
@@ -1506,7 +1506,7 @@ router.post('/contactform', async (req, res, next) => {
                             phone: req.body.phone,
                             message: req.body.message
                         }
-                        mail_helper.send('/welcome_email', option, data, function (err, res) {
+                     /*   mail_helper.send('/welcome_email', option, data, function (err, res) {
                             if (err) {
                                 console.log('Mail Err:');
                             } else {
@@ -1519,8 +1519,14 @@ router.post('/contactform', async (req, res, next) => {
                             data: { user: data },
                             token: token
                         };
-                        res.status(config.OK_STATUS).json(result);
-        
+                        res.status(config.OK_STATUS).json(result);*/
+                    let mail_resp = await mail_helper.sendEmail("contact_form", option, data, 'hemanth@virtualdusk.com');
+        if (mail_resp.status === 'success') {
+            res.status(config.OK_STATUS).json({ status: 'success', message: "mail sent", data: data })
+        }
+        else {
+            res.status(config.BAD_REQUEST).json({ status: 'failed', message: "Error accures while sending email" })
+        }
     } else {
         res.status(config.BAD_REQUEST).json({
             status: 'failed',
