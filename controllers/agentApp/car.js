@@ -1372,9 +1372,10 @@ router.post('/returning_v3', async (req, res) => {
                 var notificationType = 1; // means notification for booking 
                 // var msg = "Your agent is on returning track";
                 var msg = "Our agent is on the way to you to collect the car, click here to track him live";
+                var status = 1;
                 console.log('Dev Token=>', deviceToken);
                 if (userDeviceToken[0].deviceType === 'ios') {
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg);
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg, status);
 
                     /* save notification to db start */
                     // if (deviceToken !== null) {
@@ -1392,7 +1393,7 @@ router.post('/returning_v3', async (req, res) => {
 
 
                 } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg);
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg, status);
 
                     /* save notification to db start */
                     //  if (deviceToken !== null) {
@@ -2698,8 +2699,9 @@ router.post('/delivering_v3', async (req, res) => {
                     var notificationType = 1; // means notification for booking 
                     // var msg = "Your agent is on delivering track";
                     var msg = "Your car is on the way. Tap here to track the car";
+                    var status = 1;
                     if (userData[0].deviceType === 'ios') {
-                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, parseInt(req.body.booking_number), notificationType, msg);
+                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, parseInt(req.body.booking_number), notificationType, msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
@@ -2717,7 +2719,7 @@ router.post('/delivering_v3', async (req, res) => {
 
 
                     } else if (userData[0].deviceType === 'android') {
-                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), msg);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
