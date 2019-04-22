@@ -107,8 +107,8 @@ mail_helper.Resend_Invoice = async (template_name, options, data) => {
         // console.log("Mail DAta :",data);
         // data = JSON.parse(JSON.stringify(data));
 
-        console.log("DATATATATATAT=======> ",data);
-
+//         console.log("DATATATATATAT=======> ",data);
+        data = JSON.parse(JSON.stringify(data));
         var email_data = await template_sender({ to: options.to, subject: options.subject }, data);
         return { status: 'success', message: "Email has been sent"}      
     }
@@ -142,11 +142,12 @@ mail_helper.sendEmailContactform = async (template_name, options, data) => {
 
     try {
         var email_data = await template_sender({ to: options.to, subject: options.subject }, data);
+        console.log("DATATATATATAT=======> ",email_data);
         /*var id = { _id: new ObjectId(user_id) }
         // var new_data = { $set: { otp_email: data.otp, is_email_verified: false } };
         var new_data = { $set: { otp_email: data.otp, email_verified: 1 } };
         var datta = await User.update(id, new_data);*/
-
+        
         return { status: 'success', message: "Email has been sent"}  
     }
     catch (err) {
