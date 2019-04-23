@@ -1445,18 +1445,18 @@ router.get('/checkbooking/:id', (req, res, next) => {
                              status: 'failed',
                             message: "Error"
                          });
-                        console.log('Empty');
+                        
                     }else{
                         res.status(config.OK_STATUS).json({
                         status: 'success',
                         message: "Success",
                         //bookingData: data,
                         data: {
-                            booking_number: data._id,
+                            booking_number: notiData.booking_number,
                             notificationText: notitext
                         }
                     });
-                        console.log('Success');
+                        
                     }
                     
                 }
