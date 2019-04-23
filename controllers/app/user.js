@@ -1452,7 +1452,7 @@ router.get('/checkbooking/:id', (req, res, next) => {
                         message: "Success",
                         //bookingData: data,
                         data: {
-                            booking_number: notiData.booking_number,
+                            booking_number: data._id,
                             notificationText: notitext
                         }
                     });
