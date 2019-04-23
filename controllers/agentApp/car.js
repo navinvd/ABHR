@@ -2689,7 +2689,7 @@ router.post('/delivering_v3', async (req, res) => {
 
             var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
             var deviceToken = null;
-var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj1 });
+//var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj1 });
             // Push notification //
             console.log('User token =>', userData);
             if (userData[0].deviceToken !== undefined && userData[0].deviceToken !== null) {
