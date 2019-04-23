@@ -1375,7 +1375,7 @@ router.post('/returning_v3', async (req, res) => {
                 var status = 1;
                 console.log('Dev Token=>', deviceToken);
                 if (userDeviceToken[0].deviceType === 'ios') {
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, user_id._id, notificationType, msg, status);
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg, status);
 
                     /* save notification to db start */
                     // if (deviceToken !== null) {
@@ -1393,7 +1393,7 @@ router.post('/returning_v3', async (req, res) => {
 
 
                 } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, user_id._id, msg, status);
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg, status);
 
                     /* save notification to db start */
                     //  if (deviceToken !== null) {
@@ -2689,7 +2689,7 @@ router.post('/delivering_v3', async (req, res) => {
 
             var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
             var deviceToken = null;
-var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_number }, { _id: 0, userId: 1 }).lean().exec();
+var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj1 });
             // Push notification //
             console.log('User token =>', userData);
             if (userData[0].deviceToken !== undefined && userData[0].deviceToken !== null) {
@@ -2701,7 +2701,7 @@ var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_numb
                     var msg = "Your car is on the way. Tap here to track the car";
                     var status = 1;
                     if (userData[0].deviceType === 'ios') {
-                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, user_id._id, notificationType, msg, status);
+                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
@@ -2719,7 +2719,7 @@ var user_id = await CarBooking.findOne({ 'booking_number': req.body.booking_numb
 
 
                     } else if (userData[0].deviceType === 'android') {
-                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, user_id._id, msg, status);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
