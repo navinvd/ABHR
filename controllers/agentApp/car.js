@@ -1393,7 +1393,7 @@ router.post('/returning_v3', async (req, res) => {
 
 
                 } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, booking_details._id, msg, status);
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, bookinghemanth._id, msg, status);
 
                     /* save notification to db start */
                     //  if (deviceToken !== null) {
@@ -2720,7 +2720,7 @@ router.post('/delivering_v3', async (req, res) => {
 
 
                     } else if (userData[0].deviceType === 'android') {
-                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, booking_details._id, msg, status);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, bookinghemanth._id, msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
