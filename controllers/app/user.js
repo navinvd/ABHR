@@ -1502,12 +1502,19 @@ router.post('/contactform', async (req, res, next) => {
                             to: 'hemanth@virtualdusk.com',
                             subject: 'ABHR - Contact Request Form'
                         }
-                        var data = {
+                       /* var data = {
                             name: req.body.name,
                             email: req.body.email,
                             phone: req.body.phone,
                             message: req.body.message
-                        }
+                        }*/
+                        var data = {
+            otp: Math.floor(100000 + Math.random() * 900000),
+            support_phone_number : '',
+            support_email : 'hemanth@gmail.com',
+            carImagePath : '',
+            icons : ''
+        }
                      /*   mail_helper.send('/welcome_email', option, data, function (err, res) {
                             if (err) {
                                 console.log('Mail Err:');
