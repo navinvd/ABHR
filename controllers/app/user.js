@@ -1440,11 +1440,12 @@ router.get('/checkbooking/:id', (req, res, next) => {
                         notitext = '';
                     }
                     if(notitext == ''){
-                        res.status(config.BAD_REQUEST).json({
-                            status: 'failed',
-                            message: "Error",
-                            errors
-                        });
+                        // res.status(config.BAD_REQUEST).json({
+                        //     status: 'failed',
+                        //     message: "Error",
+                        //     errors
+                        // });
+                        console.log('Empty');
                     }else{
                         res.status(config.OK_STATUS).json({
                         status: 'success',
@@ -1455,6 +1456,7 @@ router.get('/checkbooking/:id', (req, res, next) => {
                             notificationText: notitext
                         }
                     });
+                        console.log('Success');
                     }
                     
                 }
