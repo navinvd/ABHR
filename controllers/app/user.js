@@ -1512,9 +1512,8 @@ router.post('/contactform', async (req, res, next) => {
             name: req.body.name,
             email: req.body.email,
             phone: req.body.phone,
-            message: req.body.message,
-            support_phone_number : '',
-            support_email : 'support@myabhr.com'
+            message: req.body.message
+            
         }
                      /*   mail_helper.send('/welcome_email', option, data, function (err, res) {
                             if (err) {
@@ -1530,7 +1529,7 @@ router.post('/contactform', async (req, res, next) => {
                             token: token
                         };
                         res.status(config.OK_STATUS).json(result);*/
-                    let mail_resp = await mail_helper.sendEmailContactform("email_verification", option, data);
+                    let mail_resp = await mail_helper.sendEmailContactform("contact_form", option, data);
         console.log("mail_resp=======> ",mail_resp);
         if (mail_resp.status === 'success') {
             res.status(config.OK_STATUS).json({ status: 'success', message: "Thank you,we will contact you soon" })
