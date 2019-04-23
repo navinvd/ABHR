@@ -1353,7 +1353,9 @@ router.post('/returning_v3', async (req, res) => {
             }
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
             var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj1 });
-
+            //code added by hemanth
+            var carBookingData = await CarBooking.findOne({ 'booking_number': req.body.booking_number }).lean().exec();
+            var BookId = carBookingData._id;
             if (booking_details && booking_details.n > 0) {
                 var cond = { 'booking_number': req.body.booking_number, 'assign_for_receive': true }
                 var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
@@ -1375,7 +1377,7 @@ router.post('/returning_v3', async (req, res) => {
                 var status = 1;
                 console.log('Dev Token=>', deviceToken);
                 if (userDeviceToken[0].deviceType === 'ios') {
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg, status);
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, BookId, notificationType, msg, status);
 
                     /* save notification to db start */
                     // if (deviceToken !== null) {
@@ -1393,7 +1395,7 @@ router.post('/returning_v3', async (req, res) => {
 
 
                 } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), msg, status);
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, BookId, msg, status);
 
                     /* save notification to db start */
                     //  if (deviceToken !== null) {
@@ -2689,6 +2691,9 @@ router.post('/delivering_v3', async (req, res) => {
 
             var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
             var deviceToken = null;
+            //code added by hemanth
+            var carBookingData = await CarBooking.findOne({ 'booking_number': req.body.booking_number }).lean().exec();
+            var BookId = carBookingData._id;
 //var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj1 });
             // Push notification //
             console.log('User token =>', userData);
@@ -2701,7 +2706,7 @@ router.post('/delivering_v3', async (req, res) => {
                     var msg = "Your car is on the way. Tap here to track the car";
                     var status = 1;
                     if (userData[0].deviceType === 'ios') {
-                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, req.body.booking_number, notificationType, msg, status);
+                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, BookId, notificationType, msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
@@ -2719,7 +2724,7 @@ router.post('/delivering_v3', async (req, res) => {
 
 
                     } else if (userData[0].deviceType === 'android') {
-                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), msg, status);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, BookId, msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
