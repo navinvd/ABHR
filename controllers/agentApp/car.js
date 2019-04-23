@@ -1393,7 +1393,7 @@ router.post('/returning_v3', async (req, res) => {
 
 
                 } else if (userDeviceToken[0].deviceType === 'android') {
-                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg, status);
+                    var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), msg, status);
 
                     /* save notification to db start */
                     //  if (deviceToken !== null) {
@@ -2719,7 +2719,7 @@ var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.bo
 
 
                     } else if (userData[0].deviceType === 'android') {
-                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, req.body.booking_number, msg, status);
+                        var sendNotification = await pushNotificationHelper.sendToAndroidUser(deviceToken, parseInt(req.body.booking_number), msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
