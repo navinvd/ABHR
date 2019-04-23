@@ -1353,7 +1353,7 @@ router.post('/returning_v3', async (req, res) => {
             }
             // var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: { 'trip_status': 'delivering' } });
             var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: obj1 });
-
+            var bookinghemanth = await CarBooking.find({ 'booking_number': req.body.booking_number }).lean().exec();
             if (booking_details && booking_details.n > 0) {
                 var cond = { 'booking_number': req.body.booking_number, 'assign_for_receive': true }
                 var CarAssignData = await CarAssign.updateOne(cond, { $set: { 'trip_status': 'returning' } });
@@ -1375,7 +1375,7 @@ router.post('/returning_v3', async (req, res) => {
                 var status = 1;
                 console.log('Dev Token=>', deviceToken);
                 if (userDeviceToken[0].deviceType === 'ios') {
-                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, booking_details._id, notificationType, msg, status);
+                    var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, bookinghemanth._id, notificationType, msg, status);
 
                     /* save notification to db start */
                     // if (deviceToken !== null) {
@@ -2690,6 +2690,7 @@ router.post('/delivering_v3', async (req, res) => {
             var userData = await Users.find({ '_id': new ObjectId(req.body.user_id) }, { _id: 1, deviceToken: 1, phone_number: 1, deviceType: 1, email: 1, phone_number: 1 }).lean().exec();
             var deviceToken = null;
             var booking_details = await CarBooking.updateOne({ 'booking_number': req.body.booking_number }, { $set: locationData });
+            var bookinghemanth = await CarBooking.find({ 'booking_number': req.body.booking_number }).lean().exec();
             // Push notification //
             console.log('User token =>', userData);
             if (userData[0].deviceToken !== undefined && userData[0].deviceToken !== null) {
@@ -2701,7 +2702,7 @@ router.post('/delivering_v3', async (req, res) => {
                     var msg = "Your car is on the way. Tap here to track the car";
                     var status = 1;
                     if (userData[0].deviceType === 'ios') {
-                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, booking_details._id, notificationType, msg, status);
+                        var sendNotification = await pushNotificationHelper.sendToIOS(deviceToken, bookinghemanth._id, notificationType, msg, status);
 
                         /* save notification to db start */
                         // if (deviceToken !== null) {
