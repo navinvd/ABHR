@@ -1513,10 +1513,8 @@ router.post('/contactform', async (req, res, next) => {
             email: req.body.email,
             phone: req.body.phone,
             message: req.body.message,
-            support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
-            support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
-            carImagePath : config.CAR_IMAGES,
-            icons : config.ICONS
+            support_phone_number : '',
+            support_email : 'support@myabhr.com'
         }
                      /*   mail_helper.send('/welcome_email', option, data, function (err, res) {
                             if (err) {
