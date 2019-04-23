@@ -1443,8 +1443,7 @@ router.get('/checkbooking/:id', (req, res, next) => {
                         //return next(err);
                          res.status(config.OK_STATUS).json({
                              status: 'failed',
-                            message: "Error",
-                             errors
+                            message: "Error"
                          });
                         console.log('Empty');
                     }else{
