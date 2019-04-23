@@ -1512,8 +1512,9 @@ router.post('/contactform', async (req, res, next) => {
             name: req.body.name,
             email: req.body.email,
             phone: req.body.phone,
-            message: req.body.message
-            
+            message: req.body.message,
+            support_phone_number : '',
+            support_email : 'support@myabhr.com'
         }
                      /*   mail_helper.send('/welcome_email', option, data, function (err, res) {
                             if (err) {
