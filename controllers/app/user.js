@@ -1431,7 +1431,7 @@ router.get('/checkbooking/:id', (req, res, next) => {
                     if(data.trip_status == 'delivering'){
                         notitext = 'A Car is on the way to you';
                     }else
-                    if(data.trip_status == 'inprogress'){
+                    if(data.trip_status == 'upcoming'){
                         notitext = 'Our agent is picking your car up';
                     }else
                     if(data.trip_status == 'returning'){
@@ -1497,7 +1497,7 @@ router.post('/contactform', async (req, res, next) => {
             //app_user_status: "contact form"
         };
        
-
+            var superAdminData = await User.find({ 'type': 'admin', isDeleted: false }).lean().exec();
                         var option = {
                             to: 'hemanth@virtualdusk.com',
                             subject: 'ABHR - Contact Request Form'
@@ -1509,11 +1509,14 @@ router.post('/contactform', async (req, res, next) => {
                             message: req.body.message
                         }*/
                         var data = {
-            otp: Math.floor(100000 + Math.random() * 900000),
-            support_phone_number : '',
-            support_email : 'hemanth@gmail.com',
-            carImagePath : '',
-            icons : ''
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
+            message: req.body.message,
+            support_phone_number : superAdminData && superAdminData.length > 0 ? '+' + superAdminData[0].support_country_code + ' ' + superAdminData[0].support_phone_number : '',
+            support_email : superAdminData && superAdminData.length > 0 ? superAdminData[0].support_email : '',
+            carImagePath : config.CAR_IMAGES,
+            icons : config.ICONS
         }
                      /*   mail_helper.send('/welcome_email', option, data, function (err, res) {
                             if (err) {
