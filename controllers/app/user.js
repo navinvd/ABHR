@@ -1428,13 +1428,13 @@ router.get('/checkbooking/:id', (req, res, next) => {
                 if (err && booking_number!='') {
                     return next(err);
                 } else {
-                    if(notiData.notificationText == 'Your car is on the way. Tap here to track the car'){
+                    if(data.trip_status == 'delivering'){
                         notitext = 'A Car is on the way to you';
                     }else
-                    if(notiData.notificationText == 'Congratulations your car rental booking has been confirmed, our agent is on the way to pick your car up for you'){
+                    if(data.trip_status == 'inprogress'){
                         notitext = 'Our agent is picking your car up';
                     }else
-                    if(notiData.notificationText == 'Your agent is on returning track'){
+                    if(data.trip_status == 'returning'){
                         notitext = 'Our agent is on the way to you for pick up';
                     }else{
                         notitext = '';
