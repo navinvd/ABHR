@@ -32,7 +32,10 @@ var mailHelper = require('./../../helper/mail');
  * 
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
+
+
  */
+
 router.put('/', auth, function (req, res, next) {
     var schema = {
         'user_id': {
@@ -918,7 +921,7 @@ router.post('/export_report_list', async (req, res, next) => {
         })
 });
 
-
+//changes
 
 /**
  * @api {post} /admin/user/verify verify user license or id proof
@@ -977,5 +980,182 @@ router.post('/verify', async (req, res, next) => {
             error: errors
         });
     }
+});
+
+// code added by hemanth 
+
+router.get('/user_detail/:id', (req, res, next) => {
+       var carBookingId = new ObjectId(req.params.id);
+
+       var defaultQuery = [
+                { $match : { _id :carBookingId } },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'userId',
+                        foreignField: '_id',
+                        as: 'user_details'
+                    }
+                   
+                },
+            
+                {
+                    $unwind: {
+                        "path": "$user_details",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                 {
+                              $lookup: {
+                                    from: 'cars',
+                                    localField: 'carId',
+                                    foreignField: '_id',
+                                     as: 'car_details'
+                                 }
+                               
+                        },
+                 {
+                        $unwind: {
+                                "path": "$car_details",
+                              "preserveNullAndEmptyArrays": true
+                          }
+                  },
+                  {
+                    $lookup: {
+                          from: 'car_company',
+                          localField: 'carCompanyId',
+                          foreignField: '_id',
+                           as: 'car_company_details'
+                       }
+                     
+              }
+                  
+            ]
+       
+       CarBooking.aggregate(defaultQuery, function (err, data) {
+            if (err) {
+                return next(err);
+            } else {
+        
+                res.status(config.OK_STATUS).json({
+                    message: "Success",
+                    result: { data: data },
+                });
+            }
+        })
+
+});
+
+
+router.get('/handover_detail/:cid/:id', (req, res, next) => {
+
+
+    var carId = new ObjectId(req.params.cid);
+    var userId = new ObjectId(req.params.id);
+    // console.log(carId);
+    // console.log(userId);
+    CarHandover.findOne({ user_id: { $eq:userId },car_id: { $eq:carId } }, function (err, data) {
+        if (err) {
+            return next(err);
+        } else {
+
+            var agentId = ObjectId(data.agent_id);
+            //console.log(agentId);
+            User.findOne({ _id: { $eq:agentId }},{deviceType:0,password:0}, function (err, agentData) {
+                if (err) {
+                    return next(err);
+                } else {
+                    res.status(config.OK_STATUS).json({
+                        message: "Success",
+                        handoverData: data,
+                        agentData: agentData,
+                    });
+                }
+            });
+         
+        }
+    });
+
+    
+});
+
+
+
+router.get('/agent_to_company/:cid/:aid', (req, res, next) => {
+
+    var carId = new ObjectId(req.params.cid);
+    var agentId = new ObjectId(req.params.aid);
+  
+    // console.log(carId);
+    // console.log(userId);
+    CarHandover.findOne({ agent_id: { $eq:agentId },car_id: { $eq:carId } }, function (err, data) {
+        if (err) {
+            return next(err);
+        } else {
+
+            res.status(config.OK_STATUS).json({
+                message: "Success",
+                handoverData: data
+                
+            });
+
+             
+        }
+    });
+
+    
+});
+
+
+router.get('/company_to_agent/:cid/:companyid', (req, res, next) => {
+
+    var carId = new ObjectId(req.params.cid);
+    var companyId = new ObjectId(req.params.companyid);
+  
+    // console.log(carId);
+    // console.log(userId);
+    CarHandover.findOne({ user_id: { $eq:companyId },car_id: { $eq:carId } }, function (err, data) {
+        if (err) {
+            return next(err);
+        } else {
+
+            res.status(config.OK_STATUS).json({
+                message: "Success",
+                handoverData: data
+                
+            });
+
+     
+         
+        }
+    });
+
+    
+});
+
+
+router.get('/agent_to_user/:cid/:userId/:agentId', (req, res, next) => {
+
+    var carId = new ObjectId(req.params.cid);
+    var userId = new ObjectId(req.params.userId);
+    var agentId = new ObjectId(req.params.agentId);
+  
+    // console.log(carId);
+    // console.log(userId);
+    CarHandover.findOne({ user_id: { $eq:userId },car_id: { $eq:carId },agent_id: { $eq:agentId } }, function (err, data) {
+        if (err) {
+            return next(err);
+        } else {
+
+            res.status(config.OK_STATUS).json({
+                message: "Success",
+                handoverData: data
+                
+            });
+                 
+        }
+    });
+
+    
 });
 module.exports = router;
