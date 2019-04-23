@@ -118,41 +118,25 @@ mail_helper.Resend_Invoice = async (template_name, options, data) => {
 };
 
 // sendEmail for contactform added by hemanth
+
 mail_helper.sendEmailContactform = async (template_name, options, data) => {
 
     var template_sender = transporter.templateSender(new EmailTemplate('emails/' + template_name), {
         from: "ABHR <noreply@gmail.com>"
     });
-
-    // return template_sender({
-    //     to : options.to,
-    //     subject: options.subject,
-    // },data).then(function(info){
-
-    //     // update query here
-
-    //     console.log('DATATA=>',info);
-    //     return {"status":1,"message":info};
-    // }).catch(function(err){
-    //     console.log('Error=>',err);
-    //     // return { status: 'failed', message: "Error occured while sending otp" }
-    //     return {"status":0,"error":err};
-    // });
-
-
     try {
+        // console.log("Mail DAta :",data);
+        // data = JSON.parse(JSON.stringify(data));
+
+//         console.log("DATATATATATAT=======> ",data);
+        data = JSON.parse(JSON.stringify(data));
         var email_data = await template_sender({ to: options.to, subject: options.subject }, data);
-        console.log("DATATATATATAT=======> ",email_data);
-        /*var id = { _id: new ObjectId(user_id) }
-        // var new_data = { $set: { otp_email: data.otp, is_email_verified: false } };
-        var new_data = { $set: { otp_email: data.otp, email_verified: 1 } };
-        var datta = await User.update(id, new_data);*/
-        
-        return { status: 'success', message: "Email has been sent"}  
+        return { status: 'success', message: "Email has been sent"}      
     }
     catch (err) {
-        return { status: 'failed', message: "Error" }
+        return { status: 'failed', message: "Error occured while sending email", error : err }
     }
 };
+
 
 module.exports = mail_helper
