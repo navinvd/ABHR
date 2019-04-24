@@ -1499,7 +1499,7 @@ router.post('/contactform', async (req, res, next) => {
        
             var superAdminData = await User.find({ 'type': 'admin', isDeleted: false }).lean().exec();
                         var option = {
-                            to: 'hemanth@virtualdusk.com',
+                            to: 'info@myabhr.com',
                             subject: 'ABHR - Contact Request Form'
                         }
                        /* var data = {
