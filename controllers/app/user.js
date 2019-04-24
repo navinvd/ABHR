@@ -243,7 +243,7 @@ router.post('/count-unread-notification', async (req, res) => {
                 res.status(config.OK_STATUS).json({ status: "success", message: "Unread notifications has been counted", data: { count: notificationResp.length } });
             }
             else {
-                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Unread notifications has not been counted" });
+                res.status(config.OK_STATUS).json({ status: "failed", message: "Unread notifications has not been counted" });
             }
         }
         catch (err) {
