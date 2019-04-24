@@ -665,7 +665,7 @@ router.post('/report_list', async (req, res, next) => {
                 }
             }else{
                 colname = '$' + colname;
-                if (order == "asc") {
+                if (order == "desc") {
                     defaultQuery = defaultQuery.concat({
                         $project: {
                             "records": "$$ROOT",
