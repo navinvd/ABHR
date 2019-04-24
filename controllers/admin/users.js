@@ -3,6 +3,7 @@ var router = express.Router();
 var config = require('./../../config');
 var User = require('./../../models/users');
 var CarBooking = require('./../../models/car_booking');
+var CarHandover = require('./../../models/car_hand_over');
 var path = require('path');
 var async = require("async");
 var ObjectId = require('mongoose').Types.ObjectId;
