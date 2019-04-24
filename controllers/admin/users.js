@@ -654,7 +654,7 @@ router.post('/report_list', async (req, res, next) => {
             var colname = req.body.columns[colIndex].name;
             var order = req.body.order[0].dir;
             if(req.body.columns[colIndex].isNumber){
-                if(order == "desc"){
+                if(order == "asc"){
                     defaultQuery = defaultQuery.concat({
                         $sort: { [colname]: 1 }
                     });
