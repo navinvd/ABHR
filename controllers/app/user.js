@@ -1476,9 +1476,9 @@ router.get('/checkbookingnew/:id', async(req, res, next) => {
                     $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(req.params.id),
-                /*'from_time': {
+                'from_time': {
                     $lte: new Date(),
-                },*/
+                },
                 'trip_status': { $in: ['delivering', 'inprogress', 'returning'] }
             }
       },
