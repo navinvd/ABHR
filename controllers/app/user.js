@@ -1417,7 +1417,7 @@ router.post('/new-password', async (req, res) => {
 router.get('/checkbooking/:id', (req, res, next) => {
        var userId = new ObjectId(req.params.id);
        var notitext = '';
-        CarBooking.findOne({ userId: { $eq:userId }},null}, function (err, data) {
+        CarBooking.findOne({ userId: { $eq:userId }}, function (err, data) {
         if (err) {
             return next(err);
         } else {
@@ -1426,50 +1426,11 @@ router.get('/checkbooking/:id', (req, res, next) => {
                         message: "Success",
                         //bookingData: data,
                         data: {
-                            booking_data: data,
+                            booking_data: data
                            // notificationText: notitext
                         }
                     });
-//console.log(data);
-           /* var booking_number = data.booking_number;
-           // console.log(booking_number);
-            Notifications.findOne({ booking_number: { $eq:booking_number }},null,{sort: {createdAt: -1 }}, function (err, notiData) {
-                if (err && booking_number!='') {
-                    return next(err);
-                } else {
-                    if(data.trip_status == 'delivering'){
-                        notitext = 'A Car is on the way to you';
-                    }else
-                    if(data.trip_status == 'upcoming'){
-                        notitext = 'Our agent is picking your car up';
-                    }else
-                    if(data.trip_status == 'returning'){
-                        notitext = 'Our agent is on the way to you for pick up';
-                    }else{
-                        notitext = '';
-                    }
-                    if(notitext == ''){
-                        //return next(err);
-                         res.status(config.OK_STATUS).json({
-                             status: 'failed',
-                            message: "Error"
-                         });
-                        
-                    }else{
-                        res.status(config.OK_STATUS).json({
-                        status: 'success',
-                        message: "Success",
-                        //bookingData: data,
-                        data: {
-                            booking_number: notiData.booking_number,
-                            notificationText: notitext
-                        }
-                    });
-                        
-                    }
-                    
-                }
-            });*/
+
          
         }
     });
