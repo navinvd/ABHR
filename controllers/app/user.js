@@ -1417,9 +1417,9 @@ router.post('/new-password', async (req, res) => {
 router.get('/checkbooking/:id', (req, res, next) => {
        var userId = new ObjectId(req.params.id);
        var notitext = '';
-        CarBooking.findOne({ userId: { $eq:userId },'from_time': {
+        CarBooking.findOne({ userId: { $eq:userId },/*'from_time': {
                     $lte: new Date(),
-                },
+                },*/
                 'trip_status': { $in: ['delivering', 'upcoming', 'returning'] }},null,{sort: {from_time : -1 }}, function (err, data) {
         if (err) {
             return next(err);
@@ -1476,9 +1476,9 @@ router.get('/checkbookingnew/:id', async(req, res, next) => {
                     $match: {
                 'isDeleted': false,
                 'userId': new ObjectId(req.params.id),
-                'from_time': {
+                /*'from_time': {
                     $lte: new Date(),
-                },
+                },*/
                 'trip_status': { $in: ['delivering', 'inprogress', 'returning'] }
             }
       },
