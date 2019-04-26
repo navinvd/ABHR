@@ -715,7 +715,7 @@ router.post('/report_list', async (req, res, next) => {
             } else {
                 res.status(config.OK_STATUS).json({
                     message: "Success",
-                    result: { recordsTotal: totalrecords.length, data: data }
+                    result: { data: data, recordsTotal: totalrecords.length }
                 });
             }
         })
