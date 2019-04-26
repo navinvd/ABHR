@@ -1414,7 +1414,7 @@ router.post('/new-password', async (req, res) => {
 });
 
 /* hemanth added code 22-04-2019*/
-router.get('/checkbooking/:id', (req, res, next) => {
+/*router.get('/checkbooking/:id', (req, res, next) => {
        var userId = new ObjectId(req.params.id);
        var notitext = '';
         CarBooking.findOne({ userId: { $eq:userId }},null,{sort: {createdAt: -1 }}, function (err, data) {
@@ -1465,8 +1465,46 @@ router.get('/checkbooking/:id', (req, res, next) => {
         }
     });
 
-});
+});*/
+router.get('/checkbooking/:id', async(req, res, next) => {
+       var userId = new ObjectId(req.params.id);
+       var notitext = '';
+            var defaultQuery = [
+      {
+                    $match: {
+                'isDeleted': false,
+                'userId': new ObjectId(req.params.id),
+                'from_time': {
+                    $lte: new Date(),
+                },
+                'trip_status': { $in: ['delivering', 'upcoming', 'returning'] }
+            }
+      },
+                {
+                    $sort : {
+                        from_time : -1
+                    }
+                }
+        
+    ];
 
+
+  //  console.log('Default Query :-', JSON.stringify(defaultQuery));
+
+    try {
+        let bookdata = await CarBooking.aggregate(defaultQuery);
+ //console.log('data  :-', (bookdata));
+        
+        if(bookdata && bookdata.length > 0){
+                res.status(config.OK_STATUS).json({ status: "success", message: "Booking history has been found", data: { bookingdetails: bookdata} });
+            }
+            else{
+                res.status(config.BAD_REQUEST).json({ status: "failed", message: "Booking history has not been found" });
+            }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while fetching car booking history" };
+    }
+});
 router.post('/contactform', async (req, res, next) => {
     var schema = {
         'name': {
