@@ -1438,9 +1438,9 @@ router.get('/checkbooking/:id', (req, res, next) => {
 });
 router.get('/checkbookings/:id', async (req, res) => {
     var userId = new ObjectId(req.params.id);
-    
+    var user = req.params.id;
     if (!errors) {
-        const bookingResp = await userHelper.getAllBookings(userId);
+        const bookingResp = await userHelper.getAllBookings(user);
         if (bookingResp.status === 'success') {
             res.status(config.OK_STATUS).json(bookingResp);
         }
