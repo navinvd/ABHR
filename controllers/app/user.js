@@ -1436,7 +1436,25 @@ router.get('/checkbooking/:id', (req, res, next) => {
     });
 
 });
+router.get('/checkbookings/:id', async (req, res) => {
+    var userId = new ObjectId(req.params.id);
+    
+    if (!errors) {
+        const bookingResp = await userHelper.getAllBookings(userId);
+        if (bookingResp.status === 'success') {
+            res.status(config.OK_STATUS).json(bookingResp);
+        }
+        else {
+            res.status(config.BAD_REQUEST).json(bookingResp);
+        }
 
+    } else {
+        res.status(config.BAD_REQUEST).json({
+            status: 'failed',
+            message: "userId required",
+        });
+    }
+});
 router.post('/contactform', async (req, res, next) => {
     var schema = {
         'name': {

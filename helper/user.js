@@ -334,7 +334,29 @@ userHelper.newPassword = async function (user_id, password) {
     }
 };
 
-
+userHelper.getAllBookings = async function (userId) {
+    try {
+        const bookings = await CarBooking.find({
+                'isDeleted': false,
+                'userId': userId,
+                // add later
+                // 'from_time': {
+                //     $eq: moment().utcOffset(0).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISOString()
+                // },
+                'from_time': {
+                    $lte: new Date(),
+                },
+                'trip_status': { $nin: ['delivering', 'upcoming', 'returning'] }
+            });
+        if (bookings && bookings.length > 0) {
+            return { status: 'success', message: "notification data found", data: { bookings: bookings } }
+        } else {
+            return { status: 'failed', message: "No notification available" };
+        }
+    } catch (err) {
+        return { status: 'failed', message: "Error occured while finding notifications", err };
+    }
+};
 
 
 module.exports = userHelper;
