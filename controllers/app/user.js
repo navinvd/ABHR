@@ -1420,14 +1420,14 @@ router.get('/checkbooking/:id', (req, res, next) => {
         CarBooking.findOne({ userId: { $eq:userId },/*'from_time': {
                     $lte: new Date(),
                 },*/
-                'trip_status': { $in: ['delivering', 'inprogress', 'returning'] }},null, function (err, data) {
+                'trip_status': { $in: ['delivering', 'upcoming', 'returning'] }},null, function (err, data) {
         if (err) {
             return next(err);
         } else {
             if(data.trip_status == 'delivering'){
                         notitext = 'A Car is on the way to you';
                     }else
-                    if(data.trip_status == 'inprogress'){
+                    if(data.trip_status == 'upcoming'){
                         notitext = 'Our agent is picking your car up';
                     }else
                     if(data.trip_status == 'returning'){
