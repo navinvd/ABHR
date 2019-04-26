@@ -1417,44 +1417,56 @@ router.post('/new-password', async (req, res) => {
 router.get('/checkbooking/:id', (req, res, next) => {
        var userId = new ObjectId(req.params.id);
        var notitext = '';
-        CarBooking.findOne({ userId: { $eq:userId }}, function (err, data) {
+        CarBooking.findOne({ userId: { $eq:userId }},null,{sort: {createdAt: -1 }}, function (err, data) {
         if (err) {
             return next(err);
         } else {
-            res.status(config.OK_STATUS).json({
+//console.log(data);
+            var booking_number = data.booking_number;
+           // console.log(booking_number);
+            Notifications.findOne({ booking_number: { $eq:booking_number }},null,{sort: {createdAt: -1 }}, function (err, notiData) {
+                if (err && booking_number!='') {
+                    return next(err);
+                } else {
+                    if(data.trip_status == 'delivering'){
+                        notitext = 'A Car is on the way to you';
+                    }else
+                    if(data.trip_status == 'upcoming'){
+                        notitext = 'Our agent is picking your car up';
+                    }else
+                    if(data.trip_status == 'returning'){
+                        notitext = 'Our agent is on the way to you for pick up';
+                    }else{
+                        notitext = '';
+                    }
+                    if(notitext == ''){
+                        //return next(err);
+                         res.status(config.OK_STATUS).json({
+                             status: 'failed',
+                            message: "Error"
+                         });
+                        
+                    }else{
+                        res.status(config.OK_STATUS).json({
                         status: 'success',
                         message: "Success",
                         //bookingData: data,
                         data: {
-                            booking_data: data
-                           // notificationText: notitext
+                            booking_number: notiData.booking_number,
+                            notificationText: notitext
                         }
                     });
-
+                        
+                    }
+                    
+                }
+            });
          
         }
     });
 
 });
-router.get('/checkbookings/:id', async (req, res) => {
-    var userId = new ObjectId(req.params.id);
-    var user = req.params.id;
-    if (!errors) {
-        const bookingResp = await userHelper.getAllBookings(user);
-        if (bookingResp.status === 'success') {
-            res.status(config.OK_STATUS).json(bookingResp);
-        }
-        else {
-            res.status(config.BAD_REQUEST).json(bookingResp);
-        }
 
-    } else {
-        res.status(config.BAD_REQUEST).json({
-            status: 'failed',
-            message: "userId required",
-        });
-    }
-});
 router.post('/contactform', async (req, res, next) => {
     var schema = {
         'name': {
