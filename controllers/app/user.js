@@ -1427,7 +1427,7 @@ router.get('/checkbooking/:id', (req, res, next) => {
             if(data.trip_status == 'delivering'){
                         notitext = 'A Car is on the way to you';
                     }else
-                    if(data.trip_status == 'upcoming'){
+                    if(data.trip_status == 'inprogress'){
                         notitext = 'Our agent is picking your car up';
                     }else
                     if(data.trip_status == 'returning'){
@@ -1479,7 +1479,7 @@ router.get('/checkbookingnew/:id', async(req, res, next) => {
                 'from_time': {
                     $lte: new Date(),
                 },
-                'trip_status': { $in: ['delivering', 'upcoming', 'returning'] }
+                'trip_status': { $in: ['delivering', 'inprogress', 'returning'] }
             }
       },
                 {
