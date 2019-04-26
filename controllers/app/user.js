@@ -1420,7 +1420,7 @@ router.get('/checkbooking/:id', (req, res, next) => {
         CarBooking.findOne({ userId: { $eq:userId },/*'from_time': {
                     $lte: new Date(),
                 },*/
-                'trip_status': { $in: ['delivering', 'inprogress', 'returning'] }},null,{sort: {from_time : -1 }}, function (err, data) {
+                'trip_status': { $in: ['delivering', 'inprogress', 'returning'] }},null}, function (err, data) {
         if (err) {
             return next(err);
         } else {
