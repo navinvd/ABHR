@@ -1414,21 +1414,17 @@ router.post('/new-password', async (req, res) => {
 });
 
 /* hemanth added code 22-04-2019*/
-/*router.get('/checkbooking/:id', (req, res, next) => {
+router.get('/checkbooking/:id', (req, res, next) => {
        var userId = new ObjectId(req.params.id);
        var notitext = '';
-        CarBooking.findOne({ userId: { $eq:userId }},null,{sort: {createdAt: -1 }}, function (err, data) {
+        CarBooking.findOne({ userId: { $eq:userId },'from_time': {
+                    $lte: new Date(),
+                },
+                'trip_status': { $in: ['delivering', 'upcoming', 'returning'] }},null,{sort: {from_time : -1 }}, function (err, data) {
         if (err) {
             return next(err);
         } else {
-//console.log(data);
-            var booking_number = data.booking_number;
-           // console.log(booking_number);
-            Notifications.findOne({ booking_number: { $eq:booking_number }},null,{sort: {createdAt: -1 }}, function (err, notiData) {
-                if (err && booking_number!='') {
-                    return next(err);
-                } else {
-                    if(data.trip_status == 'delivering'){
+            if(data.trip_status == 'delivering'){
                         notitext = 'A Car is on the way to you';
                     }else
                     if(data.trip_status == 'upcoming'){
@@ -1452,21 +1448,29 @@ router.post('/new-password', async (req, res) => {
                         message: "Success",
                         //bookingData: data,
                         data: {
-                            booking_number: notiData.booking_number,
+                            booking_number: data.booking_number,
                             notificationText: notitext
                         }
                     });
                         
                     }
+//console.log(data);
+            /*var booking_number = data.booking_number;
+           // console.log(booking_number);
+            Notifications.findOne({ booking_number: { $eq:booking_number }},null,{sort: {createdAt: -1 }}, function (err, notiData) {
+                if (err && booking_number!='') {
+                    return next(err);
+                } else {
+                    
                     
                 }
-            });
+            });*/
          
         }
     });
 
-});*/
-router.get('/checkbooking/:id', async(req, res, next) => {
+});
+router.get('/checkbookingnew/:id', async(req, res, next) => {
             var defaultQuery = [
       {
                     $match: {
