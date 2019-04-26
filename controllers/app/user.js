@@ -1417,12 +1417,21 @@ router.post('/new-password', async (req, res) => {
 router.get('/checkbooking/:id', (req, res, next) => {
        var userId = new ObjectId(req.params.id);
        var notitext = '';
-        CarBooking.findOne({ userId: { $eq:userId }},null,{sort: {createdAt: -1 }}, function (err, data) {
+        CarBooking.findOne({ userId: { $eq:userId }},null}, function (err, data) {
         if (err) {
             return next(err);
         } else {
+            res.status(config.OK_STATUS).json({
+                        status: 'success',
+                        message: "Success",
+                        //bookingData: data,
+                        data: {
+                            booking_data: data,
+                           // notificationText: notitext
+                        }
+                    });
 //console.log(data);
-            var booking_number = data.booking_number;
+           /* var booking_number = data.booking_number;
            // console.log(booking_number);
             Notifications.findOne({ booking_number: { $eq:booking_number }},null,{sort: {createdAt: -1 }}, function (err, notiData) {
                 if (err && booking_number!='') {
@@ -1460,7 +1469,7 @@ router.get('/checkbooking/:id', (req, res, next) => {
                     }
                     
                 }
-            });
+            });*/
          
         }
     });
