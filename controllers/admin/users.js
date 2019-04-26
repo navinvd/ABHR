@@ -707,9 +707,9 @@ router.post('/report_list', async (req, res, next) => {
                 "$limit": req.body.length
             })
         }
-        // console.log('defaultQuery===>', JSON.stringify(defaultQuery));
+         console.log('defaultQuery===>', JSON.stringify(defaultQuery));
         CarBooking.aggregate(defaultQuery, function (err, data) {
-            // console.log('data===>', data);
+             console.log('data===>', data);
             if (err) {
                 return next(err);
             } else {
