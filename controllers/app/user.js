@@ -1467,8 +1467,6 @@ router.post('/new-password', async (req, res) => {
 
 });*/
 router.get('/checkbooking/:id', async(req, res, next) => {
-       var userId = new ObjectId(req.params.id);
-       var notitext = '';
             var defaultQuery = [
       {
                     $match: {
@@ -1487,8 +1485,6 @@ router.get('/checkbooking/:id', async(req, res, next) => {
                 }
         
     ];
-
-
   //  console.log('Default Query :-', JSON.stringify(defaultQuery));
 
     try {
