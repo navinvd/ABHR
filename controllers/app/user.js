@@ -1479,7 +1479,7 @@ router.get('/checkbookingnew/:id', async(req, res, next) => {
                 'from_time': {
                     $lte: new Date(),
                 },
-                'trip_status': { $in: ['delivering', 'inprogress', 'returning'] }
+                'trip_status': { $in: ['delivering', 'upcoming', 'returning'] }
             }
       },
                 {
@@ -1494,6 +1494,7 @@ router.get('/checkbookingnew/:id', async(req, res, next) => {
     try {
         let bookdata = await CarBooking.aggregate(defaultQuery);
  //console.log('data  :-', (bookdata));
+        
         
         if(bookdata && bookdata.length > 0){
                 res.status(config.OK_STATUS).json({ status: "success", message: "Booking history has been found", data: { bookingdetails: bookdata} });
