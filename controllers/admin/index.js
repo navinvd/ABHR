@@ -26,6 +26,7 @@ var transaction = require('./transaction');
 var tracking = require('./car_tracking');
 var help = require('./user_help');
 var report = require('./car_report');
+var language = require('./language');
 
 router.use('/user', users);
 router.use('/keyword', keywords);
@@ -40,6 +41,7 @@ router.use('/transaction', transaction);
 router.use('/tracking', tracking);
 router.use('/help', help);
 router.use('/reports', report);
+router.use('/language', language);
 
 //models
 var User = require('./../../models/users');
