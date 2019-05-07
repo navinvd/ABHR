@@ -278,7 +278,7 @@ router.post('/addlanguagemsg', async (req, res) => {
     }
 });
 
-/* router.post('/updatelanguagemsg', async (req, res) => {
+router.post('/updatelanguagemsg', async (req, res) => {
 
     const updates  =req.body;
     console.log(updates);
@@ -300,7 +300,7 @@ router.post('/addlanguagemsg', async (req, res) => {
          });
        // console.log(res.insertedCount, res.modifiedCount, res.deletedCount);
     });
-});*/
+});
 
 router.post('/languagelist', async (req, res, next) => {
     console.log('here==================>');
