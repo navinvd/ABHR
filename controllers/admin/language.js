@@ -301,7 +301,7 @@ router.post('/updatelanguagemsg', async (req, res) => {
        // console.log(res.insertedCount, res.modifiedCount, res.deletedCount);
     });
 });
-
+// not using
 router.post('/languagelist', async (req, res, next) => {
     console.log('here==================>');
     var schema = {
