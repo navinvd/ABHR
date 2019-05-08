@@ -11,6 +11,8 @@ user_help_Helper.AddArticle = async (insertData) => {
         var data = {
             topic : insertData.topic,
             description : insertData.description,
+            topic_arabic : insertData.topic_arabic,
+            description_arabic : insertData.description_arabic,
             userId: insertData.userId,
             userType: insertData.userType
         }
