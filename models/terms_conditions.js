@@ -8,6 +8,10 @@ var TNCShema = new Schema({
     copyright: { type: String, default: null },
     term_condition: { type: String, default: null },
     privacy_policy: { type: String, default: null },
+    about_us_arabic: { type: String, default: null },
+    copyright_arabic: { type: String, default: null },
+    term_condition_arabic: { type: String, default: null },
+    privacy_policy_arabic: { type: String, default: null },
     isDeleted: {
         type: Boolean,
         default: false
