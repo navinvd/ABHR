@@ -17,7 +17,7 @@ ReportHelper.addCategory = async (data) => {
 
 // update category 
 ReportHelper.updateCategory = async (data) => {
-    let category = await ReportCategory.update({ "_id": data.category_id , isDeleted: false}, { $set: { "category_name": data.category_name}});
+    let category = await ReportCategory.update({ "_id": data.category_id , isDeleted: false}, { $set: { "category_name": data.category_name, "category_name_arabic": data.category_name_arabic}});
     if (category) {
         return { status: 'success', message: "Category updated successfully" }
     }
