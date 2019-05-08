@@ -206,11 +206,19 @@ router.post('/add', async (req, res) => {
     var schema = {
         'topic':{
             notEmpty: true,
-            errorMessage: "Please enter topic",
+            errorMessage: "Please enter topic for English",
+        },
+        'topic_arabic':{
+            notEmpty: true,
+            errorMessage: "Please enter topic for Arabic",
         },
         'description':{
             notEmpty: true,
-            errorMessage: "Please enter description",
+            errorMessage: "Please enter description for English",
+        },
+        'description_arabic':{
+            notEmpty: true,
+            errorMessage: "Please enter description for Arabic",
         },
         'userId': {
             notEmpty: true,
