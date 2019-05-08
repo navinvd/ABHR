@@ -9,6 +9,12 @@ var helpSchema = new Schema({
     description: {
         type: String
     },
+    topic_arabic: {
+        type: String
+    },
+    description_arabic: {
+        type: String
+    },
     userId: {
         type: mongoose.Schema.Types.ObjectId
     },
