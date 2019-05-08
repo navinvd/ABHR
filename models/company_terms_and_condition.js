@@ -11,6 +11,10 @@ var CompanyTermsAndConditionSchema = new Schema({
         type: String,
         required: true
     },
+    terms_and_conditions_arabic: {
+        type: String,
+        required: true
+    },
     cancellation_policy_criteria: [{ hours: {type: Number}, rate: {type: Number} }],
     isDeleted: {
         type: Boolean,
