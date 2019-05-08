@@ -8,6 +8,10 @@ var ReportCategorySchema = new Schema({
         type: String,
         required: true
     },
+    category_name_arabic: {
+        type: String,
+        required: true
+    },
     isDeleted: {
         type: Boolean,
         default: false
