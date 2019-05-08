@@ -197,7 +197,11 @@ router.post('/add/category', async (req, res) => {
     var schema = {
         'category_name': {
             notEmpty: true,
-            errorMessage: "Please enter coupon code",
+            errorMessage: "Please enter category name english",
+        },
+        'category_name_arabic': {
+            notEmpty: true,
+            errorMessage: "Please enter category name arabic",
         }
     };
     req.checkBody(schema);
