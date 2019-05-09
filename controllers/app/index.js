@@ -5,6 +5,7 @@ var path = require('path');
 var async = require("async");
 var User = require('./../../models/users');
 var Notification = require('./../../models/car_notification_settings');
+var Term_Condition = require('./../../models/terms_conditions');
 var Company = require('./../../models/car_company');
 var config = require('./../../config');
 var jwt = require('jsonwebtoken');
@@ -786,7 +787,7 @@ router.post('/help-v2', async (req, res) => {
  * @apiSuccess (Success 200) {String} message Success message.
  * @apiError (Error 4xx) {String} message Validation or error message.
  */
-
+/*
 router.post('/aboutus', async (req, res) => {
     var schema = {
         'help_type': {
@@ -813,8 +814,108 @@ router.post('/aboutus', async (req, res) => {
         });
     }
 });
+*/
+router.post('/aboutus', async (req, res) => {
+    var schema = {
+        'help_type': {
+            notEmpty: true,
+            errorMessage: "Enter type from one of this (0, 1, 2, 3)"
+        },
+		'lan_id': {
+            notEmpty: true,
+            errorMessage: "Enter language from one of this (6, 7)"
+        }
+    };
 
+    req.checkBody(schema);
+    var errors = req.validationErrors();
+	var help_type = req.body.help_type;
+	var lan_id = req.body.lan_id;
 
+	var setKey = '';
+		var generic = '';
+        if(help_type == 0){
+			generic = 'about_us'
+			if(lan_id == 7){
+				setKey = 'about_us_arabic';
+			}else{
+				setKey = 'about_us';
+			}
+            
+        }
+        else if(help_type == 1){
+			generic = 'copyright'
+			if(lan_id == 7){
+				setKey = 'copyright_arabic';
+			}else{
+				setKey = 'copyright';
+			}
+        }   
+        else if(help_type == 2){
+           generic = 'term_condition';
+			if(lan_id == 7){
+				setKey = 'term_condition_arabic';
+			}else{
+				setKey = 'term_condition';
+			}
+        }   
+        else if(help_type == 3){
+           generic = 'privacy_policy'
+			if(lan_id == 7){
+				setKey = 'privacy_policy_arabic'
+			}else{
+				setKey = 'privacy_policy'
+			}
+        }
+        else{
+			generic = 'about_us'
+			if(lan_id == 7){
+				setKey = 'about_us_arabic'
+			}else{
+				setKey = 'about_us'
+			} 
+        }   
+		
+        let obj = {};
+        obj[`${setKey}`] = 1;
+        obj[`_id`] = 0;
+		 const data = await Term_Condition.findOne({},obj);
+		 //console.log(setKey);
+		var myJSON = JSON.stringify(data);
+		 var objectValue = JSON.parse(myJSON);
+		 
+		  var exp={};
+		
+		 if(setKey == "about_us"){			
+			 exp.about_us=data.about_us;
+		 }else if(setKey == "about_us_arabic"){
+		// console.log(objectValue.about_us_arabic);
+			exp.about_us = objectValue.about_us_arabic;
+		 }else if(setKey == "copyright"){			
+			 exp.copyright=data.copyright;
+		 } else if(setKey == "copyright_arabic"){
+			 exp.copyright=objectValue.copyright_arabic;
+		 }else if(setKey == "term_condition"){			
+			 exp.term_condition=data.term_condition;
+		 } else if(setKey == "term_condition_arabic"){
+			 exp.term_condition=objectValue.term_condition_arabic;
+		 }else if(setKey == "privacy_policy"){			
+			 exp.privacy_policy=data.privacy_policy;
+		 } else if(setKey == "privacy_policy_arabic"){
+			 exp.privacy_policy=objectValue.privacy_policy_arabic;
+		 }else{			 
+			  exp.about_us = data.about_us;
+		 }
+		 
+		   res.status(config.OK_STATUS).json({
+            status: 'success',
+            message: "Help has been found",		
+            data:{data:exp}
+           
+		 });
+		
+	
+});
 /**
  * @api {get} /app/support support
  * @apiName support

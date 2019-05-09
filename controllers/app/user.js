@@ -1596,5 +1596,27 @@ router.post('/contactform', async (req, res, next) => {
     }
 });
 
+// get the language message api
+router.get('/language_details', async (req, res) => {
+    Language.find({ "isDeleted": false }, function (err, data) {
+        if (err) {
+            return next(err);
+        } else {  
+            var array = [];
+        
+          const copy = [];
+          for (let i=0; i<data.length; i++) {
 
+            copy.push({msg_constant: data[i].msg_constant, language_message_english: data[i].language_message_english, language_message_arabic: data[i].language_message_arabic});
+          }
+              
+            res.status(config.OK_STATUS).json({
+                status: "success",
+                message: "language Details data Found",
+                data: copy
+                     
+            });
+        }
+    });
+});
 module.exports = router;
